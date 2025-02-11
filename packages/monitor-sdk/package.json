@@ -1,0 +1,23 @@
+{
+  "name": "@liushi-monitor/monitor-sdk",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/monitor.cjs.js",
+  "module": "dist/monitor-sdk.esm.js",
+  "buildOptions": {
+    "name": "monitor-sdk",
+    "formats": [
+      "esm",
+      "cjs"
+    ]
+  },
+  "publishConfig": {
+    "main": "dist/index.ts"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
