@@ -1,0 +1,24 @@
+{
+  // 配置root后就不会向上寻找配置
+  "root": true,
+  // ts 解释器
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "extends": [
+    // eslint官方扩展，无需再安装npm包就可使用
+    "eslint:recommended",
+    // 通过使用这个扩展，可以继续利用 ESLint 的核心推荐规则集，同时避免与 TypeScript 类型系统的检查产生不必要的冲突
+    "plugin:@typescript-eslint/eslint-recommended",
+    // 为 TypeScript 项目提供的一个推荐规则集
+    "plugin:@typescript-eslint/recommended",
+  ],
+  "rules": {
+    "no-useless-escape": "off",
+    "@typescript-eslint/interface-name-prefix": "off",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-empty-function": "off"
+  }
+}
+
