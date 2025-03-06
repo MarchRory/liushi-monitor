@@ -8,4 +8,9 @@ module.exports = {
   endOfLine: "auto",
   vueIndentScriptAndStyle: true,
   htmlWhitespaceSensitivity: "ignore",
+  trailingComma: "none",
+  "no-unneeded-ternary": 2,
+  "default-case": 0,
+  "use-isnan": 2,
+  "no-trailing-spaces": 2,
 };

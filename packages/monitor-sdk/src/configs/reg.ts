@@ -1,0 +1,1 @@
+export const deepCloneRegExp = /^[Set|Map|Function|Date|RegExp]$/i

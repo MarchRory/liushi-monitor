@@ -10,7 +10,7 @@
     // 通过使用这个扩展，可以继续利用 ESLint 的核心推荐规则集，同时避免与 TypeScript 类型系统的检查产生不必要的冲突
     "plugin:@typescript-eslint/eslint-recommended",
     // 为 TypeScript 项目提供的一个推荐规则集
-    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended"
   ],
   "rules": {
     "no-useless-escape": "off",
@@ -18,7 +18,7 @@
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/no-explicit-any": "off",
-    "@typescript-eslint/no-empty-function": "off"
+    "@typescript-eslint/no-empty-function": "off",
+    "no-multiple-empty-lines": ["error", { "max": 1, "maxEOF": 1 }]
   }
 }
-
