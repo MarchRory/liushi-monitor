@@ -25,5 +25,5 @@ export const DEFAULT_REQUEST_INIT_OPTIONS:
     timeout: 4 * 1000,
     retryCnt: 3,
     singleMaxReportSize: 3,
-    requestQueueMaxSize: 2
+    requestQueueMaxSize: 3
 }

@@ -1,4 +1,4 @@
-import { BaseEventTypes, IBasePlugin } from "../types"
+import { BaseEventTypes } from "../types"
 
 type MonitorCallBack = (data: any) => void
 

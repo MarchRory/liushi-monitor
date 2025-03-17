@@ -1,2 +1,4 @@
 .history
 node_modules
+packages/monitor-sdk/dist
+packages/monitor-sdk/.rollup.cache

@@ -1,8 +1,9 @@
 import axios, { AxiosInstance } from 'axios'
-import { ISDKRequestOption } from '../types'
+import { ISDKRequestOption, MonitorTypes } from '../types'
 import { DEFAULT_REQUEST_INIT_OPTIONS } from '../configs/constant'
-import { IProcessingRequestRecord, RequestBundlePriorityEnum } from '../types/axios'
-import { debounce, getCustomFunction } from '../utils/common'
+import { IPreLoadParmas, IProcessingRequestRecord, RequestBundlePriorityEnum } from '../types/transport'
+import { getCustomFunction } from '../utils/common'
+import { StorageCenter } from '../utils/storage'
 
 
 /**
@@ -12,41 +13,41 @@ export class BaseTransport {
     private readonly instance: AxiosInstance
     private readonly interfaceUrl: string
     private readonly retryCnt: number
-    private readonly singleMaxReportSize: number
     private readonly processingRequests: Promise<void>[] = [] // 维护当前正在处理的请求
     private readonly customHeader: ISDKRequestOption['customHeader']
     private readonly reportDataMap: Map<RequestBundlePriorityEnum, IProcessingRequestRecord[]>
     private readonly requestQueueMaxSize = DEFAULT_REQUEST_INIT_OPTIONS.requestQueueMaxSize
+    private readonly storageCenter: StorageCenter
+    readonly singleMaxReportSize: number
     private readonly PRIORITY_ORDER: RequestBundlePriorityEnum[] = [
         RequestBundlePriorityEnum.ERROR,
         RequestBundlePriorityEnum.PERFORMANCE,
         RequestBundlePriorityEnum.USERBEHAVIOR
     ];
-    /**
-     * 防抖调度 scheduleRequest 
-     */
-    private readonly debounceSchedule = debounce(() => this.scheduleRequest());
     constructor(options: ISDKRequestOption) {
         this.retryCnt = options.retryCnt || DEFAULT_REQUEST_INIT_OPTIONS.retryCnt
         this.singleMaxReportSize = options.singleMaxReportSize || DEFAULT_REQUEST_INIT_OPTIONS.singleMaxReportSize
         this.instance = this.initAxios(options.reportbaseURL, options.timeout || DEFAULT_REQUEST_INIT_OPTIONS.timeout)
         this.interfaceUrl = options.reportInterfaceUrl
         this.customHeader = options.customHeader || {}
+        this.storageCenter = options.storageCenter
         this.reportDataMap = new Map([
             [RequestBundlePriorityEnum.ERROR, []],
             [RequestBundlePriorityEnum.PERFORMANCE, []],
             [RequestBundlePriorityEnum.USERBEHAVIOR, []]
         ])
+        this.checkStorageAndReReport()
     }
     /**
      * 请求预载, 供各插件完成数据处理后调用
      * 唯一对外暴露方法
      * @param sendData 加密后的上报数据
      * @param priority 上报数据优先级
+     * @param {IProcessingRequestRecord['customCallback']} customCallback 
      */
-    preLoadRequest(sendData: string, priority: RequestBundlePriorityEnum) {
-        this.reportDataMap.get(priority)?.push({ priority, data: [sendData], retryRecord: 0 });
-        this.debounceSchedule()
+    preLoadRequest({ sendData, priority, customCallback }: IPreLoadParmas) {
+        this.reportDataMap.get(priority)?.push({ priority, data: Array.isArray(sendData) ? sendData : [sendData], retryRecord: 0, customCallback });
+        this.scheduleRequest()
     }
     /**
      * 请求调度, 核心上报逻辑
@@ -55,7 +56,7 @@ export class BaseTransport {
         if (this.processingRequests.length > 0) return; // 防止重复启动
 
         while (true) {
-            // 控制最多同时 2 个请求
+            // 控制上报请求数量, 减轻对业务请求的影响 
             while (this.processingRequests.length < this.requestQueueMaxSize) {
                 const nextData = this.getNextData();
                 if (!nextData) break; // 没有新数据可发送了
@@ -115,11 +116,17 @@ export class BaseTransport {
      * @param params 
      */
     private handleRequestSuccess(params: IProcessingRequestRecord) {
-        const index = this.reportDataMap.get(params.priority)?.findIndex((v) => v.data === params.data);
-        if (typeof index !== 'undefined' && index > -1) {
-            // 移除元素
-            this.reportDataMap.get(params.priority)?.splice(index, 1);
+        const sendingItem = this.reportDataMap.get(params.priority)
+        if (!sendingItem) return
+
+        const index = sendingItem.findIndex((v) => v.data === params.data);
+        const customCallback = sendingItem[index].customCallback
+        if (customCallback && customCallback.handleCustomSuccess) {
+            customCallback.handleCustomSuccess()
         }
+
+        // 移除元素
+        this.reportDataMap.get(params.priority)?.splice(index, 1);
     }
     /**
      * 上报失败回调
@@ -127,8 +134,13 @@ export class BaseTransport {
      */
     private handleRequestFailed(params: IProcessingRequestRecord) {
         params.retryRecord++
-        const index = this.reportDataMap.get(params.priority)?.findIndex((v) => v.data === params.data);
-        if (typeof index !== 'undefined' && index > -1) {
+        const sendingItem = this.reportDataMap.get(params.priority)
+        const index = sendingItem?.findIndex((v) => v.data === params.data);
+        if (sendingItem && typeof index !== 'undefined' && index > -1) {
+            const customCallback = sendingItem[index].customCallback
+            if (customCallback && customCallback.handleCustomFailure) {
+                customCallback.handleCustomFailure()
+            }
             // 失败时先移除元素
             this.reportDataMap.get(params.priority)?.splice(index, 1);
         }
@@ -140,7 +152,7 @@ export class BaseTransport {
     }
     /**
      * 初始化axios
-     * @param baseURL 
+     * @param baseURL                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
      * @param timeout 
      * @returns 
      */
@@ -165,10 +177,46 @@ export class BaseTransport {
                 // 调用错误捕获器进行捕获
                 const getUserInfo = getCustomFunction('getUserInfo')
                 if (getUserInfo) {
-                    // TODO: 根据error的数据, 构建transformed错误数据, 并计入reportDataMap
+                    // TODO: 待测试 根据error的数据, 构建transformed错误数据, 并计入reportDataMap
                 }
             }
         )
         return instance
+    }
+    /**
+     * 每次启动时检查本地缓存, 重新发送上一次页面卸载时未发送成功的数据
+     */
+    private checkStorageAndReReport() {
+        const splitArr = (source: string[] = []) => {
+            const res: string[][] = []
+            while (source.length < this.singleMaxReportSize) {
+                res.push(source.splice(0, 5))
+            }
+            return res
+        }
+        const behaviorStorage = splitArr(this.storageCenter.getSpecificStorage('userBehavior'))
+        const performanceStorage = splitArr(this.storageCenter.getSpecificStorage('performance'))
+        const errorStorage = splitArr(this.storageCenter.getSpecificStorage('error'))
+
+        const run = (source: string[][], priority: RequestBundlePriorityEnum, category: MonitorTypes) => {
+            for (let i = 0; i < source.length; i++) {
+                this.preLoadRequest({
+                    sendData: source[i], priority,
+                    // customCallback: {
+                    //     handleCustomSuccess: (i) => {
+                    //         source.splice(i, 1)
+                    //         this.storageCenter.dispatchStorageOrder({
+                    //             type: 'update',
+                    //             category,
+                    //             data: source[i].slice()
+                    //         })
+                    //     },
+                    // }
+                })
+            }
+        }
+        run(behaviorStorage, RequestBundlePriorityEnum.USERBEHAVIOR, 'userBehavior')
+        run(performanceStorage, RequestBundlePriorityEnum.PERFORMANCE, 'performance')
+        run(errorStorage, RequestBundlePriorityEnum.ERROR, 'error')
     }
 }

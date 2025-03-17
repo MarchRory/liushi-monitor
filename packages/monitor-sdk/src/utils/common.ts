@@ -1,6 +1,7 @@
 import { deepCloneRegExp } from "../configs/reg"
 import { CustomUserFunctionEnum, UserCustomFunctions } from "../types/function"
 import { Queue } from "./dataStructure"
+import { isObject } from "./is"
 import { PessimisticLockMixin } from "./mixin"
 
 /**
@@ -10,7 +11,7 @@ import { PessimisticLockMixin } from "./mixin"
  * @returns 数据源的深拷贝
  */
 export function deepClone<T = any>(source: T, hash = new WeakMap()): T {
-    if (source === null || typeof source !== 'object') return source
+    if (source === null || !isObject(source)) return source
 
     let constructor = source.constructor
     if (deepCloneRegExp.test(constructor.name)) return constructor(source)
@@ -38,6 +39,7 @@ type runTask = (...args: any) => Promise<any>
  * 有序并发队列, 在队列的基础上加入了并发限制和悲观锁, 用于高并发的有序执行场景
  */
 export class OrderedConcurrentQueue<T extends runTask = runTask> extends LockableQueue<T> {
+    private debounceStart = debounce(() => this.startConsumingTask())
     constructor(queueLimit: number = 10) {
         super(queueLimit)
     }
@@ -54,7 +56,7 @@ export class OrderedConcurrentQueue<T extends runTask = runTask> extends Lockabl
      * 开始有序消费队列中的任务。
      * 通过 runWithLock 保证同一时刻只有一个消费流程在执行。
      */
-    async startConsumingTask() {
+    private async startConsumingTask() {
         await this.runWithLock(async () => {
             while (this.showAll().length > 0) {
                 const task = this.deQueue();
@@ -64,8 +66,7 @@ export class OrderedConcurrentQueue<T extends runTask = runTask> extends Lockabl
                     // 按顺序等待当前任务完成，再处理下一个
                     await this.processTask(task);
                 } catch (error) {
-                    throw error
-                    // console.error("Error processing task:", error);
+                    console.error("Error processing task:", error);
                     // 根据需要决定是继续还是中断
                 }
             }
@@ -77,7 +78,7 @@ export class OrderedConcurrentQueue<T extends runTask = runTask> extends Lockabl
     async enQueue(element: T) {
         super.enQueue(element);
         // 自动启动消费流程（如果当前未在消费中，则 runWithLock 会启动，否则直接返回）
-        await this.startConsumingTask();
+        this.debounceStart();
     }
 }
 

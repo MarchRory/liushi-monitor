@@ -1,7 +1,12 @@
 import { DEFAULT_BREADCRUMB_CONFIG } from '../configs/constant'
-import { IBaseBreadCrumbItem, IBaseBreadCrumbOptions, IBaseRouteInfo, ISDKInitialOptions } from '../types'
+import { IBaseBreadCrumbItem, IBaseBreadCrumbOptions, IBaseRouteInfo } from '../types'
+import { RequestBundlePriorityEnum } from '../types/transport'
+import { getCustomFunction } from '../utils/common'
 import { Stack } from '../utils/dataStructure'
+import { isUndefined } from '../utils/is'
+import { StorageCenter } from '../utils/storage'
 import { formatTimeDifference, getCurrentTimeStamp } from '../utils/time'
+import { BaseTransport } from './baseTransport'
 
 /**
  * 基本路由面包屑
@@ -11,7 +16,14 @@ export class BaseBreadCrumb {
     private ignoredUrls: Set<string>
     private readonly MAX_STACK_SIZE: IBaseBreadCrumbOptions['max_bread_crumbs_stack_size']
     private readonly MAX_ACCESS_PATH_SIZE: IBaseBreadCrumbOptions['max_access_path_size']
-    constructor(options?: IBaseBreadCrumbOptions) {
+    private readonly baseTransport: BaseTransport // 数据传输中心实例的引用
+    private readonly storageCenter: StorageCenter
+    constructor({ baseTransport, options, storageCenter }: {
+        baseTransport: BaseTransport,
+        storageCenter: StorageCenter,
+        options?: IBaseBreadCrumbOptions
+    }) {
+        this.baseTransport = baseTransport
         this.stack = new Stack()
         const {
             ignore_urls = DEFAULT_BREADCRUMB_CONFIG.ignore_urls,
@@ -21,6 +33,8 @@ export class BaseBreadCrumb {
         this.ignoredUrls = new Set(ignore_urls)
         this.MAX_STACK_SIZE = max_bread_crumbs_stack_size
         this.MAX_ACCESS_PATH_SIZE = max_access_path_size
+        this.storageCenter = storageCenter
+        this.initBrowserUnloadListener()
     }
     /**
      * 进入新页面时, breadBrumbItem数据收集处理流程
@@ -52,17 +66,33 @@ export class BaseBreadCrumb {
         const isIgnored = this.hasIgnoredPath([routeInfo.from, routeInfo.to])
         if (isIgnored) return
 
-        const leave_time = getCurrentTimeStamp()
         const stackTop = this.getLastestItem()
-        stackTop.leave_time = leave_time
+        if (isUndefined(stackTop)) return
+
+        stackTop.leave_time = getCurrentTimeStamp()
         const { to } = routeInfo
         // 利用微任务避免时间差计算时间长阻塞业务中的同步代码
         Promise.resolve().then(() => {
             stackTop.access_path.push(to)
             stackTop.page_exposure = formatTimeDifference(stackTop.leave_time - stackTop.enter_time)
-            /**
-             * 上报逻辑
-             */
+            const encryptor = getCustomFunction('dataEncryptionMethod')
+            let sendData = JSON.stringify(stackTop)
+            if (encryptor) {
+                sendData = encryptor(sendData)
+            }
+
+            this.baseTransport.preLoadRequest({
+                sendData,
+                priority: RequestBundlePriorityEnum.USERBEHAVIOR,
+                customCallback: {
+                    handleCustomSuccess: () => {
+                        console.log('用户行为上报成功, 上报数据: ', stackTop)
+                    },
+                    handleCustomFailure: () => {
+                        console.warn('用户行为上报失败, 上报数据: ', stackTop)
+                    }
+                }
+            })
         })
     }
     clearRecord() {
@@ -73,14 +103,20 @@ export class BaseBreadCrumb {
      * @param data 处理之后的breadCrumbItem
      */
     private pushImmediately(data: IBaseBreadCrumbItem) {
+        /**
+         *  TODO: maybe 一些其他逻辑
+         */
         this.stack.push(data)
     }
     /**
      * 页面卸载监听器, 补全并消费未上报的内容
-     * 这里需要优先使用不受页面卸载影响的sendBean进行发送, 或者使用ajax牺牲让页面稍稍延迟卸载
+     * 这里需要优先使用不受页面卸载影响的sendBean进行发送, 或者使用ajax让页面稍稍延迟卸载
      */
     private initBrowserUnloadListener() {
-
+        const unloadHandler = () => {
+            this.saveToLocalStorag()
+        }
+        window.addEventListener('beforeunload', unloadHandler, { capture: true })
     }
     /**
      * 读取最近的记录
@@ -95,11 +131,20 @@ export class BaseBreadCrumb {
     /**
      * 兜底策略, 剩余未上报的部分全部上传至本地缓存, 下一次启动app时再进行发送
      */
-    private saveToLocalStorag() { }
+    private saveToLocalStorag() {
+        const data = this.stack.showAll()
+        const encryptor = getCustomFunction('dataEncryptionMethod')
+        let encryptedData: string = JSON.stringify(data)
+        if (encryptor) {
+            encryptedData = encryptor(encryptedData)
+        }
+        const stoarge = this.storageCenter.getSpecificStorage('userBehavior')
+        stoarge.push(encryptedData)
 
-    /**
-     * 每次启动时检查本地缓存, 重新发送上一次页面卸载时未发送成功的数据
-     */
-    private checkStorageAndReReport() { }
-
+        this.storageCenter.dispatchStorageOrder({
+            type: "update",
+            category: 'userBehavior',
+            data: stoarge
+        })
+    }
 }

@@ -5,7 +5,7 @@
  */
 export function PessimisticLockMixin<TBase extends new (...args: any) => object>(BaseClass: TBase) {
     return class extends BaseClass {
-        private _lock = false
+        private _lock: boolean = false
         protected async runWithLock(fn: (...args: any) => Promise<any>): Promise<any> {
             if (this._lock) return
 

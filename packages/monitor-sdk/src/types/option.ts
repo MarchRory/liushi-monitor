@@ -2,6 +2,7 @@ import type { ComponentPublicInstance } from 'vue'
 import { ErrorEventTypes, PerformanceEventTypes, UserBehaviorEventTypes } from './eventTypes'
 import { EncryptedDataType, IBaseTransformedData, IOriginalData } from './logData'
 import { IBaseBreadCrumbOptions } from './breadCrumb'
+import { StorageCenter } from '../utils/storage'
 
 /**
  * SDK上报method和上报接口
@@ -16,6 +17,10 @@ export interface ISDKRequestOption {
      * 上报接口地址
      */
     reportInterfaceUrl: string
+    /**
+     * 缓存中心的引用
+     */
+    storageCenter: StorageCenter,
     /**
      * 超时时间
      */
@@ -84,14 +89,20 @@ export interface ISDKInitialOptions extends ISDKRequestOption, IMonitorHooks {
      */
     vueRootComponent: ComponentPublicInstance
     /**
+     * 当页面卸载，部分没来得及上报的数据会被缓存到本地缓存中，等待下次启动app后重新上报
+     * 缓存的key由用户在此指定
+     */
+    /**
      * 获取需要上传的用户身份信息的方法
      * @returns {object} userInfo
      */
     getUserInfo: () => object
     /**
-     * 当页面卸载，部分没来得及上报的数据会被缓存到本地缓存中，等待下次启动app后重新上报
-     * 缓存的key由用户在此指定
+     * 自定义数据加密方法
+     * @param transformedJsonData 格式化后的数据, 已经进行过JSON序列化
+     * @returns {string} 加密后的数据
      */
+    dataEncryptionMethod: (transformedJsonData: string) => EncryptedDataType
     localStorageKey: string
     /**
      * 上报防抖时间
@@ -101,12 +112,6 @@ export interface ISDKInitialOptions extends ISDKRequestOption, IMonitorHooks {
      * 是否禁用sdk
      */
     disbled?: boolean
-    /**
-     * 自定义数据加密方法
-     * @param transformedData 格式化后的数据
-     * @returns {string} 加密后的数据
-     */
-    dataEncryptionMethod?: (transformedData: IBaseTransformedData) => EncryptedDataType
     /**
      * 自定义路由面包屑配置
      */

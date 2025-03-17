@@ -1,6 +1,7 @@
+import { BaseClient } from "../core";
 
-
-
-export class VueAppClient {
+class VueAppMonitorClient extends BaseClient {
 
 }
+
+export default VueAppMonitorClient
