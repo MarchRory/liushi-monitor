@@ -1,0 +1,33 @@
+
+.card-shadow {
+    box-shadow: 0px 0px 16px -3px rgba(0,0,0,0.1);
+}
+
+:deep(.van-pull-refresh){
+    overflow: auto !important;
+    height: calc(100vh - 100px) !important;
+}
+
+.flex-column-start {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+// 每个页面顶层容器的通用样式
+.pageContainer {
+    .flex-column-start;
+    width: 100vw;
+    height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    &>main {
+        .flex-column-start;
+        padding: 0 20px;
+        width: calc(100% - 40px);
+        flex: 1;
+        overflow-y: auto;
+        background: linear-gradient(to bottom, white 40%, rgb(245, 246, 248));
+    }
+}

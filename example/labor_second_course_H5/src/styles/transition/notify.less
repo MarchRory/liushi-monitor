@@ -1,0 +1,24 @@
+.notify-enter-active, .notify-leave-active{
+    transition: all .8s ease-in;
+}
+
+.notify-enter-from{
+    color: transparent;
+    opacity: 0;
+    transform: scaleX(0);
+}
+.notify-enter-to{
+    color: var(--van-notice-bar-text-color);
+    opacity: 1;
+    transform: scaleX(1);
+}
+
+.notify-leave-from{
+    color: var(--van-notice-bar-text-color);
+    opacity: 1;
+    // transform: scaleX(1);
+}
+.notify-leave-to{
+    color: transparent;
+    opacity: 0;
+}
