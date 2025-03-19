@@ -1,11 +1,6 @@
 <script setup lang="ts">
-import { registerTimingLog } from '@/utils/logger/hooks';
-
 const XdHeader = defineAsyncComponent(() => import('@/components/header/index.vue'))
 const BadgeGroup = defineAsyncComponent(() => import('./components/badgeGroup.vue'))
-
-
-registerTimingLog()
 </script>
 
 <template>

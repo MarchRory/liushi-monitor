@@ -55,7 +55,6 @@ function createBaseRouterGuard(router: Router) {
         NProgress.done();
       }
     } else {
-      console.log("没有token");
       if (document.title == "问卷调查") {
         next();
         NProgress.done();

@@ -1,9 +1,10 @@
 import axios, { AxiosInstance } from 'axios'
-import { ISDKRequestOption, MonitorTypes } from '../types'
+import { IMonitorHooks, ISDKRequestOption, MonitorTypes } from '../types'
 import { DEFAULT_REQUEST_INIT_OPTIONS } from '../configs/constant'
 import { IPreLoadParmas, IProcessingRequestRecord, RequestBundlePriorityEnum } from '../types/transport'
 import { getCustomFunction } from '../utils/common'
 import { StorageCenter } from '../utils/storage'
+import { fakeRequest } from '../utils/request'
 
 
 /**
@@ -18,19 +19,27 @@ export class BaseTransport {
     private readonly reportDataMap: Map<RequestBundlePriorityEnum, IProcessingRequestRecord[]>
     private readonly requestQueueMaxSize = DEFAULT_REQUEST_INIT_OPTIONS.requestQueueMaxSize
     private readonly storageCenter: StorageCenter
-    readonly singleMaxReportSize: number
+    private readonly singleMaxReportSize: number
     private readonly PRIORITY_ORDER: RequestBundlePriorityEnum[] = [
         RequestBundlePriorityEnum.ERROR,
         RequestBundlePriorityEnum.PERFORMANCE,
         RequestBundlePriorityEnum.USERBEHAVIOR
     ];
-    constructor(options: ISDKRequestOption) {
+    private readonly debugMode: boolean
+    private readonly onBeforeAjaxSend: IMonitorHooks['onBeforeAjaxSend']
+    constructor(options: ISDKRequestOption & {
+        storageCenter: StorageCenter,
+    } & {
+        onBeforeAjaxSend: IMonitorHooks['onBeforeAjaxSend']
+    }) {
+        this.debugMode = options.debugerMode || false
         this.retryCnt = options.retryCnt || DEFAULT_REQUEST_INIT_OPTIONS.retryCnt
         this.singleMaxReportSize = options.singleMaxReportSize || DEFAULT_REQUEST_INIT_OPTIONS.singleMaxReportSize
         this.instance = this.initAxios(options.reportbaseURL, options.timeout || DEFAULT_REQUEST_INIT_OPTIONS.timeout)
         this.interfaceUrl = options.reportInterfaceUrl
         this.customHeader = options.customHeader || {}
         this.storageCenter = options.storageCenter
+        this.onBeforeAjaxSend = options.onBeforeAjaxSend
         this.reportDataMap = new Map([
             [RequestBundlePriorityEnum.ERROR, []],
             [RequestBundlePriorityEnum.PERFORMANCE, []],
@@ -94,8 +103,9 @@ export class BaseTransport {
         return null
     }
     private async sendToServer(data: IProcessingRequestRecord['data']) {
+        const requestHandler = this.debugMode === false ? fakeRequest : this.instance.post
         return new Promise((resolve, reject) => {
-            this.instance.post(this.interfaceUrl, data)
+            requestHandler(this.interfaceUrl, data)
                 .then(() => resolve(undefined))
                 .catch(reject)
         })
@@ -170,6 +180,11 @@ export class BaseTransport {
                         }
                     }
                 }
+
+                // 用户自定义config的最后机会
+                if (this.onBeforeAjaxSend) {
+                    config = this.onBeforeAjaxSend(config)
+                }
                 return config
             },
             (error) => {
@@ -189,7 +204,7 @@ export class BaseTransport {
     private checkStorageAndReReport() {
         const splitArr = (source: string[] = []) => {
             const res: string[][] = []
-            while (source.length < this.singleMaxReportSize) {
+            while (source.length && source.length < this.singleMaxReportSize) {
                 res.push(source.splice(0, 5))
             }
             return res

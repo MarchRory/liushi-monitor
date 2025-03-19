@@ -5,7 +5,6 @@ import { useUserStore } from "@/store/modules/user";
 import { generateCourseStateConfig } from "@/utils/course";
 import { useRouter } from "vue-router";
 import defaultCover from "@/assets/imgs/default-cover.jpg";
-import { registerMethodsLog } from "@/utils/logger/hooks";
 
 /**
  * @description 瀑布流默认卡片, 样式在这里调整
@@ -42,12 +41,10 @@ const pageToDetail = () => {
     },
   });
 };
-
-const { pageToDetailLogged } = registerMethodsLog({ pageToDetail });
 </script>
 
 <template>
-  <div class="course-default-card" @click="pageToDetailLogged">
+  <div class="course-default-card" @click="pageToDetail">
     <van-image
       :src="course.cover.url || defaultCover"
       height="80%"
@@ -140,6 +137,7 @@ const { pageToDetailLogged } = registerMethodsLog({ pageToDetail });
     &-title {
       font-size: 28px;
       font-weight: bold;
+      color: black
     }
     &-category {
       font-size: 16px;
@@ -149,6 +147,7 @@ const { pageToDetailLogged } = registerMethodsLog({ pageToDetail });
       align-items: center;
       justify-content: space-between;
       text-align: left;
+      color: black;
       div {
         width: max-content;
       }
@@ -159,6 +158,7 @@ const { pageToDetailLogged } = registerMethodsLog({ pageToDetail });
       flex-direction: row;
       align-items: center;
       justify-content: space-between;
+      color: black;
     }
   }
   &-mask {

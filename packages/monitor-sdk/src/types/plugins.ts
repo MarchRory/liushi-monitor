@@ -1,4 +1,6 @@
-import { BaseEventTypes, IBaseClient, IBaseTransformedData, IOriginalData, MonitorTypes } from '../types'
+import { BaseTransport } from '../core'
+import { BaseClient } from '../core/baseClient'
+import { BaseEventTypes, IBaseTransformedData, IOriginalData, MonitorTypes } from '../types'
 
 /**
  * 插件类型, 我们把不同功能的埋点能力分割为一个个插件, 通过引入插件拓展埋点能力
@@ -7,7 +9,7 @@ import { BaseEventTypes, IBaseClient, IBaseTransformedData, IOriginalData, Monit
 /**
  * 底层基础插件, 包含最基本的插件信息和功能
  */
-export interface IBasePlugin<T extends MonitorTypes, C extends IBaseClient = IBaseClient> {
+export interface IBasePlugin<T extends MonitorTypes, C extends BaseClient<T> = BaseClient<T>> {
     /**
      * 插件类型
      */
@@ -36,5 +38,5 @@ export interface IBasePlugin<T extends MonitorTypes, C extends IBaseClient = IBa
      * @param transformedData 格式化后的数据
      * @returns 
      */
-    dataConsumer: (client: C, transformedData: IBaseTransformedData) => void
+    dataConsumer: (transport: BaseTransport, encryptedData: string) => void
 }

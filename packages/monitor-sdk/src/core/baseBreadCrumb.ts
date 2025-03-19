@@ -11,7 +11,7 @@ import { BaseTransport } from './baseTransport'
 /**
  * 基本路由面包屑
  */
-export class BaseBreadCrumb {
+export abstract class BaseBreadCrumb {
     private stack: Stack<IBaseBreadCrumbItem>
     private ignoredUrls: Set<string>
     private readonly MAX_STACK_SIZE: IBaseBreadCrumbOptions['max_bread_crumbs_stack_size']
@@ -21,7 +21,7 @@ export class BaseBreadCrumb {
     constructor({ baseTransport, options, storageCenter }: {
         baseTransport: BaseTransport,
         storageCenter: StorageCenter,
-        options?: IBaseBreadCrumbOptions
+        options?: IBaseBreadCrumbOptions,
     }) {
         this.baseTransport = baseTransport
         this.stack = new Stack()
@@ -36,6 +36,10 @@ export class BaseBreadCrumb {
         this.storageCenter = storageCenter
         this.initBrowserUnloadListener()
     }
+    /**
+     * 各端实现, 用于配置不同端上的页面路径信息收集逻辑
+     */
+    abstract init(): void
     /**
      * 进入新页面时, breadBrumbItem数据收集处理流程
      * 由于是强相关于用户行为分析, 登录注册页面就依赖uv和接口统计, 这里边只考虑登录态下的数据收集
@@ -80,7 +84,7 @@ export class BaseBreadCrumb {
             if (encryptor) {
                 sendData = encryptor(sendData)
             }
-
+            console.log('当前待发送面包屑: ', sendData)
             this.baseTransport.preLoadRequest({
                 sendData,
                 priority: RequestBundlePriorityEnum.USERBEHAVIOR,
@@ -106,6 +110,7 @@ export class BaseBreadCrumb {
         /**
          *  TODO: maybe 一些其他逻辑
          */
+        console.log('新路径记录: ', data)
         this.stack.push(data)
     }
     /**

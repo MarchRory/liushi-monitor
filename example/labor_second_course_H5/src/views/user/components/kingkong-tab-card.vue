@@ -72,6 +72,7 @@ const clickTab = (kingkongTab: KingkongTabItem) => {
             margin-bottom: 35px;
             .tab-icon {
                 font-size: 1.6em;
+                color: black
             }
             .tab-label {
                 font-size: 0.8em;

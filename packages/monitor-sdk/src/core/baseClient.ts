@@ -1,31 +1,32 @@
+import { App } from "vue";
 import { SDK_VERSION } from "../configs/constant";
-import { BaseEventTypes, IBaseClient, IBasePlugin, IOriginalData, ISDKInitialOptions, MonitorTypes } from "../types";
-import { customFunctionBucket } from "../utils/common";
+import { BaseEventTypes, IBaseClient, IBasePlugin, IBaseTransformedData, IOriginalData, ISDKInitialOptions, MonitorTypes } from "../types";
+import { customFunctionBucket, getCustomFunction } from "../utils/common";
 import { isUndefined } from "../utils/is";
 import { StorageCenter } from "../utils/storage";
 import { BaseBreadCrumb } from "./baseBreadCrumb";
 import { BaseTransport } from "./baseTransport";
 import { Subscribe } from "./subscribe";
+import { detectDevice } from "../utils/device";
 
 export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseClient {
     readonly sdk_version = SDK_VERSION
     readonly options: ISDKInitialOptions
     /**
-     * 页面访问路径栈
+     * 缓存中心
      */
-    private readonly breadCrumbs: BaseBreadCrumb
+    readonly storageCenter: StorageCenter
     /**
      * 数据调度与上报工具
      */
-    private readonly baseTransport: BaseTransport
-    /**
-     * 缓存中心
-     */
-    private readonly storageCenter: StorageCenter
+    readonly baseTransport: BaseTransport
+    readonly deviceInfo: IBaseTransformedData['deviceInfo']
+    readonly VueApp?: App
     private pluginsCount: number = 4
-    constructor(initialOptions: ISDKInitialOptions) {
+    constructor(initialOptions: ISDKInitialOptions & { VueApp?: App }) {
         this.validateOptions(initialOptions)
         this.options = initialOptions
+        this.VueApp = initialOptions.VueApp
         this.loadCustomBucket(initialOptions)
         this.storageCenter = new StorageCenter({
             storageKey: initialOptions.localStorageKey,
@@ -33,13 +34,10 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
         })
         this.baseTransport = new BaseTransport({
             ...initialOptions,
-            storageCenter: this.storageCenter
+            storageCenter: this.storageCenter,
+            onBeforeAjaxSend: initialOptions.hooks?.onBeforeAjaxSend
         })
-        this.breadCrumbs = new BaseBreadCrumb({
-            baseTransport: this.baseTransport,
-            options: initialOptions.customBreadCrumb,
-            storageCenter: this.storageCenter
-        })
+        this.deviceInfo = this.getDeviceInfo()
     }
     /**
      * 注册插件
@@ -67,18 +65,30 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
     reportProcessWapper(currentPlugin: IBasePlugin<E>) {
         return async (originalData: IOriginalData) => {
             let customCollectedData: IOriginalData = originalData
-            if (this.options.onDataCollected) {
-                customCollectedData = await this.options.onDataCollected?.call(this, currentPlugin.eventName, originalData)
+            const { hooks = {} } = this.options
+            // 数据收集
+            if (hooks.onDataCollected) {
+                customCollectedData = await hooks.onDataCollected?.call(this, currentPlugin.eventName, originalData)
             }
 
             // 格式化收集到的数据
             let transformedData = currentPlugin.dataTransformer?.call(this, this, customCollectedData)
-            if (this.options.onDataTransformed) {
-                transformedData = await this.options.onDataTransformed?.call(this, currentPlugin.eventName, transformedData)
+            if (hooks.onDataTransformed) {
+                transformedData = await hooks.onDataTransformed?.call(this, currentPlugin.eventName, transformedData)
             }
 
-            // 附加数据添加、上报操作
-            currentPlugin.dataConsumer?.call(this, this, transformedData)
+            // 数据加密
+            const customEncyptor = getCustomFunction('dataEncryptionMethod')
+            let encryptedData = JSON.stringify(transformedData)
+            if (customEncyptor) {
+                encryptedData = customEncyptor(encryptedData)
+            }
+
+            // 数据上报
+            if (hooks.onBeforeDataReport) {
+                encryptedData = await hooks.onBeforeDataReport(encryptedData)
+            }
+            currentPlugin.dataConsumer?.call(this, this.baseTransport, encryptedData)
         }
     }
     private loadCustomBucket(options: ISDKInitialOptions) {
@@ -101,6 +111,18 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
 
         if (needOptName) {
             throw new Error(`初始配置项 ${needOptName} 缺失 或 使用了非法值`)
+        }
+    }
+    private getDeviceInfo(): IBaseTransformedData['deviceInfo'] {
+        const userAgent = navigator.userAgent || navigator.vendor
+        const { os, deviceType } = detectDevice(userAgent)
+        return {
+            os,
+            deviceType,
+            userAgent,
+            bowserVersion: navigator.appVersion,
+            bowserName: navigator.appName,
+            language: navigator.language
         }
     }
 }                 

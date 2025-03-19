@@ -1,8 +1,9 @@
-import type { ComponentPublicInstance } from 'vue'
+import type { InternalAxiosRequestConfig } from 'axios'
 import { ErrorEventTypes, PerformanceEventTypes, UserBehaviorEventTypes } from './eventTypes'
 import { EncryptedDataType, IBaseTransformedData, IOriginalData } from './logData'
 import { IBaseBreadCrumbOptions } from './breadCrumb'
-import { StorageCenter } from '../utils/storage'
+import { IBasePlugin } from './plugins'
+import { MonitorTypes } from './logger'
 
 /**
  * SDK上报method和上报接口
@@ -18,9 +19,10 @@ export interface ISDKRequestOption {
      */
     reportInterfaceUrl: string
     /**
-     * 缓存中心的引用
+     * 调试模式, 开始后收集到的数据将以伪请求的方式进行打印, 代替真实上报
+     * 但不适用于请求测速插件
      */
-    storageCenter: StorageCenter,
+    debugerMode?: boolean
     /**
      * 超时时间
      */
@@ -39,14 +41,9 @@ export interface ISDKRequestOption {
     customHeader?: Record<string, string>
 }
 
-type HttpRequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
-interface IRequestConfig {
-    [key: string]: any
-    url: string
-    method: HttpRequestMethod
-    header: object
-}
-
+/**
+ * SDK的数据处理HOOK
+ */
 export interface IMonitorHooks {
     /**
      * 数据收集完成后触发的hook
@@ -73,21 +70,17 @@ export interface IMonitorHooks {
      * @param config ajax请求的原始配置项
      * @returns 处理后的ajax请求配置项 (可能在header中新增了一些字段)
      */
-    onBeforeAjaxSend?(config: IRequestConfig): IRequestConfig
+    onBeforeAjaxSend?(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig
 }
 
 /**
  * SDK初始化配置参数
  */
-export interface ISDKInitialOptions extends ISDKRequestOption, IMonitorHooks {
+export interface ISDKInitialOptions extends ISDKRequestOption {
     /**
      * 秘钥
      */
     sdkKey: string
-    /**
-     * Vue根组件实例, 即 app.vue
-     */
-    vueRootComponent: ComponentPublicInstance
     /**
      * 当页面卸载，部分没来得及上报的数据会被缓存到本地缓存中，等待下次启动app后重新上报
      * 缓存的key由用户在此指定
@@ -116,5 +109,13 @@ export interface ISDKInitialOptions extends ISDKRequestOption, IMonitorHooks {
      * 自定义路由面包屑配置
      */
     customBreadCrumb?: IBaseBreadCrumbOptions
+    /**
+     * 数据处理HOOK
+     */
+    hooks?: IMonitorHooks
+    /**
+     * 自定义插件
+     */
+    customPlugins?: IBasePlugin<MonitorTypes>[]
 }
 

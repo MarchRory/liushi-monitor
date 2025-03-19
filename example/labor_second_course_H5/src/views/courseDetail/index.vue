@@ -28,7 +28,6 @@ import { debounce } from "@/utils/freqCtrl/freqCtrl";
 import router from "@/router";
 import { showFailToast, showSuccessToast } from "vant";
 import { useBoolean } from "@/hooks/common";
-import { registerTimingLog } from "@/utils/logger/hooks";
 
 const XdHeader = defineAsyncComponent(
   () => import("@/components/header/index.vue")
@@ -456,7 +455,6 @@ const chartOpts = computed<EChartsOption>(() => {
 });
 
 init();
-registerTimingLog();
 </script>
 
 <template>
@@ -636,12 +634,12 @@ registerTimingLog();
               />问卷链接</span
             >
             <div class="core-text">
-              <el-button v-if="detailInfo.isPatriarch" @click="getLink(0)"
-                >点击生成家长链接</el-button
+              <van-button v-if="detailInfo.isPatriarch" @click="getLink(0)"
+                >点击生成家长链接</van-button
               ><br />
               <div class="link" v-if="createLink.length">{{ createLink }}</div>
-              <el-button v-if="detailInfo.isOpen" @click="getLink(1)"
-                >点击生成第三方链接</el-button
+              <van-button v-if="detailInfo.isOpen" @click="getLink(1)"
+                >点击生成第三方链接</van-button
               >
               <div class="link" v-if="createThirdLink">
                 {{ createThirdLink }}
@@ -694,6 +692,7 @@ main {
     .detail-title {
       font-size: 55px;
       font-weight: bolder;
+      color: black;
     }
     .host-time {
       display: flex;
@@ -751,13 +750,14 @@ main {
       align-items: flex-start;
       justify-content: space-around;
       .core-title {
+        color: rgb(82, 82, 82);
         font-size: 28px;
         font-weight: bold;
       }
       .core-value {
         font-size: 23px;
         font-weight: bold;
-        color: rgb(150, 150, 150);
+        color: rgb(113, 113, 113);
       }
     }
     &-tag {

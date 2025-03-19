@@ -5,7 +5,6 @@ import { CourseStateEnum } from '@/api/types/public';
 import { HeaderDefaultAction } from '@/components/header/types';
 import { showFailToast } from 'vant';
 import { debounce } from '@/utils/freqCtrl/freqCtrl';
-import { registerTimingLog } from '@/utils/logger/hooks';
 
 const XdHeader = defineAsyncComponent(() => import('@/components/header/index.vue'))
 const SearchResWaterfall = defineAsyncComponent(() => import('@/components/waterFall/index.vue'))
@@ -36,8 +35,6 @@ const search = () => {
 const actions: HeaderDefaultAction[] = [
   { icon: 'tabler:search', trigger: search}
 ]
-
-registerTimingLog()
 </script>
 
 <template>

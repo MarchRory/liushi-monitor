@@ -83,6 +83,7 @@ const defaultAvatar = 'https://fingerbed.oss-cn-chengdu.aliyuncs.com/2024/05/24/
             .username {
                 font-weight: bold;
                 font-size: 1.1em;
+                color: black
             }
             .list-container {
                 width: 100%;
@@ -150,8 +151,10 @@ const defaultAvatar = 'https://fingerbed.oss-cn-chengdu.aliyuncs.com/2024/05/24/
             font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
             .value {
                 font-size: 1.2em;
+                color: black;
             }
             .label {
+                color: gray;
                 font-size: 0.8em;
             }
         }

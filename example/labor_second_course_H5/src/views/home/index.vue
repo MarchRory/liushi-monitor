@@ -8,7 +8,6 @@ import { useWsStore } from "@/store/modules/ws";
 import { usePointStore } from "@/store/modules/point";
 import { useFlagStore } from "@/store/modules/flag";
 import { useMailStore } from "@/store/modules/mail";
-import { registerFmpLog, registerTimingLog } from "@/utils/logger/hooks";
 
 const HomeHeader = defineAsyncComponent(
   () => import("./components/home-header.vue")
@@ -72,12 +71,6 @@ const init = () => {
 };
 
 init();
-
-/**
- * -----------------------------埋点
- */
-registerTimingLog();
-registerFmpLog("home-water-fall");
 </script>
 
 <template>

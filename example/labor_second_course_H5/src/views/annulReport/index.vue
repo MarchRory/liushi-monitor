@@ -2,7 +2,6 @@
 import { getAnnualReportListAPI } from "@/api/annulReport/annulReport";
 import useAutoLoadList from "@/hooks/useAutoLoadList";
 import { annualReportListItemType } from "@/api/types/annualReport";
-import { registerTimingLog } from "@/utils/logger/hooks";
 
 const XdHeader = defineAsyncComponent(
   () => import("@/components/header/index.vue")
@@ -18,7 +17,7 @@ const AnnulReportSwiper = defineAsyncComponent(
 );
 
 const otherRequestParms = { page: 1, pageSize: 20, state: 3 };
-const { listData, loading, isFinished, isRefreash, totalAll, loadList } =
+const { listData, loading, totalAll, loadList } =
   useAutoLoadList({
     requestApi: getAnnualReportListAPI,
     otherRequestParms,
@@ -31,8 +30,6 @@ const handleChange = (current: number) => {
 };
 
 loadList();
-
-registerTimingLog();
 </script>
 
 <template>

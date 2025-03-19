@@ -42,7 +42,9 @@ export type UserBehaviorEventTypes = keyof typeof userBehaviorEventMap
 /**
  * 报错埋点事件
  */
-export const errorEventMap = {} as const
+export const errorEventMap = {
+    vue3_framework_error: 'Vue3框架层面报错'
+} as const
 export type ErrorEventTypes = keyof typeof errorEventMap
 
 

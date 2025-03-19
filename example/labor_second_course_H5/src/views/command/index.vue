@@ -13,7 +13,6 @@ import { deepClone } from "@/utils/dataUtil/common";
 import { debounce } from "@/utils/freqCtrl/freqCtrl";
 import { starScoreTextMap, tempCommentGoodNodes } from "./config";
 import { PointTypeEnum } from "@/api/types/user";
-import { registerTimingLog } from "@/utils/logger/hooks";
 import { TopicCommentItem } from "@/api/dimension";
 import { showConfirmDialog } from "vant";
 
@@ -269,8 +268,6 @@ const submit = debounce(() => {
       });
     });
 }, 500);
-
-registerTimingLog();
 </script>
 
 <template>

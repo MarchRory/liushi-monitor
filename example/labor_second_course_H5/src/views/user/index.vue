@@ -28,7 +28,6 @@ import type { KingkongTabItem } from "./components/type";
 import { usePointStore } from "@/store/modules/point";
 import { useFlagStore } from "@/store/modules/flag";
 import { useMailStore } from "@/store/modules/mail";
-import { registerFmpLog } from "@/utils/logger/hooks";
 
 defineOptions({
   name: "user",
@@ -141,8 +140,6 @@ init();
 onActivated(() => {
   pointStore.updatePointTotal();
 });
-
-registerFmpLog("user-main");
 </script>
 
 <style scoped lang="less">

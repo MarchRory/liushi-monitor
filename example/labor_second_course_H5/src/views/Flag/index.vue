@@ -3,7 +3,6 @@ import {FlagItem, getFLagListApi} from '@/api/user/user'
 import { HeaderDefaultAction } from '@/components/header/types';
 import useAutoLoadList from '@/hooks/useAutoLoadList'
 import useLoading from '@/hooks/useLoading';
-import { registerTimingLog } from '@/utils/logger/hooks';
 const XdHeader = defineAsyncComponent(() => import('@/components/header/index.vue'))
 const FlagPreview = defineAsyncComponent(() => import('./components/flag-preview.vue'))
 const { isFinished,  isRefreash, pageParams, listData, loading, loadList, onRefresh } = useAutoLoadList<FlagItem>({
@@ -40,8 +39,6 @@ const init = async () => {
 }
 
 init()
-
-registerTimingLog()
 </script>
 
 <template>

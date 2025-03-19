@@ -11,9 +11,17 @@ export interface IOriginalData extends Object {
 export interface IBaseTransformedData {
     [key: string]: any
     userInfo: object | string
-    deviceInfo: object
+    deviceInfo: {
+        [key: string]: any
+        bowserName: string
+        bowserVersion: string
+        language: string
+        userAgent: string
+        os: "iOS" | "Android" | "Unknown"
+        deviceType: 'Android' | "iPad" | 'iPhone' | "Unknown"
+    }
     url: string
-    timestamp: string
+    time: number
     collectedData: IOriginalData
 }
 
