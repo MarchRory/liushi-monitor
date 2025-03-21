@@ -22,7 +22,7 @@ export interface ISDKRequestOption {
      * 调试模式, 开始后收集到的数据将以伪请求的方式进行打印, 代替真实上报
      * 但不适用于请求测速插件
      */
-    debugerMode?: boolean
+    debugMode?: boolean
     /**
      * 超时时间
      */

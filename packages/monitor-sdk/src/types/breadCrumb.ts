@@ -47,6 +47,10 @@ export interface IBaseBreadCrumbOptions {
      */
     ignore_urls: string[]
     /**
+     * Tabbar页面的路径, 用作识别路径栈源头页面
+     */
+    tabbar_urls: string[]
+    /**
      * 最大BreadCrumbs栈大小，默认50
      * 该项为应对内存泄漏使用，建议根据app实际子页面层级设置
      */

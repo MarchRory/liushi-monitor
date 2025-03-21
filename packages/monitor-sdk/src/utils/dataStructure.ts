@@ -2,8 +2,9 @@ import { PessimisticLockMixin } from "./mixin"
 
 export class Queue<T = unknown> {
     private limit = 10
-    private queue: T[] = []
+    private queue: T[]
     constructor(initLimit: number) {
+        this.queue = []
         this.limit = initLimit
     }
     deQueue() {
@@ -31,13 +32,15 @@ export class Queue<T = unknown> {
 }
 
 export class Stack<T = unknown> {
-    private stack: T[] = []
-    constructor() { }
+    private stack: T[]
+    constructor() {
+        this.stack = []
+    }
     pop() {
-        this.stack.pop()
+        return this.stack.pop()
     }
     push(element: T) {
-        return this.stack.push(element)
+        this.stack.push(element)
     }
     showAll() {
         return this.stack

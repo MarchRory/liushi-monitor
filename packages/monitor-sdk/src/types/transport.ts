@@ -33,7 +33,7 @@ export interface IProcessingRequestRecord {
          * @returns 
          */
         handleCustomFailure?: (...args: any[]) => any
-    }
+    }[]
 }
 
 /**

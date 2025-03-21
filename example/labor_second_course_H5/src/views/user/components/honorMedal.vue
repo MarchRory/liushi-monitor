@@ -50,7 +50,7 @@ import { storeToRefs } from "pinia";
 import { badgeItem, tempBadgeList } from "@/views/honoraryTitle/config";
 
 interface Props {
-  title: string;
+  title?: string;
   badges?: badgeItem[];
 }
 const props = withDefaults(defineProps<Props>(), {

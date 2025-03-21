@@ -18,7 +18,7 @@ import { useRouter, useRoute } from "vue-router";
 import { ref } from "vue";
 import 'animate.css';
 
-let transitionName = ref("");
+const transitionName = ref("");
 const router = useRouter();
 const route = useRoute();
 

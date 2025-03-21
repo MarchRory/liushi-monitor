@@ -12,14 +12,42 @@ import { fakeRequest } from '../utils/request'
  */
 export class BaseTransport {
     private readonly instance: AxiosInstance
+    /**
+     * 接口地址
+     */
     private readonly interfaceUrl: string
+    /**
+     * 单条记录上报重试次数
+     */
     private readonly retryCnt: number
+    /**
+     * 上报中的请求
+     */
     private readonly processingRequests: Promise<void>[] = [] // 维护当前正在处理的请求
+    /**
+     * 自定义请求头内容
+     */
     private readonly customHeader: ISDKRequestOption['customHeader']
+    /**
+     * 待上报的数据
+     */
     private readonly reportDataMap: Map<RequestBundlePriorityEnum, IProcessingRequestRecord[]>
+    /**
+     * 待上报的数据总量
+     */
+    private waitToReportCnt: number = 0
+    /**
+     * 请求队列最大限制
+     */
     private readonly requestQueueMaxSize = DEFAULT_REQUEST_INIT_OPTIONS.requestQueueMaxSize
     private readonly storageCenter: StorageCenter
+    /**
+     * 单条上报携带的数据量限制
+     */
     private readonly singleMaxReportSize: number
+    /**
+     * 请求优先级
+     */
     private readonly PRIORITY_ORDER: RequestBundlePriorityEnum[] = [
         RequestBundlePriorityEnum.ERROR,
         RequestBundlePriorityEnum.PERFORMANCE,
@@ -32,7 +60,7 @@ export class BaseTransport {
     } & {
         onBeforeAjaxSend: IMonitorHooks['onBeforeAjaxSend']
     }) {
-        this.debugMode = options.debugerMode || false
+        this.debugMode = options.debugMode || false
         this.retryCnt = options.retryCnt || DEFAULT_REQUEST_INIT_OPTIONS.retryCnt
         this.singleMaxReportSize = options.singleMaxReportSize || DEFAULT_REQUEST_INIT_OPTIONS.singleMaxReportSize
         this.instance = this.initAxios(options.reportbaseURL, options.timeout || DEFAULT_REQUEST_INIT_OPTIONS.timeout)
@@ -52,30 +80,29 @@ export class BaseTransport {
      * 唯一对外暴露方法
      * @param sendData 加密后的上报数据
      * @param priority 上报数据优先级
-     * @param {IProcessingRequestRecord['customCallback']} customCallback 
+     * @param customCallback 
      */
     preLoadRequest({ sendData, priority, customCallback }: IPreLoadParmas) {
         this.reportDataMap.get(priority)?.push({ priority, data: Array.isArray(sendData) ? sendData : [sendData], retryRecord: 0, customCallback });
+        this.waitToReportCnt++
         this.scheduleRequest()
     }
     /**
      * 请求调度, 核心上报逻辑
      */
     private async scheduleRequest(): Promise<void> {
-        if (this.processingRequests.length > 0) return; // 防止重复启动
-
-        while (true) {
+        if (this.processingRequests.length && this.waitToReportCnt) return; // 防止重复启动
+        while (this.waitToReportCnt) {
             // 控制上报请求数量, 减轻对业务请求的影响 
-            while (this.processingRequests.length < this.requestQueueMaxSize) {
+            for (let i = 0; this.processingRequests.length < this.requestQueueMaxSize; i++) {
                 const nextData = this.getNextData();
                 if (!nextData) break; // 没有新数据可发送了
 
-                const requestPromise = this.sendWithRetry(nextData)
+                const requestPromise = this.sendWithRetry(nextData, i)
                 this.processingRequests.push(requestPromise);
             }
 
-            if (this.processingRequests.length === 0) break; // 没有任务可执行，退出
-
+            // if (this.processingRequests.length === 0) break; // 没有任务可执行，退出
             // 等待最快完成的请求，确保并发执行
             await Promise.race(this.processingRequests);
         }
@@ -88,13 +115,22 @@ export class BaseTransport {
         let bundleData: IProcessingRequestRecord = {
             data: [],
             priority: RequestBundlePriorityEnum.USERBEHAVIOR,
-            retryRecord: 0
+            retryRecord: 0,
+            customCallback: []
         }
         for (const priority of this.PRIORITY_ORDER) {
             const queue = this.reportDataMap.get(priority)
             bundleData.priority = priority
             while (queue && queue.length && bundleData.data.length < this.singleMaxReportSize) {
-                bundleData.data.push(...(queue.shift()!.data))
+                const queueHead = queue.shift()
+                if (queueHead?.retryRecord) {
+                    // 重试数据直接返回
+                    return queueHead
+                }
+                bundleData.data.push(...(queueHead!.data))
+                if (queueHead?.customCallback) {
+                    bundleData.customCallback?.push(...queueHead.customCallback)
+                }
             }
             if (bundleData.data.length) {
                 return bundleData
@@ -102,41 +138,41 @@ export class BaseTransport {
         }
         return null
     }
-    private async sendToServer(data: IProcessingRequestRecord['data']) {
-        const requestHandler = this.debugMode === false ? fakeRequest : this.instance.post
-        return new Promise((resolve, reject) => {
-            requestHandler(this.interfaceUrl, data)
-                .then(() => resolve(undefined))
-                .catch(reject)
-        })
-    }
 
-    private async sendWithRetry(params: IProcessingRequestRecord): Promise<void> {
-        try {
-            await this.sendToServer(params.data);
-            this.handleRequestSuccess(params)
-        } catch (error) {
-            // 失败处理逻辑
-            // 请求失败则将当前数据移动到最后, 且retry计数器++
-            this.handleRequestFailed(params)
-        }
+    private sendWithRetry(params: IProcessingRequestRecord, processingIndex: number): Promise<void> {
+        const requestHandler = this.debugMode === true ? fakeRequest : this.instance.post
+        return new Promise(async (resolve, reject) => {
+            try {
+                await requestHandler(this.interfaceUrl, params.data);
+                this.processingRequests.splice(processingIndex, 1)
+                resolve()
+                this.handleRequestSuccess(params)
+                console.log('waitCnt: ', this.waitToReportCnt)
+                console.log('\n' + '-'.repeat(30))
+                console.log('-'.repeat(30) + "\n")
+            } catch (error) {
+                this.processingRequests.splice(processingIndex, 1)
+                reject()
+                // 失败处理逻辑
+                // 请求失败则将当前数据移动到最后, 且retry计数器++
+                this.handleRequestFailed(params)
+            }
+        })
     }
     /**
      * 上报成功回调
      * @param params 
      */
     private handleRequestSuccess(params: IProcessingRequestRecord) {
+        this.waitToReportCnt--
         const sendingItem = this.reportDataMap.get(params.priority)
         if (!sendingItem) return
-
-        const index = sendingItem.findIndex((v) => v.data === params.data);
-        const customCallback = sendingItem[index].customCallback
-        if (customCallback && customCallback.handleCustomSuccess) {
-            customCallback.handleCustomSuccess()
+        const { customCallback } = params
+        if (customCallback && customCallback.length) {
+            customCallback.forEach(({ handleCustomSuccess }) => {
+                handleCustomSuccess && handleCustomSuccess()
+            })
         }
-
-        // 移除元素
-        this.reportDataMap.get(params.priority)?.splice(index, 1);
     }
     /**
      * 上报失败回调
@@ -144,17 +180,17 @@ export class BaseTransport {
      */
     private handleRequestFailed(params: IProcessingRequestRecord) {
         params.retryRecord++
-        const sendingItem = this.reportDataMap.get(params.priority)
-        const index = sendingItem?.findIndex((v) => v.data === params.data);
-        if (sendingItem && typeof index !== 'undefined' && index > -1) {
-            const customCallback = sendingItem[index].customCallback
-            if (customCallback && customCallback.handleCustomFailure) {
-                customCallback.handleCustomFailure()
-            }
-            // 失败时先移除元素
-            this.reportDataMap.get(params.priority)?.splice(index, 1);
+        if (params.retryRecord >= this.retryCnt) {
+            this.waitToReportCnt--
+            return
         }
-        if (params.retryRecord <= this.retryCnt) {
+        const { customCallback } = params
+        if (customCallback && customCallback.length) {
+            customCallback.forEach(({ handleCustomFailure }) => {
+                handleCustomFailure && handleCustomFailure()
+            })
+        }
+        if (params.retryRecord < this.retryCnt) {
             // 需要重试则加入尾部等待下一次发送
             this.reportDataMap.get(params.priority)?.push(params)
         }

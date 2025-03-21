@@ -3,7 +3,7 @@ import { IBasePlugin, RequestBundlePriorityEnum } from "../../../types";
 import { getCurrentUrl } from "monitor-sdk/src/utils/url";
 import { getCustomFunction } from "monitor-sdk/src/utils/common";
 import { getCurrentTimeStamp } from "monitor-sdk/src/utils/time";
-import { filterVmCollectedInfo } from "../utils/handler";
+import { filterVmCollectedInfo } from "../utils/filter";
 
 /**
  * Vue3 报错监控插件

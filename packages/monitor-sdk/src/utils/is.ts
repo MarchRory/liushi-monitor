@@ -1,5 +1,9 @@
-export function isUndefined(source: any) {
+export function isUndefined(source: any): source is undefined {
     return typeof source === 'undefined'
+}
+
+export function isNull(source: any): source is null {
+    return source === null
 }
 
 export function isObject(source: any): source is Record<string, any> {

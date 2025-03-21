@@ -102,9 +102,9 @@ export function getCustomFunction<K extends CustomUserFunctionEnum = CustomUserF
  * @param immediate 
  * @returns 
  */
-export function debounce(fn: (...args: any[]) => any, delay: number = 500, immediate: boolean = false) {
+export function debounce<T extends (...args: any[]) => any>(fn: T, delay: number = 300, immediate: boolean = false): (...args: Parameters<T>) => void {
     let timer: NodeJS.Timeout | null = null
-    return (...args: any[]) => {
+    return (...args) => {
         if (timer) {
             clearTimeout(timer)
             timer = null

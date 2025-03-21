@@ -10,6 +10,6 @@ export function fakeRequest(url: string, data: IProcessingRequestRecord['data'])
         setTimeout(() => {
             console.log('数据模拟上报成功: url=' + url + " data=" + data)
             resolve(undefined)
-        }, 300)
+        }, 500 * (1 + Math.random()))
     })
 }

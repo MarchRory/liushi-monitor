@@ -17,11 +17,12 @@ import { liushiMonitor, ISDKInitialOptions } from '@liushi-monitor/monitor-sdk'
 import { useUserStore } from "./store/modules/user";
 
 const liushiMonitorOptions: ISDKInitialOptions = {
-  debugerMode: true,
+  debugMode: true,
   sdkKey: 'liushi_test_sdk_001',
   localStorageKey: 'liushi_test_storage_001',
   customBreadCrumb: {
-    ignore_urls: ['/login']
+    ignore_urls: ['/login'],
+    tabbar_urls: ['/home', '/plan', '/user']
   },
   reportbaseURL: "https://localhost:8080",
   reportInterfaceUrl: "/monitor",
