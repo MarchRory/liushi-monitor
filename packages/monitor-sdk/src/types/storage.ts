@@ -1,11 +1,11 @@
+import { RequestBundlePriorityEnum } from ".";
 import { MonitorTypes } from "./logger";
 
 export type ReportDataStorageType = {
-    [key in MonitorTypes]: string[]
+    [key in RequestBundlePriorityEnum]: string[][]
 }
 
-export type StorageOrder<K extends MonitorTypes = MonitorTypes> =
-    { type: 'update', category: K, data: string[] } |
+export type StorageOrder<K extends RequestBundlePriorityEnum = RequestBundlePriorityEnum> =
+    { type: 'update', category: K, data: string[][] } |
     { type: 'clear', category: K } |
-    { type: 'clearAll' } |
-    { type: 'saveBeforeUnload', category: K, data: string[] }
+    { type: 'clearAll' } 

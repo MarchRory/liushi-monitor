@@ -1,4 +1,7 @@
 <script setup lang="ts">
+defineOptions({
+    name: "用户卡片"
+})
 import { useUserStore } from '@/store/modules/user';
 import {usePointStore} from '@/store/modules/point'
 import { storeToRefs } from 'pinia';

@@ -7,7 +7,7 @@ import { HistoryParams, IHistoryStateValue } from "../types/types";
  * @param args pushState、replaceState 原生参数
  * @param breadCrumbClient 
  */
-export function pushStateBreadCrumbProxy(nativeFn: History['pushState'], breadCrumbClient: Vue3BreadCrumbClient, type: 'pushState' | 'replaceState') {
+export function pushStateBreadCrumbProxy(nativeFn: History['pushState'], breadCrumbClient: Vue3BreadCrumbClient) {
     return function (this: History, ...args: Parameters<typeof nativeFn>) {
         // TODO: 用一个元祖约束下面的args解构后的数组
         const [state] = args as HistoryParams

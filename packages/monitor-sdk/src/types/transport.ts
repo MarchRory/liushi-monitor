@@ -1,10 +1,12 @@
+import { type } from "os"
+
 /**
  * 请求优先级枚举
  */
 export const enum RequestBundlePriorityEnum {
-    ERROR = 3,
-    PERFORMANCE = 2,
-    USERBEHAVIOR = 1
+    USERBEHAVIOR = 1,
+    PERFORMANCE,
+    ERROR,
 }
 
 export interface IProcessingRequestRecord {
@@ -13,6 +15,10 @@ export interface IProcessingRequestRecord {
      * 上报优先级
      */
     priority: RequestBundlePriorityEnum
+    /**
+     * 本地缓存中的提取出来的数据类型
+     */
+    storageType?: 'preload' | 'unPreload'
     /**
      * 重试次数记录
      */
@@ -35,6 +41,13 @@ export interface IProcessingRequestRecord {
         handleCustomFailure?: (...args: any[]) => any
     }[]
 }
+
+/**
+ * report -> 常规上报 [默认值]
+ * returnParam -> 直接返回待上报的参数, 用于页面关闭前缓存未上报的数据
+ */
+export type TransportTaskRunType = 'report' | 'returnParam' | undefined
+export type TransportTask = () => (type?: TransportTaskRunType) => Promise<IProcessingRequestRecord | undefined>
 
 /**
  * 上报预载方法的参数

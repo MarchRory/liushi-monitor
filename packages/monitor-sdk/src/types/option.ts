@@ -4,6 +4,7 @@ import { EncryptedDataType, IBaseTransformedData, IOriginalData } from './logDat
 import { IBaseBreadCrumbOptions } from './breadCrumb'
 import { IBasePlugin } from './plugins'
 import { MonitorTypes } from './logger'
+import { IFmpCalculatorOptions } from '../plugins/performance/src/types/fmp'
 
 /**
  * SDK上报method和上报接口
@@ -18,6 +19,11 @@ export interface ISDKRequestOption {
      * 上报接口地址
      */
     reportInterfaceUrl: string
+    /**
+     * 同时进行的上报任务数量, 默认为2,
+     * 自定义时随项目实际需求确定, 不建议超过3
+     */
+    reportTaskSizeLimit?: number
     /**
      * 调试模式, 开始后收集到的数据将以伪请求的方式进行打印, 代替真实上报
      * 但不适用于请求测速插件
@@ -39,6 +45,10 @@ export interface ISDKRequestOption {
      * 自定义请求头内容
      */
     customHeader?: Record<string, string>
+    /**
+     * 收集到数据后, 到启动上报的延迟, 单位ms
+     */
+    transportDelay?: number
 }
 
 /**
@@ -76,7 +86,7 @@ export interface IMonitorHooks {
 /**
  * SDK初始化配置参数
  */
-export interface ISDKInitialOptions extends ISDKRequestOption {
+export interface ISDKInitialOptions extends ISDKRequestOption, IFmpCalculatorOptions, ISPACustomConfig {
     /**
      * 秘钥
      */
@@ -119,3 +129,14 @@ export interface ISDKInitialOptions extends ISDKRequestOption {
     customPlugins?: IBasePlugin<MonitorTypes>[]
 }
 
+export interface ISPACustomConfig {
+    /**
+     * SPA性能监控配置
+     */
+    spaPerformanceConfig?: {
+        /**
+         * 忽略的性能监控页面路由path
+         */
+        ignoredPageUrls?: string[]
+    }
+}   

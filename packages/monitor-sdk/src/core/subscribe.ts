@@ -1,14 +1,19 @@
 import { BaseEventTypes } from "../types"
 
-type MonitorCallBack = (data: any) => void
+type CallBack = (data: any) => void
 
 /**
  * @description 利用发布订阅实现对埋点收集、数据清洗、上报
  */
-export class Subscribe<T extends BaseEventTypes = BaseEventTypes> {
-    private bucket: Map<T, MonitorCallBack[]> = new Map()
+export class Subscribe<T = BaseEventTypes> {
+    private bucket: Map<T, CallBack[]> = new Map()
     constructor() { }
-    subscribe(eventName: T, callback: MonitorCallBack) {
+    /**
+     * 订阅事件
+     * @param eventName 
+     * @param callback 
+     */
+    subscribe(eventName: T, callback: CallBack) {
         const deps = this.bucket.get(eventName)
         if (deps) {
             deps.push(callback)
@@ -16,11 +21,17 @@ export class Subscribe<T extends BaseEventTypes = BaseEventTypes> {
             this.bucket.set(eventName, [callback])
         }
     }
-    notify(eventName: T, data: any) {
+    /**
+     * 触发数据处理和上报
+     * @param eventName 
+     * @param args 
+     */
+    notify(eventName: T, args?: any) {
         const deps = this.bucket.get(eventName)
         if (deps && deps.length) {
             deps.forEach(cb => {
                 // 调用上报包裹器进行响应和错误捕获
+                cb && cb(args)
             })
         }
     }

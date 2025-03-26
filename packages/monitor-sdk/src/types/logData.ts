@@ -20,8 +20,8 @@ export interface IBaseTransformedData {
         os: "iOS" | "Android" | "Unknown"
         deviceType: 'Android' | "iPad" | 'iPhone' | "Unknown"
     }
-    url: string
-    time: number
+    url?: string
+    time?: number
     collectedData: IOriginalData
 }
 

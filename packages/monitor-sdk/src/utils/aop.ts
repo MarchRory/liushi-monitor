@@ -1,3 +1,4 @@
+import { Subscribe } from "../core";
 import { isNull, isUndefined } from "./is";
 
 /**

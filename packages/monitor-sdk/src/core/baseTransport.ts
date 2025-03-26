@@ -1,10 +1,12 @@
 import axios, { AxiosInstance } from 'axios'
-import { IMonitorHooks, ISDKRequestOption, MonitorTypes } from '../types'
-import { DEFAULT_REQUEST_INIT_OPTIONS } from '../configs/constant'
-import { IPreLoadParmas, IProcessingRequestRecord, RequestBundlePriorityEnum } from '../types/transport'
-import { getCustomFunction } from '../utils/common'
-import { StorageCenter } from '../utils/storage'
+import { GlobalSubscribeTypes, IMonitorHooks, ISDKRequestOption } from '../types'
+import { DEFAULT_LOCALSTORAGE_KEY, DEFAULT_REQUEST_INIT_OPTIONS } from '../configs/constant'
+import { IPreLoadParmas, IProcessingRequestRecord, RequestBundlePriorityEnum, TransportTask, TransportTaskRunType } from '../types/transport'
+import { getCustomFunction, throttle } from '../utils/common'
+import { StorageCenter, setStorage } from './IndicatorStorageCenter'
 import { fakeRequest } from '../utils/request'
+import { TaskScheduler } from './scheduler'
+import { Subscribe } from './subscribe'
 
 
 /**
@@ -21,9 +23,13 @@ export class BaseTransport {
      */
     private readonly retryCnt: number
     /**
-     * 上报中的请求
+     * 异步任务调度器
      */
-    private readonly processingRequests: Promise<void>[] = [] // 维护当前正在处理的请求
+    private readonly asyncTaskScheduler: TaskScheduler<TransportTask>
+    /**
+     * 用于监听上报请求, 自动触发链式上报
+     */
+    private readonly globalEventBus: Subscribe<GlobalSubscribeTypes>
     /**
      * 自定义请求头内容
      */
@@ -32,14 +38,6 @@ export class BaseTransport {
      * 待上报的数据
      */
     private readonly reportDataMap: Map<RequestBundlePriorityEnum, IProcessingRequestRecord[]>
-    /**
-     * 待上报的数据总量
-     */
-    private waitToReportCnt: number = 0
-    /**
-     * 请求队列最大限制
-     */
-    private readonly requestQueueMaxSize = DEFAULT_REQUEST_INIT_OPTIONS.requestQueueMaxSize
     private readonly storageCenter: StorageCenter
     /**
      * 单条上报携带的数据量限制
@@ -54,25 +52,36 @@ export class BaseTransport {
         RequestBundlePriorityEnum.USERBEHAVIOR
     ];
     private readonly debugMode: boolean
+    private delayReportTimer: NodeJS.Timeout | null = null
+    private readonly transportDelay: number
     private readonly onBeforeAjaxSend: IMonitorHooks['onBeforeAjaxSend']
+    readonly throttledPreLoadRequest = throttle((...args: Parameters<typeof this.preLoadRequest>) => this.preLoadRequest(...args))
     constructor(options: ISDKRequestOption & {
         storageCenter: StorageCenter,
+        globalEventBus: Subscribe<GlobalSubscribeTypes>
     } & {
         onBeforeAjaxSend: IMonitorHooks['onBeforeAjaxSend']
     }) {
         this.debugMode = options.debugMode || false
         this.retryCnt = options.retryCnt || DEFAULT_REQUEST_INIT_OPTIONS.retryCnt
+        this.transportDelay = options.transportDelay || DEFAULT_REQUEST_INIT_OPTIONS.transportDelay
         this.singleMaxReportSize = options.singleMaxReportSize || DEFAULT_REQUEST_INIT_OPTIONS.singleMaxReportSize
         this.instance = this.initAxios(options.reportbaseURL, options.timeout || DEFAULT_REQUEST_INIT_OPTIONS.timeout)
         this.interfaceUrl = options.reportInterfaceUrl
         this.customHeader = options.customHeader || {}
         this.storageCenter = options.storageCenter
+        this.globalEventBus = options.globalEventBus
         this.onBeforeAjaxSend = options.onBeforeAjaxSend
         this.reportDataMap = new Map([
             [RequestBundlePriorityEnum.ERROR, []],
             [RequestBundlePriorityEnum.PERFORMANCE, []],
             [RequestBundlePriorityEnum.USERBEHAVIOR, []]
         ])
+        this.asyncTaskScheduler = new TaskScheduler(options.reportTaskSizeLimit || DEFAULT_REQUEST_INIT_OPTIONS.reportTaskSizeLimit)
+        this.globalEventBus.subscribe('reportSuccess', () => this.loadNextReportTask())
+        this.globalEventBus.subscribe('onBeforePageUnload', () => this.saveRestDataToStoarge())
+        this.globalEventBus.subscribe('onPageHide', () => this.saveRestDataToStoarge())
+        this.globalEventBus.subscribe('onVisibilityToBeHidden', () => this.saveRestDataToStoarge())
         this.checkStorageAndReReport()
     }
     /**
@@ -84,28 +93,14 @@ export class BaseTransport {
      */
     preLoadRequest({ sendData, priority, customCallback }: IPreLoadParmas) {
         this.reportDataMap.get(priority)?.push({ priority, data: Array.isArray(sendData) ? sendData : [sendData], retryRecord: 0, customCallback });
-        this.waitToReportCnt++
-        this.scheduleRequest()
-    }
-    /**
-     * 请求调度, 核心上报逻辑
-     */
-    private async scheduleRequest(): Promise<void> {
-        if (this.processingRequests.length && this.waitToReportCnt) return; // 防止重复启动
-        while (this.waitToReportCnt) {
-            // 控制上报请求数量, 减轻对业务请求的影响 
-            for (let i = 0; this.processingRequests.length < this.requestQueueMaxSize; i++) {
-                const nextData = this.getNextData();
-                if (!nextData) break; // 没有新数据可发送了
 
-                const requestPromise = this.sendWithRetry(nextData, i)
-                this.processingRequests.push(requestPromise);
-            }
 
-            // if (this.processingRequests.length === 0) break; // 没有任务可执行，退出
-            // 等待最快完成的请求，确保并发执行
-            await Promise.race(this.processingRequests);
-        }
+        if (this.delayReportTimer) return
+        this.delayReportTimer = setTimeout(() => {
+            this.globalEventBus.notify('reportSuccess')
+            clearTimeout(this.delayReportTimer as NodeJS.Timeout)
+            this.delayReportTimer = null
+        }, this.transportDelay)
     }
 
     /**
@@ -138,33 +133,36 @@ export class BaseTransport {
         }
         return null
     }
+    /**
+     * 
+     * @param params 
+     * @param type 'report' | 'returnParam' | undefined
+     * @returns 
+     */
+    private async sendWithRetry(
+        params: IProcessingRequestRecord,
+        type?: TransportTaskRunType) {
+        const requestHandler = this.debugMode ? fakeRequest : this.instance.post
+        if (type === 'returnParam') return params
 
-    private sendWithRetry(params: IProcessingRequestRecord, processingIndex: number): Promise<void> {
-        const requestHandler = this.debugMode === true ? fakeRequest : this.instance.post
-        return new Promise(async (resolve, reject) => {
-            try {
-                await requestHandler(this.interfaceUrl, params.data);
-                this.processingRequests.splice(processingIndex, 1)
-                resolve()
-                this.handleRequestSuccess(params)
-                console.log('waitCnt: ', this.waitToReportCnt)
-                console.log('\n' + '-'.repeat(30))
-                console.log('-'.repeat(30) + "\n")
-            } catch (error) {
-                this.processingRequests.splice(processingIndex, 1)
-                reject()
-                // 失败处理逻辑
-                // 请求失败则将当前数据移动到最后, 且retry计数器++
-                this.handleRequestFailed(params)
-            }
-        })
+        try {
+            await requestHandler(this.interfaceUrl, params.data);
+            this.globalEventBus.notify('reportSuccess')
+            this.handleRequestSuccess(params)
+            console.log('\n' + '-'.repeat(30))
+            console.log('-'.repeat(30) + "\n")
+        } catch {
+            this.handleRequestFailed(params)
+            // 失败处理逻辑
+        } finally {
+            return
+        }
     }
     /**
      * 上报成功回调
      * @param params 
      */
     private handleRequestSuccess(params: IProcessingRequestRecord) {
-        this.waitToReportCnt--
         const sendingItem = this.reportDataMap.get(params.priority)
         if (!sendingItem) return
         const { customCallback } = params
@@ -181,7 +179,6 @@ export class BaseTransport {
     private handleRequestFailed(params: IProcessingRequestRecord) {
         params.retryRecord++
         if (params.retryRecord >= this.retryCnt) {
-            this.waitToReportCnt--
             return
         }
         const { customCallback } = params
@@ -196,6 +193,17 @@ export class BaseTransport {
         }
         // TODO: 暂定 超过重试次数时直接舍弃, 更可靠的逻辑需要补充
     }
+    /**
+     * 读取下一次发送的数据并添加上报到异步调度器
+     * @returns 
+     */
+    private loadNextReportTask() {
+        const nextData = this.getNextData()
+        if (!nextData) return
+        // TODO: 解决类型冲突
+        this.asyncTaskScheduler.addTask(() => (type?: TransportTaskRunType) => this.sendWithRetry(nextData, type))
+    }
+
     /**
      * 初始化axios
      * @param baseURL                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
@@ -238,36 +246,52 @@ export class BaseTransport {
      * 每次启动时检查本地缓存, 重新发送上一次页面卸载时未发送成功的数据
      */
     private checkStorageAndReReport() {
-        const splitArr = (source: string[] = []) => {
+        const splitArr = (source: string[][] = []) => {
             const res: string[][] = []
             while (source.length && source.length < this.singleMaxReportSize) {
-                res.push(source.splice(0, 5))
+                const data = source.shift()
+                data && res.push(data)
             }
             return res
         }
-        const behaviorStorage = splitArr(this.storageCenter.getSpecificStorage('userBehavior'))
-        const performanceStorage = splitArr(this.storageCenter.getSpecificStorage('performance'))
-        const errorStorage = splitArr(this.storageCenter.getSpecificStorage('error'))
+        const behaviorStorage = splitArr(this.storageCenter.getSpecificStorage(RequestBundlePriorityEnum.USERBEHAVIOR))
+        const performanceStorage = splitArr(this.storageCenter.getSpecificStorage(RequestBundlePriorityEnum.PERFORMANCE))
+        const errorStorage = splitArr(this.storageCenter.getSpecificStorage(RequestBundlePriorityEnum.ERROR))
 
-        const run = (source: string[][], priority: RequestBundlePriorityEnum, category: MonitorTypes) => {
+        this.storageCenter.dispatchStorageOrder({
+            type: 'clearAll'
+        })
+
+        const run = (source: string[][], priority: RequestBundlePriorityEnum) => {
             for (let i = 0; i < source.length; i++) {
                 this.preLoadRequest({
-                    sendData: source[i], priority,
-                    // customCallback: {
-                    //     handleCustomSuccess: (i) => {
-                    //         source.splice(i, 1)
-                    //         this.storageCenter.dispatchStorageOrder({
-                    //             type: 'update',
-                    //             category,
-                    //             data: source[i].slice()
-                    //         })
-                    //     },
-                    // }
+                    sendData: source[i],
+                    priority,
+                    customCallback: [{
+                        handleCustomSuccess(...args) {
+                            console.log('页面关闭前的未上报任务, 重新上报成功')
+                        },
+                    }]
                 })
             }
         }
-        run(behaviorStorage, RequestBundlePriorityEnum.USERBEHAVIOR, 'userBehavior')
-        run(performanceStorage, RequestBundlePriorityEnum.PERFORMANCE, 'performance')
-        run(errorStorage, RequestBundlePriorityEnum.ERROR, 'error')
+        run(behaviorStorage, RequestBundlePriorityEnum.USERBEHAVIOR)
+        run(performanceStorage, RequestBundlePriorityEnum.PERFORMANCE)
+        run(errorStorage, RequestBundlePriorityEnum.ERROR)
+    }
+    /**
+     * 终止发送
+     * @returns 
+     */
+    private saveRestDataToStoarge() {
+        const restTasks = this.asyncTaskScheduler.stopScheduleAndReturnRestTasks()
+        if (restTasks.length === 0) return
+        restTasks.forEach(async (task) => {
+            const unSendData = await task()('returnParam')
+            if (unSendData) {
+                const { data, priority } = unSendData
+                this.storageCenter.handleSaveBeforeUnload(priority, data)
+            }
+        })
     }
 }

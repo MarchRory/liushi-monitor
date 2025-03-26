@@ -71,6 +71,10 @@ const init = () => {
 };
 
 init();
+
+onMounted(() => {
+  $liushiMonitor.sendSpaLoadPerformance()
+})
 </script>
 
 <template>

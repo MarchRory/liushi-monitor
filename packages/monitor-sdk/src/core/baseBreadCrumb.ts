@@ -4,7 +4,7 @@ import { RequestBundlePriorityEnum } from '../types/transport'
 import { debounce, getCustomFunction } from '../utils/common'
 import { Stack } from '../utils/dataStructure'
 import { isNull, isUndefined } from '../utils/is'
-import { StorageCenter } from '../utils/storage'
+import { StorageCenter } from './IndicatorStorageCenter'
 import { formatTimeDifference, getCurrentTimeStamp } from '../utils/time'
 import { BaseTransport } from './baseTransport'
 
@@ -170,13 +170,7 @@ export abstract class BaseBreadCrumb {
         if (encryptor) {
             encryptedData = encryptor(encryptedData)
         }
-        const stoarge = this.storageCenter.getSpecificStorage('userBehavior')
-        stoarge.push(encryptedData)
-
-        this.storageCenter.dispatchStorageOrder({
-            type: "update",
-            category: 'userBehavior',
-            data: stoarge
-        })
+        const stoarge = this.storageCenter.getSpecificStorage(RequestBundlePriorityEnum.USERBEHAVIOR)
+        stoarge.push([encryptedData])
     }
 }

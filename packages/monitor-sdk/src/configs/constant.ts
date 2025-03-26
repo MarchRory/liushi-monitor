@@ -3,27 +3,43 @@ import { DeepRequired } from "../types/utils"
 
 export const SDK_VERSION = 'v1.0.0'
 export const DEFAULT_LOCALSTORAGE_KEY = 'liushi_monitor_key'
+/**
+ * 当日uv收集记录表
+ */
+export const UV_RECORD_STORAGE_KEY = 'ls_uv_record_map'
 
 /**
  * breadCrumbs默认配置
  */
-export const DEFAULT_BREADCRUMB_CONFIG: DeepRequired<IBaseBreadCrumbOptions> = {
+export const DEFAULT_BREADCRUMB_CONFIG: DeepRequired<Omit<IBaseBreadCrumbOptions, 'tabbar_urls'>> = {
     ignore_urls: [],
     max_access_path_size: 15,
     max_bread_crumbs_stack_size: 50
 }
 
-export const DEFAULT_REQUEST_INIT_OPTIONS:
-    Omit<Required<ISDKRequestOption>, 'reportUrl' | 'reportbaseURL' | 'reportInterfaceUrl'>
-    & {
-        /**
-         * 一次性发送的请求条数限制, 考虑到浏览器单一域名下一次限制6条链接, 故设置为2, 尽量减少对业务请求的影响
-         */
-        requestQueueMaxSize: number
-    }
-    = {
+/**
+ * 上报中心默认配置
+ */
+export const DEFAULT_REQUEST_INIT_OPTIONS: Omit<Required<ISDKRequestOption>, 'reportUrl' | 'reportbaseURL' | 'reportInterfaceUrl'> = {
     timeout: 4 * 1000,
     retryCnt: 3,
     singleMaxReportSize: 3,
-    requestQueueMaxSize: 3
+    reportTaskSizeLimit: 2,
+    transportDelay: 500
 }
+
+/**
+ * FMP计算所用的资源元素权重表, 默认其他非资源元素的权重为1
+ */
+export const DEFAULT_FMP_ELEMENT_WEIGHT_TABLE = {
+    svg: 2,
+    canvas: 2,
+    img: 3,
+    embed: 4,
+    video: 4
+}
+
+/**
+ * 
+ */
+export const PAGE_PERFORMANCE_MONITOR_RECORD_STORAGE_KEY = 'ls_monitor_page_performance_record'

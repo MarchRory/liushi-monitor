@@ -1,11 +1,10 @@
 import { createApp } from "vue";
 import "./style.css";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 import App from "./App.vue";
 import "@/styles/index.less";
 import { Toast } from "vant";
-import "vant/es/toast/style"; // 全局引入toast样式
+import "vant/es/toast/style";
 import "vant/es/dialog/style";
 import { Notify, Swipe, SwipeItem } from "vant";
 import "vant/es/notify/style";
@@ -41,7 +40,7 @@ const liushiMonitorOptions: ISDKInitialOptions = {
     async onDataCollected(_, originalData) {
       return {
         hookInfo: 'hook: onDataCollected 执行成功',
-        ...originalData,
+        originalData,
       }
     },
     async onDataTransformed(_, transformedData) {
@@ -71,6 +70,3 @@ createApp(App)
   .use(liushiMonitor, liushiMonitorOptions)
   .component("t-icon", Icon)
   .mount("#app")
-
-
-

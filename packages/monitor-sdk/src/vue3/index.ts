@@ -1,20 +1,35 @@
 import { ISDKInitialOptions } from "../types";
+import SDKBasePlugins from "../plugins";
 import Vue3AppMonitorClient from "./src/client/client";
 import Vue3ErrorMonitorPlugin from "./src/plugin/errorTrapMonitorPlugin";
+import { type App } from 'vue'
 
-import type { App } from 'vue'
+declare global {
+    interface Window {
+        $liushiMonitor: {
+            spaStartLoadTimiing(path: string): void
+            sendSpaLoadPerformance(): Promise<void>
+        };
+    }
+    const $liushiMonitor: {
+        spaStartLoadTimiing(path: string): void
+        sendSpaLoadPerformance(): Promise<void>
+    };
+}
+
 /**
  * 注册监控插件
  */
 function install(vue3App: App, options: ISDKInitialOptions): void {
     const monitorInstance = new Vue3AppMonitorClient({ ...options, VueApp: vue3App })
     const { customPlugins = [] } = options
-    const plugins = [Vue3ErrorMonitorPlugin, ...customPlugins]
+    const plugins = [
+        Vue3ErrorMonitorPlugin,
+        ...SDKBasePlugins,
+        ...customPlugins
+    ]
+    window.$liushiMonitor = monitorInstance
     monitorInstance.use(plugins)
-    vue3App.config.globalProperties.$liushiMonitor = monitorInstance
 }
 
-
-export {
-    install
-}
+export default install

@@ -17,10 +17,8 @@ const Vue3ErrorMonitorPlugin: IBasePlugin<'error'> = {
         if (!vueApp.config) throw new Error("vue.config获取失败, 无法配置监听")
 
         const vueNativeErrorHandler = vueApp.config.errorHandler
-        vueApp.config.errorHandler = async function (err: unknown, instance: ComponentPublicInstance | null, info: string) {
-            console.log('err: ', err, 'instance: ', instance, 'info: ', info)
-            //TODO: 收集和上报逻辑
-
+        vueApp.config.errorHandler = function (err: unknown, instance: ComponentPublicInstance | null, info: string) {
+            //TODO: 未来可能要完善的上报数据
             const originalData = filterVmCollectedInfo(err, instance, info)
             notify('vue3_framework_error', originalData)
             return vueNativeErrorHandler?.(err, instance, info)
@@ -28,24 +26,25 @@ const Vue3ErrorMonitorPlugin: IBasePlugin<'error'> = {
     },
     dataTransformer(client, originalData) {
         const getUserInfo = getCustomFunction('getUserInfo')
+        const userInfo = getUserInfo ? getUserInfo() : 'unknown'
+
         return {
-            userInfo: getUserInfo ? getUserInfo() : "unknown",
+            userInfo,
             deviceInfo: client.deviceInfo,
             collectedData: originalData,
             time: getCurrentTimeStamp(),
             url: getCurrentUrl()
         }
-
     },
     dataConsumer(transport, encryptedData) {
         transport.preLoadRequest({
             sendData: encryptedData,
             priority: RequestBundlePriorityEnum.ERROR,
-            customCallback: {
+            customCallback: [{
                 handleCustomSuccess(...args) {
                     console.log('Vue错误上报成功')
                 },
-            }
+            }]
         })
     },
 }

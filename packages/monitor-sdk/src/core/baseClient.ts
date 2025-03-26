@@ -1,13 +1,14 @@
 import { App } from "vue";
 import { SDK_VERSION } from "../configs/constant";
-import { BaseEventTypes, IBaseClient, IBasePlugin, IBaseTransformedData, IOriginalData, ISDKInitialOptions, MonitorTypes } from "../types";
-import { customFunctionBucket, getCustomFunction } from "../utils/common";
+import { GlobalSubscribeTypes, IBaseClient, IBasePlugin, IBaseTransformedData, IOriginalData, ISDKInitialOptions, MonitorTypes } from "../types";
+import { customFunctionBucket, debounce, getCustomFunction, throttle } from "../utils/common";
 import { isUndefined } from "../utils/is";
-import { StorageCenter } from "../utils/storage";
-import { BaseBreadCrumb } from "./baseBreadCrumb";
+import { StorageCenter } from "./IndicatorStorageCenter";
 import { BaseTransport } from "./baseTransport";
 import { Subscribe } from "./subscribe";
 import { detectDevice } from "../utils/device";
+import FmpCalculator from "../plugins/performance/src/utils/FmpCalculator";
+import { aop } from "../utils/aop";
 
 export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseClient {
     readonly sdk_version = SDK_VERSION
@@ -16,12 +17,15 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
      * 缓存中心
      */
     readonly storageCenter: StorageCenter
+    readonly eventBus: Subscribe<GlobalSubscribeTypes<E>>
     /**
      * 数据调度与上报工具
      */
     readonly baseTransport: BaseTransport
     readonly deviceInfo: IBaseTransformedData['deviceInfo']
+    readonly fmpCalculator: FmpCalculator
     readonly VueApp?: App
+    readonly pagePerformanceMonitorRecord: Set<string> = new Set()
     private pluginsCount: number = 4
     constructor(initialOptions: ISDKInitialOptions & { VueApp?: App }) {
         this.validateOptions(initialOptions)
@@ -32,12 +36,23 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
             storageKey: initialOptions.localStorageKey,
             getPluginsCount: () => this.pluginsCount
         })
+        this.eventBus = new Subscribe<GlobalSubscribeTypes<E>>()
         this.baseTransport = new BaseTransport({
             ...initialOptions,
             storageCenter: this.storageCenter,
+            globalEventBus: this.eventBus,
             onBeforeAjaxSend: initialOptions.hooks?.onBeforeAjaxSend
         })
+        this.fmpCalculator = new FmpCalculator(initialOptions)
         this.deviceInfo = this.getDeviceInfo()
+
+        aop(window.history, 'pushState', (nativeFn: History['pushState']) => this.globalPushAndReplaceAOP(nativeFn, this.eventBus))
+        aop(window.history, 'replaceState', (nativeFn: History['replaceState']) => this.globalPushAndReplaceAOP(nativeFn, this.eventBus))
+        aop(window, 'onpopstate', (nativeFn: Window['onpopstate']) => this.globalPopStateAOP(nativeFn, this.eventBus))
+        aop(window, 'onpagehide', (nativeFn: Window['onpagehide']) => this.globalPageHideAOP(nativeFn, this.eventBus))
+        aop(window, 'onpageshow', (nativeFn: Window['onpageshow']) => this.globalPageShowAOP(nativeFn, this.eventBus))
+        aop(window, 'onbeforeunload', (nativeFn: Window['onbeforeunload']) => this.globalPageUnloadAOP(nativeFn, this.eventBus))
+        aop(document, 'onvisibilitychange', (nativeFn: Document['onvisibilitychange']) => this.globalVisibiityChangeAOP(nativeFn, this.eventBus))
     }
     /**
      * 注册插件
@@ -47,14 +62,13 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
     use(plugins: IBasePlugin<E>[]) {
         if (this.options.disbled) return
 
-        const eventBus = new Subscribe<BaseEventTypes<E>>()
         plugins.forEach((plugin) => {
             if (plugin.isPluginEnabled) return
             // 开启插件的监控
             this.pluginsCount++
-            plugin.monitor.call(this, this, eventBus.notify.bind(eventBus))
+            plugin.monitor.call(this, this, this.eventBus.notify.bind(this.eventBus))
             const monitorCallback = this.reportProcessWapper(plugin)
-            eventBus.subscribe(plugin.eventName, monitorCallback)
+            this.eventBus.subscribe(plugin.eventName, monitorCallback)
         })
     }
     /**
@@ -65,6 +79,7 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
     reportProcessWapper(currentPlugin: IBasePlugin<E>) {
         return async (originalData: IOriginalData) => {
             let customCollectedData: IOriginalData = originalData
+
             const { hooks = {} } = this.options
             // 数据收集
             if (hooks.onDataCollected) {
@@ -125,4 +140,54 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
             language: navigator.language
         }
     }
-}                 
+    // TODO: 毕业论文搞完后 使用配置项优化以下编码
+    private globalPushAndReplaceAOP(nativeFn: History['pushState'] | History['replaceState'], eventBus: typeof this.eventBus) {
+        return function (this: History, ...args: Parameters<typeof nativeFn>) {
+            Promise.resolve().then(throttle(() => eventBus.notify('onPushAndReplaceState', args)))
+            return nativeFn.apply(this, args)
+        }
+    }
+    private globalPopStateAOP(nativeFn: Window['onpopstate'], eventBus: typeof this.eventBus) {
+        return function (this: WindowEventHandlers, args: typeof nativeFn extends null ? any[] : PopStateEvent) {
+            Promise.resolve().then(debounce(() => eventBus.notify('onPopState', args), 100))
+            if (nativeFn) {
+                return nativeFn.apply(this, [args])
+            }
+        }
+    }
+    private globalPageHideAOP(nativeFn: Window['onpagehide'], eventBus: typeof this.eventBus) {
+        return function (this: WindowEventHandlers, args: PageTransitionEvent) {
+            Promise.resolve().then(throttle(() => eventBus.notify('onPageHide', args)))
+            if (nativeFn) {
+                return nativeFn.apply(this, [args])
+            }
+        }
+    }
+    private globalPageShowAOP(nativeFn: Window['onpageshow'], eventBus: typeof this.eventBus) {
+        return function (this: WindowEventHandlers, args: PageTransitionEvent) {
+            setTimeout(debounce(() => eventBus.notify('onPageShow', args), 100))
+            if (nativeFn) {
+                return nativeFn.apply(this, [args])
+            }
+        }
+    }
+    private globalPageUnloadAOP(nativeFn: Window['onbeforeunload'], eventBus: typeof this.eventBus) {
+        return function (this: WindowEventHandlers, args: BeforeUnloadEvent) {
+            Promise.resolve().then(() => eventBus.notify('onBeforePageUnload', args))
+
+            if (nativeFn) {
+                return nativeFn.apply(this, [args])
+            }
+        }
+    }
+    private globalVisibiityChangeAOP(nativeFn: Document['onvisibilitychange'], eventBus: typeof this.eventBus) {
+        return function (this: Document, args: Event) {
+            if (this.visibilityState === 'hidden') {
+                throttle(() => eventBus.notify('onVisibilityToBeHidden', args))
+            }
+            if (nativeFn) {
+                return nativeFn.apply(this, [args])
+            }
+        }
+    }
+}

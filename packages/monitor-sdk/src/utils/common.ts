@@ -98,12 +98,23 @@ export function getCustomFunction<K extends CustomUserFunctionEnum = CustomUserF
 /**
  * 防抖
  * @param fn 
- * @param delay 
+ * @param delay 默认300ms
  * @param immediate 
  * @returns 
  */
-export function debounce<T extends (...args: any[]) => any>(fn: T, delay: number = 300, immediate: boolean = false): (...args: Parameters<T>) => void {
+export function debounce<T extends (...args: any[]) => any>(
+    fn: T,
+    delay: number = 300,
+    otherConfig?: { immediate?: boolean, thisArg?: any })
+    : (...args: Parameters<T>) => void {
+    const {
+        immediate = false,
+        thisArg = undefined
+    } = (otherConfig || {})
     let timer: NodeJS.Timeout | null = null
+    // @ts-ignore
+    const _this = this || thisArg
+
     return (...args) => {
         if (timer) {
             clearTimeout(timer)
@@ -112,13 +123,38 @@ export function debounce<T extends (...args: any[]) => any>(fn: T, delay: number
         if (!immediate) {
             timer = setTimeout(() => {
                 // @ts-ignore
-                fn.call(this, ...args)
+                fn.call(_this, ...args)
             }, delay)
         } else {
             let flag = !timer
             // @ts-ignore
-            flag && fn.call(this, ...args)
+            flag && fn.call(_this, ...args)
             timer = null
         }
     }
+}
+
+/**
+ * 节流
+ * @param fn 
+ * @param lockTime 默认800ms内只触发第一次
+ * @returns 
+ */
+export function throttle<T extends (...args: any[]) => any>(
+    fn: T,
+    lockTime: number = 800
+): (...args: Parameters<T>) => void {
+    let timer = null;
+    let isThrottle = false;
+    return (...args: any[]) => {
+        if (!isThrottle) {
+            // @ts-ignore
+            fn.apply(this, args);
+            isThrottle = true;
+            timer = setTimeout(() => {
+                isThrottle = false;
+                timer = null;
+            }, lockTime);
+        }
+    };
 }

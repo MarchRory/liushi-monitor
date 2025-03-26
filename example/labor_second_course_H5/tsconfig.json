@@ -3,11 +3,7 @@
     "target": "ES2020",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "lib": [
-      "ES2021",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2021", "DOM", "DOM.Iterable"],
     "sourceMap": true,
     "skipLibCheck": true,
     /* Bundler mode */
@@ -25,9 +21,7 @@
     "allowJs": true,
     "baseUrl": "./",
     "paths": {
-      "@/*": [
-        "src/*"
-      ],
+      "@/*": ["src/*"]
     },
     "removeComments": true,
     "importHelpers": true,
@@ -43,7 +37,7 @@
     "src/**/**/*.vue",
     "src/**/**/*.ts",
     "src/**/**/**/*.ts",
-    "src/**/**/**/*.vue",
+    "src/**/**/**/*.vue"
   ],
   "references": [
     {

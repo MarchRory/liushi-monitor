@@ -45,10 +45,12 @@
     "prettier": "3.1.0",
     "prettier-eslint": "^16.1.2",
     "rollup": "^4.34.6",
+    "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-typescript2": "^0.36.0",
     "tslib": "^2.8.1",
     "typescript": "4.9.5",
-    "vue": "^3.5.13"
+    "vue": "^3.5.13",
+    "web-vitals": "^4.2.4"
   },
   "dependencies": {
     "@commitlint/cli": "^19.7.1"

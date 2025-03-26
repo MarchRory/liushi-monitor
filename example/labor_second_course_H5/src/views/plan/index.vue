@@ -152,6 +152,9 @@ const isPlan = (obj: ObtainedScore) => {
 
 loadPlanList();
 loadUserPlanList();
+onMounted(() => {
+  $liushiMonitor.sendSpaLoadPerformance()
+})
 </script>
 
 <template>

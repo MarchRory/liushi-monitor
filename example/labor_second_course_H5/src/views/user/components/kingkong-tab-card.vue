@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import type {KingkongTabItem} from './type.ts'
+defineOptions({
+    name: '金刚位'
+})
+
 const router = useRouter()
 const props = defineProps<{
     title: string;
@@ -14,7 +18,6 @@ const clickTab = (kingkongTab: KingkongTabItem) => {
         router.push({path})
     }
 }
-
 </script>
 
 <template>

@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+/// <reference types="" />
 const component: DefineComponent<{}, {}, any>;
 
 // 环境变量配置
@@ -16,6 +17,8 @@ interface ImportMeta {
     readonly env: ImportMetaEnv;
 }
 
-declare interface Window {
-    insertText: Function;      // 声明模板中绑定的click事件
-}
+declare global {
+    interface Window {
+        insertText: Function;      // 声明模板中绑定的click事件
+    }
+} 

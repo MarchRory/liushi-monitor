@@ -41,8 +41,6 @@ const handleLogout = () => {
       // on cancel
     });
 }
-
-
 </script>
 
 <template>

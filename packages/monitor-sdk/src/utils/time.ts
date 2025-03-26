@@ -46,3 +46,18 @@ export function formatTimeDifference(diff: number) {
         return `${(diff / 1000).toFixed(3)}s`;
     }
 }
+
+/**
+ * 检验两个时间戳是否是同一天
+ * @param day1 时间戳1
+ * @param day2 时间戳2
+ * @returns {boolean}
+ */
+export function isSameDay(day1: number, day2: number): boolean {
+    const date1 = new Date(day1);
+    const date2 = new Date(day2);
+
+    return date1.getFullYear() === date2.getFullYear() &&
+        date1.getMonth() === date2.getMonth() &&
+        date1.getDate() === date2.getDate();
+}

@@ -6,3 +6,9 @@ export type DeepRequired<T extends object> = {
 }
 
 export type ExtractKey<T extends object> = keyof T
+
+/**
+ * 或许是高阶函数
+ */
+export type MaybeHigherOrderFunction<T extends 'higher' | 'common' = 'common', P extends "promise" | "common" = 'common', R = P extends 'promise' ? Promise<any> : any> =
+    T extends 'common' ? ((...args: any[]) => R) : ((...args: any[]) => (...args: any[]) => R)

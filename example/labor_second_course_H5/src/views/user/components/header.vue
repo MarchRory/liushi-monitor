@@ -7,7 +7,6 @@ const jumpToSetting = () => {
         path: '/accountSetting'
     })
 }
-
 </script>
 
 <template>
