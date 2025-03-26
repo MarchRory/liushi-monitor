@@ -83,10 +83,46 @@ export interface IMonitorHooks {
     onBeforeAjaxSend?(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig
 }
 
+
+export interface ISPACustomConfig {
+    /**
+     * SPA性能监控配置
+     */
+    spaPerformanceConfig?: {
+        /**
+         * 忽略的性能监控页面路由path
+         */
+        ignoredPageUrls?: string[]
+    }
+}
+
+type className = string
+export interface IUserInteractionMonitorConfig {
+    /**
+     * 用户交互行为监控配置
+     */
+    userInteractionMonitorConfig?: {
+        /**
+         * 禁用默认点击监控, 禁用后将不会单独收集每一次点击的接触点坐标
+         */
+        isDefaultClickMonitorDisabled?: boolean
+        /**
+         * 监控的点击元素类名, 配置该项后会在点击携带该类名的元素时, 收集基本的数据上报
+         */
+        clickMonitorClassName?: className
+        /**
+         * 自定义点击监控配置
+         * 监控点击元素上的类名标识, 点击带有该类名标识的元素时, 会收集点击元素的信息上报
+         * 用户可以配置不同的监控类名标识和对应的自定义数据收集方法
+         */
+        customClickMonitorConfig?: Map<className, (el: MouseEvent) => Record<string, any>>
+    }
+}
+
 /**
  * SDK初始化配置参数
  */
-export interface ISDKInitialOptions extends ISDKRequestOption, IFmpCalculatorOptions, ISPACustomConfig {
+export interface ISDKInitialOptions extends ISDKRequestOption, IFmpCalculatorOptions, ISPACustomConfig, IUserInteractionMonitorConfig {
     /**
      * 秘钥
      */
@@ -128,15 +164,3 @@ export interface ISDKInitialOptions extends ISDKRequestOption, IFmpCalculatorOpt
      */
     customPlugins?: IBasePlugin<MonitorTypes>[]
 }
-
-export interface ISPACustomConfig {
-    /**
-     * SPA性能监控配置
-     */
-    spaPerformanceConfig?: {
-        /**
-         * 忽略的性能监控页面路由path
-         */
-        ignoredPageUrls?: string[]
-    }
-}   

@@ -11,7 +11,7 @@ const PvPlugin: IBasePlugin<'userBehavior'> = {
         const getPv = () => {
             const url = getCurrentUrl()
             const timestamp = getCurrentTimeStamp()
-            const collectedData = { url, timestamp, type: 'userBehavior', eventName: 'pv' }
+            const collectedData = { url, timestamp }
             return collectedData
         }
         client.eventBus.subscribe('onPushAndReplaceState', () => {
@@ -24,6 +24,8 @@ const PvPlugin: IBasePlugin<'userBehavior'> = {
         const userInfo = getUserInfo ? getUserInfo() : 'unknown'
 
         return {
+            type: 'userBehavior',
+            eventName: 'pv',
             userInfo,
             deviceInfo: client.deviceInfo,
             collectedData: originalData,

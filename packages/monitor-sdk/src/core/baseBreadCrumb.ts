@@ -102,7 +102,13 @@ export abstract class BaseBreadCrumb {
             }
             lastestRecord.page_exposure = formatTimeDifference(lastestRecord.leave_time - lastestRecord.enter_time)
             const encryptor = getCustomFunction('dataEncryptionMethod')
-            let sendData = JSON.stringify(lastestRecord)
+            let sendData = JSON.stringify({
+                type: 'userBehavior',
+                eventName: 'page_exposure',
+                userInfo: "unknown",
+                deviceInfo: "unknown",
+                collectedData: lastestRecord
+            })
             if (encryptor) {
                 sendData = encryptor(sendData)
             }

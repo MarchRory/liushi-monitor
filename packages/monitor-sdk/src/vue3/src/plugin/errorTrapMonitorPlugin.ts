@@ -29,11 +29,11 @@ const Vue3ErrorMonitorPlugin: IBasePlugin<'error'> = {
         const userInfo = getUserInfo ? getUserInfo() : 'unknown'
 
         return {
+            type: 'error',
+            eventName: 'vue3_framework_error',
             userInfo,
             deviceInfo: client.deviceInfo,
             collectedData: originalData,
-            time: getCurrentTimeStamp(),
-            url: getCurrentUrl()
         }
     },
     dataConsumer(transport, encryptedData) {

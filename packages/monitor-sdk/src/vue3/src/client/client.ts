@@ -42,14 +42,19 @@ class Vue3AppMonitorClient extends BaseClient {
         const loadedTime = performance.now()
 
         let sendData: string | object = {
-            eventName: 'spa_page_load_time',
             url: getCurrentUrl(),
             time: getCurrentTimeStamp(),
             loadTime: (loadedTime - this.spaPagePerformanceRecord.beforeSpaChange).toFixed(2) + 'ms'
         }
         this.spaPagePerformanceRecord.beforeSpaChange = 0
 
-        sendData = JSON.stringify(sendData)
+        sendData = JSON.stringify({
+            type: 'performance',
+            eventName: 'spa_page_load_time',
+            deviceInfo: this.deviceInfo,
+            userInfo: 'unknown',
+            collectedData: sendData
+        })
         const encryptor = getCustomFunction('dataEncryptionMethod')
         if (encryptor) {
             sendData = encryptor(sendData)

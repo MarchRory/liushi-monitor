@@ -158,3 +158,13 @@ export function throttle<T extends (...args: any[]) => any>(
         }
     };
 }
+
+/**
+ * 寻找字符串数组中, 是另一长字符串子串的元素们
+ * @param string 
+ * @param arr 元素不能带空格
+ */
+export function findSubstrings(string: string, arr: string[] = []) {
+    const source = new Set(string.trim().split(/\s+/));
+    return arr.filter(el => source.has(el));
+}

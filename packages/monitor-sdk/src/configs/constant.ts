@@ -43,3 +43,10 @@ export const DEFAULT_FMP_ELEMENT_WEIGHT_TABLE = {
  * 
  */
 export const PAGE_PERFORMANCE_MONITOR_RECORD_STORAGE_KEY = 'ls_monitor_page_performance_record'
+
+/**
+ * 当全局默认点击次数达到该数值时, 将启动一次上报
+ */
+export const DEFAULT_CLICK_COUNT_WHEN_TRANSPORT = 50
+
+export const DEFAULT_CLICK_ELEMENT_COUNT_WHEN_TRANSPORT = 15

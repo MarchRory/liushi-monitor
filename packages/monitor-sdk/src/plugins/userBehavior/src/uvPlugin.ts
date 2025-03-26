@@ -17,7 +17,7 @@ const UvPlugin: IBasePlugin<'userBehavior'> = {
             if (todayUvRecordMap.has(url)) return
 
             todayUvRecordMap.add(url)
-            const sendData = { url, timestamp: getCurrentTimeStamp(), type: 'userBehavior', eventName: 'uv' }
+            const sendData = { url, timestamp: getCurrentTimeStamp() }
             notify('uv', sendData)
         }
         client.eventBus.subscribe('onPushAndReplaceState', recordUv)
@@ -33,6 +33,8 @@ const UvPlugin: IBasePlugin<'userBehavior'> = {
         const getUserInfo = getCustomFunction('getUserInfo')
         const userInfo = getUserInfo ? getUserInfo() : 'unknown'
         return {
+            type: 'userBehavior',
+            eventName: 'uv',
             userInfo,
             deviceInfo: client.deviceInfo,
             collectedData: originalData,

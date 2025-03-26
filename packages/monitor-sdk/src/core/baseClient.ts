@@ -53,6 +53,7 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
         aop(window, 'onpageshow', (nativeFn: Window['onpageshow']) => this.globalPageShowAOP(nativeFn, this.eventBus))
         aop(window, 'onbeforeunload', (nativeFn: Window['onbeforeunload']) => this.globalPageUnloadAOP(nativeFn, this.eventBus))
         aop(document, 'onvisibilitychange', (nativeFn: Document['onvisibilitychange']) => this.globalVisibiityChangeAOP(nativeFn, this.eventBus))
+        aop(window, 'onclick', (nativeFn: Window['onclick']) => this.globalClickEventAOP(nativeFn, this.eventBus))
     }
     /**
      * 注册插件
@@ -185,6 +186,15 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
             if (this.visibilityState === 'hidden') {
                 throttle(() => eventBus.notify('onVisibilityToBeHidden', args))
             }
+            if (nativeFn) {
+                return nativeFn.apply(this, [args])
+            }
+        }
+    }
+    private globalClickEventAOP(nativeFn: Window['onclick'], eventBus: typeof this.eventBus) {
+        return function (this: GlobalEventHandlers, args: MouseEvent) {
+            setTimeout(() => eventBus.notify('click', args))
+
             if (nativeFn) {
                 return nativeFn.apply(this, [args])
             }

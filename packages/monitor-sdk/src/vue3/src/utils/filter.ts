@@ -17,7 +17,6 @@ export function filterVmCollectedInfo(err: unknown, instance: ComponentPublicIns
      */
 
     const errorComponentData = {
-        eventName: 'vue3_framework_error',
         timestamp: getCurrentTimeStamp(),
         url: getCurrentUrl(),
         componentName: instance?.$options.name || "未设置组件名",

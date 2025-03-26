@@ -25,6 +25,11 @@ const liushiMonitorOptions: ISDKInitialOptions = {
   },
   reportbaseURL: "https://localhost:8080",
   reportInterfaceUrl: "/monitor",
+  userInteractionMonitorConfig: {
+    customClickMonitorConfig: new Map([
+    ]),
+    clickMonitorClassName: 'm_click_track'
+  },
   getUserInfo: () => {
     const userStore = useUserStore()
     return {

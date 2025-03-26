@@ -77,7 +77,14 @@ export type BaseTransportEventType = 'reportSuccess'
 /**
  * 全局切面编程订阅事件类型
  */
-export type BaseGlobalAOPEventType = 'onPushAndReplaceState' | 'onPopState' | 'onPageHide' | 'onPageShow' | 'onBeforePageUnload' | 'onVisibilityToBeHidden'
+export type BaseGlobalAOPEventType =
+    'onPushAndReplaceState'
+    | 'onPopState'
+    | 'onPageHide'
+    | 'onPageShow'
+    | 'onBeforePageUnload'
+    | 'onVisibilityToBeHidden'
+    | 'click'
 
 /**
  * SDK全局订阅事件类型

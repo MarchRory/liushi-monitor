@@ -503,7 +503,7 @@ onMounted(() => {
               :key="index"
               class="core-card"
             >
-              <div class="core-content">
+              <div class="core-content m_click_track">
                 <span class="core-title">{{ info.label }}</span>
                 <span class="core-value">{{ info.content }}</span>
               </div>
