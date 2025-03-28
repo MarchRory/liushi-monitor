@@ -10,18 +10,13 @@ export const SPAPagePerformanceIndicatorsPlugin: IBasePlugin<'performance'> = {
     },
     dataTransformer(client, originalData) {
         const getUserInfo = getCustomFunction('getUserInfo')
-        const userInfo = getUserInfo ? getUserInfo() : 'unknown'
-        const transformedData = {
-            userInfo,
+        return {
+            type: 'performance',
+            eventName: 'page_performance_indicators',
+            userInfo: getUserInfo ? getUserInfo() : 'unknown',
             deviceInfo: client.deviceInfo,
             collectedData: originalData,
-            time: getCurrentTimeStamp(),
-            url: getCurrentUrl()
         }
-
-        console.log("🚀 ~ dataTransformer ~ transformedData:", transformedData);
-
-        return transformedData
     },
     dataConsumer(transport, encryptedData) {
         transport.preLoadRequest({

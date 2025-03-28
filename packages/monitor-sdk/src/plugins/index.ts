@@ -1,14 +1,11 @@
 import BasePerformancePlugins from './performance/index'
 import BaseUserBehaviorPlugins from './userBehavior'
-
-
-// export * from './commonErrorTrap/indesx'
-// export * from './screenRecord/index'
-// export * from './userBehavior/index'
+import BaseErrorMonitorPlugins from './commonErrorTrap/indesx'
 
 const SDKBasePlugins = [
     ...BasePerformancePlugins,
-    ...BaseUserBehaviorPlugins
+    ...BaseUserBehaviorPlugins,
+    ...BaseErrorMonitorPlugins
 ]
 
 export default SDKBasePlugins

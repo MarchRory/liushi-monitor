@@ -1,6 +1,6 @@
 import { App } from "vue";
 import { SDK_VERSION } from "../configs/constant";
-import { GlobalSubscribeTypes, IBaseClient, IBasePlugin, IBaseTransformedData, IOriginalData, ISDKInitialOptions, MonitorTypes } from "../types";
+import { GlobalSubscribeTypes, IBaseClient, IBasePlugin, IBaseTransformedData, IPluginTransportDataBaseInfo, ISDKInitialOptions, MonitorTypes } from "../types";
 import { customFunctionBucket, debounce, getCustomFunction, throttle } from "../utils/common";
 import { isUndefined } from "../utils/is";
 import { StorageCenter } from "./IndicatorStorageCenter";
@@ -54,6 +54,7 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
         aop(window, 'onbeforeunload', (nativeFn: Window['onbeforeunload']) => this.globalPageUnloadAOP(nativeFn, this.eventBus))
         aop(document, 'onvisibilitychange', (nativeFn: Document['onvisibilitychange']) => this.globalVisibiityChangeAOP(nativeFn, this.eventBus))
         aop(window, 'onclick', (nativeFn: Window['onclick']) => this.globalClickEventAOP(nativeFn, this.eventBus))
+        aop(window, 'onerror', (nativeFn: Window['onerror']) => this.globalJsSyncErrorAOP(nativeFn, this.eventBus))
     }
     /**
      * 注册插件
@@ -78,8 +79,8 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
      * @returns 
      */
     reportProcessWapper(currentPlugin: IBasePlugin<E>) {
-        return async (originalData: IOriginalData) => {
-            let customCollectedData: IOriginalData = originalData
+        return async (originalData: IPluginTransportDataBaseInfo) => {
+            let customCollectedData = originalData
 
             const { hooks = {} } = this.options
             // 数据收集
@@ -88,7 +89,7 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
             }
 
             // 格式化收集到的数据
-            let transformedData = currentPlugin.dataTransformer?.call(this, this, customCollectedData)
+            let transformedData = currentPlugin.dataTransformer?.call(this, this, customCollectedData) as IBaseTransformedData
             if (hooks.onDataTransformed) {
                 transformedData = await hooks.onDataTransformed?.call(this, currentPlugin.eventName, transformedData)
             }
@@ -193,10 +194,18 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
     }
     private globalClickEventAOP(nativeFn: Window['onclick'], eventBus: typeof this.eventBus) {
         return function (this: GlobalEventHandlers, args: MouseEvent) {
-            setTimeout(() => eventBus.notify('click', args))
+            setTimeout(() => eventBus.notify('onClick', args))
 
             if (nativeFn) {
                 return nativeFn.apply(this, [args])
+            }
+        }
+    }
+    private globalJsSyncErrorAOP(nativeFn: Window['onerror'], eventBus: typeof this.eventBus) {
+        return function (this: GlobalEventHandlers, ...args: Parameters<OnErrorEventHandlerNonNull>) {
+            setTimeout(() => eventBus.notify('onJavaScriptSyncError', args))
+            if (nativeFn) {
+                return nativeFn.apply(this, args)
             }
         }
     }

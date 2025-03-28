@@ -1,9 +1,12 @@
+import { IPluginTransportDataBaseInfo } from "monitor-sdk/src/types"
+
 export interface IDefaultClickInfo {
-    url: string
-    timestamp: number
     clientX: number
     clientY: number
 }
+export type DefaultClickTransportData = IPluginTransportDataBaseInfo<'click', {
+    clickRecord: IDefaultClickInfo[]
+}>
 
 export interface IBaseClickElementInfo extends IDefaultClickInfo {
     [key: string]: any
@@ -14,20 +17,19 @@ export interface IBaseClickElementInfo extends IDefaultClickInfo {
     /**
      * 标签名
      */
-    tagName: Element['tagName']
+    nodeName: Element['tagName']
     /**
      * 元素的内置文本
      */
     innerText: string
 }
+export type ClickElementTransportData = IPluginTransportDataBaseInfo<'click', {
+    clickElementRecord: IBaseClickElementInfo[]
+}>
 
-declare global {
-    interface EventTarget {
-        classList: DOMTokenList
-        className: string
-        innerText: string
-        localName: string
-    }
+export interface IClickElementEventTarget extends EventTarget {
+    classList: DOMTokenList
+    className: string
+    innerText: string
+    nodeName: Uppercase<string>
 }
-
-export { }

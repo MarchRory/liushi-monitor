@@ -1,8 +1,11 @@
 import { deepCloneRegExp } from "../configs/reg"
+import { IPluginTransportDataBaseInfo } from "../types"
 import { CustomUserFunctionEnum, UserCustomFunctions } from "../types/function"
 import { Queue } from "./dataStructure"
 import { isObject } from "./is"
 import { PessimisticLockMixin } from "./mixin"
+import { getCurrentTimeStamp } from "./time"
+import { getCurrentUrl } from "./url"
 
 /**
  * 深拷贝
@@ -167,4 +170,11 @@ export function throttle<T extends (...args: any[]) => any>(
 export function findSubstrings(string: string, arr: string[] = []) {
     const source = new Set(string.trim().split(/\s+/));
     return arr.filter(el => source.has(el));
+}
+
+export function getUrlTimestamp(): IPluginTransportDataBaseInfo {
+    return {
+        url: getCurrentUrl(),
+        timestamp: getCurrentTimeStamp()
+    }
 }

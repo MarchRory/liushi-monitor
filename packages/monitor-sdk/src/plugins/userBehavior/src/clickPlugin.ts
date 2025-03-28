@@ -1,10 +1,10 @@
 import { IBasePlugin } from "monitor-sdk/src";
 import { DEFAULT_CLICK_COUNT_WHEN_TRANSPORT, DEFAULT_CLICK_ELEMENT_COUNT_WHEN_TRANSPORT } from "monitor-sdk/src/configs/constant";
 import { RequestBundlePriorityEnum } from "monitor-sdk/src/types";
-import { getCustomFunction } from "monitor-sdk/src/utils/common";
+import { getCustomFunction, getUrlTimestamp } from "monitor-sdk/src/utils/common";
 import { isUndefined } from "monitor-sdk/src/utils/is";
 import { getCurrentTimeStamp } from "monitor-sdk/src/utils/time";
-import { IBaseClickElementInfo, IDefaultClickInfo } from "./types/click";
+import { ClickElementTransportData, DefaultClickTransportData, IBaseClickElementInfo, IClickElementEventTarget, IDefaultClickInfo } from "./types/click";
 import { getCurrentUrl } from "monitor-sdk/src/utils/url";
 
 const ClickPlugin: IBasePlugin<'userBehavior'> = {
@@ -18,6 +18,17 @@ const ClickPlugin: IBasePlugin<'userBehavior'> = {
         } = client.options.userInteractionMonitorConfig || {}
 
         let defaultClickRecord: null | IDefaultClickInfo[] = isDefaultClickMonitorDisabled ? null : []
+
+        // 页面关闭前进行未上报数据缓存
+        const unloadHandler = (source: IDefaultClickInfo[] | IBaseClickElementInfo[] | null) => {
+            if (source && source.length) {
+                const str = JSON.stringify({
+                    ...getUrlTimestamp(),
+                    data: source
+                })
+                client.storageCenter.handleSaveBeforeUnload(RequestBundlePriorityEnum.USERBEHAVIOR, [str])
+            }
+        }
         if (!isDefaultClickMonitorDisabled) {
             // 点击任意地方, 获取坐标
             const anywhereClickMonitor = (ev: MouseEvent) => {
@@ -25,8 +36,6 @@ const ClickPlugin: IBasePlugin<'userBehavior'> = {
                 if (defaultClickRecord && defaultClickRecord?.length < DEFAULT_CLICK_COUNT_WHEN_TRANSPORT) {
                     const { clientX, clientY } = ev
                     defaultClickRecord.push({
-                        url: getCurrentUrl(),
-                        timestamp: getCurrentTimeStamp(),
                         clientY,
                         clientX
                     })
@@ -34,20 +43,18 @@ const ClickPlugin: IBasePlugin<'userBehavior'> = {
 
                 // 收集量达标则上报
                 if (defaultClickRecord && defaultClickRecord?.length === DEFAULT_CLICK_COUNT_WHEN_TRANSPORT) {
-                    notify('click', { clickRecord: defaultClickRecord.slice() })
+                    const originalData: DefaultClickTransportData = {
+                        ...getUrlTimestamp(),
+                        data: {
+                            clickRecord: defaultClickRecord.slice()
+                        }
+                    }
+                    notify('click', originalData)
                     defaultClickRecord = []
                 }
             }
-            client.eventBus.subscribe('click', anywhereClickMonitor)
-
-            // 页面关闭前进行未上报数据缓存
-            const unloadHandler = () => {
-                if (defaultClickRecord?.length) {
-                    const str = JSON.stringify(defaultClickRecord)
-                    client.storageCenter.handleSaveBeforeUnload(RequestBundlePriorityEnum.USERBEHAVIOR, [str])
-                }
-            }
-            client.eventBus.subscribe('onBeforePageUnload', unloadHandler)
+            client.eventBus.subscribe('onClick', anywhereClickMonitor)
+            client.eventBus.subscribe('onBeforePageUnload', () => unloadHandler(defaultClickRecord))
         }
 
         // 元素点击监听
@@ -61,7 +68,7 @@ const ClickPlugin: IBasePlugin<'userBehavior'> = {
         const clickElementHander = (ev: MouseEvent) => {
             if (clickElementRecord.length < DEFAULT_CLICK_ELEMENT_COUNT_WHEN_TRANSPORT) {
                 const { clientX, clientY, target } = ev
-                const { classList, innerText = "", localName = "unknown" } = target as EventTarget
+                const { classList, innerText = "", nodeName = "unknown" } = target as IClickElementEventTarget
 
                 // 非埋点元素不进行数据收集
                 if (!classList.contains(clickMonitorClassName)) return
@@ -71,35 +78,41 @@ const ClickPlugin: IBasePlugin<'userBehavior'> = {
                 if (includesCustomMonitorClassNames.length) {
                     for (const className of includesCustomMonitorClassNames) {
                         const collector = customClickMonitorConfig?.get(className)
-                        if (!collector) continue
-                        Object.assign(extraCustomData, collector(ev));
+                        if (collector) {
+                            Object.assign(extraCustomData, collector(ev));
+                        }
                     }
                 }
-                const collectedData: IBaseClickElementInfo = {
-                    url: getCurrentUrl(),
-                    timestamp: getCurrentTimeStamp(),
+                const clickElementInfo: IBaseClickElementInfo = {
                     clientX,
                     clientY,
                     innerText: innerText,
                     targetClassList: Array.from(classList || []) as unknown as string[],
-                    tagName: localName,
+                    nodeName: nodeName.toLowerCase(),
                     ...extraCustomData
                 }
-                clickElementRecord.push(collectedData)
+                clickElementRecord.push(clickElementInfo)
             }
 
             if (clickElementRecord.length >= DEFAULT_CLICK_ELEMENT_COUNT_WHEN_TRANSPORT) {
-                notify('click', clickElementRecord.slice())
+                const originalData: ClickElementTransportData = {
+                    ...getUrlTimestamp(),
+                    data: {
+                        clickElementRecord: clickElementRecord.slice()
+                    }
+                }
+                notify('click', originalData)
                 clickElementRecord = []
             }
         }
-        client.eventBus.subscribe('click', clickElementHander)
+        client.eventBus.subscribe('onClick', clickElementHander)
+        client.eventBus.subscribe('onBeforePageUnload', () => unloadHandler(clickElementRecord))
     },
     dataTransformer(client, originalData) {
         const getUserInfo = getCustomFunction('getUserInfo')
         const userInfo = getUserInfo ? getUserInfo() : 'unknown'
         return {
-            type: 'userBehaivor',
+            type: 'userBehavior',
             eventName: 'click',
             userInfo,
             deviceInfo: client.deviceInfo,

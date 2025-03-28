@@ -1,9 +1,10 @@
 import type { ComponentPublicInstance } from "vue";
-import { IBasePlugin, RequestBundlePriorityEnum } from "../../../types";
+import { IBasePlugin, IPluginTransportDataBaseInfo, RequestBundlePriorityEnum } from "../../../types";
 import { getCurrentUrl } from "monitor-sdk/src/utils/url";
-import { getCustomFunction } from "monitor-sdk/src/utils/common";
+import { getCustomFunction, getUrlTimestamp } from "monitor-sdk/src/utils/common";
 import { getCurrentTimeStamp } from "monitor-sdk/src/utils/time";
 import { filterVmCollectedInfo } from "../utils/filter";
+import { Vue3ErrorTrapTransportData } from "../types/plugin";
 
 /**
  * Vue3 报错监控插件
@@ -19,8 +20,12 @@ const Vue3ErrorMonitorPlugin: IBasePlugin<'error'> = {
         const vueNativeErrorHandler = vueApp.config.errorHandler
         vueApp.config.errorHandler = function (err: unknown, instance: ComponentPublicInstance | null, info: string) {
             //TODO: 未来可能要完善的上报数据
-            const originalData = filterVmCollectedInfo(err, instance, info)
-            notify('vue3_framework_error', originalData)
+            const data = filterVmCollectedInfo(err, instance, info)
+            const transportData: Vue3ErrorTrapTransportData = {
+                ...getUrlTimestamp(),
+                data
+            }
+            notify('vue3_framework_error', transportData)
             return vueNativeErrorHandler?.(err, instance, info)
         }
     },

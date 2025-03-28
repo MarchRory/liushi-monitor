@@ -10,7 +10,7 @@ import {
     INPAttribution,
 } from 'web-vitals/attribution'
 import { IBasePlugin, RequestBundlePriorityEnum, performanceEventMap } from "monitor-sdk/src/types";
-import { getCustomFunction } from 'monitor-sdk/src/utils/common';
+import { getCustomFunction, getUrlTimestamp } from 'monitor-sdk/src/utils/common';
 import { getCurrentTimeStamp } from 'monitor-sdk/src/utils/time';
 import { getCurrentUrl } from 'monitor-sdk/src/utils/url';
 import { MetricParam, OnWebVitalsType } from './types/web';
@@ -55,12 +55,20 @@ export const FirstScreenPerformanceInficatorsPlugin: IBasePlugin<'performance'> 
             if (isUndefined(inpData)) {
                 hasRecordIndicatorsCnt++
                 if (hasRecordIndicatorsCnt === firstScreenIndicatorsTotal) {
-                    notify('first_screen_indicators', originalData)
+                    notify('first_screen_indicators', {
+                        ...getUrlTimestamp(),
+                        data: {
+                            ...originalData
+                        }
+                    })
                     client.pagePerformanceMonitorRecord.add(getCurrentUrl())
                     paintObserver?.disconnect()
                 }
             } else {
-                notify('inp', inpData)
+                notify('inp', {
+                    ...getUrlTimestamp(),
+                    data: { ...inpData }
+                })
             }
         }
 
@@ -138,11 +146,11 @@ export const FirstScreenPerformanceInficatorsPlugin: IBasePlugin<'performance'> 
         const userInfo = getUserInfo ? getUserInfo() : 'unknown'
 
         return {
+            type: 'performance',
+            eventName: 'first_screen_indicators',
             userInfo,
             deviceInfo: client.deviceInfo,
             collectedData: originalData,
-            time: getCurrentTimeStamp(),
-            url: getCurrentUrl()
         }
     },
     dataConsumer(transport, encryptedData) {

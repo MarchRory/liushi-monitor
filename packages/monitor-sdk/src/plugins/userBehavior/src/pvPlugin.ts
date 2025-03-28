@@ -1,6 +1,6 @@
 import { IBasePlugin } from "monitor-sdk/src";
-import { RequestBundlePriorityEnum } from "monitor-sdk/src/types";
-import { getCustomFunction } from "monitor-sdk/src/utils/common";
+import { IPluginTransportDataBaseInfo, RequestBundlePriorityEnum } from "monitor-sdk/src/types";
+import { getCustomFunction, getUrlTimestamp } from "monitor-sdk/src/utils/common";
 import { getCurrentTimeStamp } from "monitor-sdk/src/utils/time";
 import { getCurrentUrl } from "monitor-sdk/src/utils/url";
 
@@ -8,15 +8,9 @@ const PvPlugin: IBasePlugin<'userBehavior'> = {
     type: 'userBehavior',
     eventName: 'pv',
     monitor(client, notify) {
-        const getPv = () => {
-            const url = getCurrentUrl()
-            const timestamp = getCurrentTimeStamp()
-            const collectedData = { url, timestamp }
-            return collectedData
-        }
         client.eventBus.subscribe('onPushAndReplaceState', () => {
-            const pvData = getPv()
-            notify('pv', pvData)
+            const originalData: IPluginTransportDataBaseInfo<'pv'> = getUrlTimestamp()
+            notify('pv', originalData)
         })
     },
     dataTransformer(client, originalData) {

@@ -2,7 +2,7 @@ import type { InternalAxiosRequestConfig } from 'axios'
 import { ErrorEventTypes, PerformanceEventTypes, UserBehaviorEventTypes } from './eventTypes'
 import { EncryptedDataType, IBaseTransformedData, IOriginalData } from './logData'
 import { IBaseBreadCrumbOptions } from './breadCrumb'
-import { IBasePlugin } from './plugins'
+import { IBasePlugin, IPluginTransportDataBaseInfo } from './plugins'
 import { MonitorTypes } from './logger'
 import { IFmpCalculatorOptions } from '../plugins/performance/src/types/fmp'
 
@@ -61,7 +61,7 @@ export interface IMonitorHooks {
      * @param originalData 收集的原始监控数据
      * @returns 抛出一个携带二次处理的原始数据的promise
      */
-    onDataCollected?(eventName: PerformanceEventTypes | ErrorEventTypes | UserBehaviorEventTypes, originalData: IOriginalData): Promise<IOriginalData>
+    onDataCollected?(eventName: PerformanceEventTypes | ErrorEventTypes | UserBehaviorEventTypes, originalData: IPluginTransportDataBaseInfo): Promise<IPluginTransportDataBaseInfo>
     /**
      * 数据格式化完成后触发的hook
      * @param eventName 

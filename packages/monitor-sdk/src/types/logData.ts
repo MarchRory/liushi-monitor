@@ -1,3 +1,5 @@
+import { BaseEventTypes, IPluginTransportDataBaseInfo, MonitorTypes } from "."
+
 /**
  * 打点一线收集到的原始数据
  */
@@ -8,8 +10,10 @@ export interface IOriginalData extends Object {
 /**
  * 经过格式化后的基本数据
  */
-export interface IBaseTransformedData {
+export interface IBaseTransformedData<T extends MonitorTypes = MonitorTypes, E extends BaseEventTypes<T> = BaseEventTypes<T>> {
     [key: string]: any
+    type: T
+    eventName: E,
     userInfo: object | string
     deviceInfo: {
         [key: string]: any
@@ -20,9 +24,7 @@ export interface IBaseTransformedData {
         os: "iOS" | "Android" | "Unknown"
         deviceType: 'Android' | "iPad" | 'iPhone' | "Unknown"
     }
-    url?: string
-    time?: number
-    collectedData: IOriginalData
+    collectedData: IPluginTransportDataBaseInfo
 }
 
 /**

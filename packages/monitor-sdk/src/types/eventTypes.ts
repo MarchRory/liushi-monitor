@@ -31,7 +31,7 @@ export const performanceEventMap = {
     response: '响应耗时',
     http_interaction: '接口响应速度',
     domReady: 'DOM 解析完成时间',
-    scriptExecution: '脚本执行时间',
+    script_execution: '脚本执行时间',
 
     // 渲染与交互
     cls: '累积布局偏移',
@@ -55,7 +55,11 @@ export type UserBehaviorEventTypes = keyof typeof userBehaviorEventMap
  * 报错埋点事件
  */
 export const errorEventMap = {
-    vue3_framework_error: 'Vue3框架层面报错'
+    vue3_framework_error: 'Vue3框架层面报错',
+    javaScript_sync_error: 'js同步代码报错',
+    source_load_error: '资源加载报错',
+    uncatch_promise_error: '未进行异常处理的报错',
+    online_error_screen_record: '报错现场录屏'
 } as const
 export type ErrorEventTypes = keyof typeof errorEventMap
 
@@ -84,7 +88,8 @@ export type BaseGlobalAOPEventType =
     | 'onPageShow'
     | 'onBeforePageUnload'
     | 'onVisibilityToBeHidden'
-    | 'click'
+    | 'onClick'
+    | 'onJavaScriptSyncError'
 
 /**
  * SDK全局订阅事件类型

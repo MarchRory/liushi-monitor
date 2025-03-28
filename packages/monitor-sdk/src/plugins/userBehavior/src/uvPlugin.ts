@@ -1,6 +1,6 @@
 import { IBasePlugin } from "monitor-sdk/src";
-import { RequestBundlePriorityEnum } from "monitor-sdk/src/types";
-import { getCustomFunction } from "monitor-sdk/src/utils/common";
+import { IPluginTransportDataBaseInfo, RequestBundlePriorityEnum } from "monitor-sdk/src/types";
+import { getCustomFunction, getUrlTimestamp } from "monitor-sdk/src/utils/common";
 import { setStorage } from "monitor-sdk/src/core/IndicatorStorageCenter";
 import { getCurrentTimeStamp } from "monitor-sdk/src/utils/time";
 import { getCurrentUrl } from "monitor-sdk/src/utils/url";
@@ -17,8 +17,8 @@ const UvPlugin: IBasePlugin<'userBehavior'> = {
             if (todayUvRecordMap.has(url)) return
 
             todayUvRecordMap.add(url)
-            const sendData = { url, timestamp: getCurrentTimeStamp() }
-            notify('uv', sendData)
+            const originalData: IPluginTransportDataBaseInfo<'uv'> = getUrlTimestamp()
+            notify('uv', originalData)
         }
         client.eventBus.subscribe('onPushAndReplaceState', recordUv)
         client.eventBus.subscribe('onBeforePageUnload', () => setStorage(

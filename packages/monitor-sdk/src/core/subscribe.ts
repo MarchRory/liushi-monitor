@@ -1,11 +1,11 @@
-import { BaseEventTypes } from "../types"
+import { BaseEventTypes, BaseGlobalAOPEventType, BaseTransportEventType, GlobalSubscribeTypes, IPluginTransportDataBaseInfo } from "../types"
 
 type CallBack = (data: any) => void
 
 /**
  * @description 利用发布订阅实现对埋点收集、数据清洗、上报
  */
-export class Subscribe<T = BaseEventTypes> {
+export class Subscribe<T extends GlobalSubscribeTypes = GlobalSubscribeTypes> {
     private bucket: Map<T, CallBack[]> = new Map()
     constructor() { }
     /**
@@ -26,7 +26,12 @@ export class Subscribe<T = BaseEventTypes> {
      * @param eventName 
      * @param args 
      */
-    notify(eventName: T, args?: any) {
+    notify(
+        eventName: T,
+        args?: T extends BaseEventTypes ? IPluginTransportDataBaseInfo
+            : T extends BaseTransportEventType ? void
+            : any
+    ) {
         const deps = this.bucket.get(eventName)
         if (deps && deps.length) {
             deps.forEach(cb => {
