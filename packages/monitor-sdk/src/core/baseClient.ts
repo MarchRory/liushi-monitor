@@ -7,7 +7,7 @@ import { BaseTransport } from "./baseTransport";
 import { Subscribe } from "./subscribe";
 import { detectDevice } from "../utils/device";
 import { aop } from "../utils/aop";
-import { IEncryptionConfig } from "../types/excryptiono";
+import { IEncryptionConfig } from "../types/excryption";
 
 export class BaseClient<T extends MonitorTypes = MonitorTypes> implements IBaseClient {
     readonly sdk_version = SDK_VERSION
