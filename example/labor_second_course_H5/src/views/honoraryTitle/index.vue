@@ -1,10 +1,6 @@
 <script setup lang="ts">
 const XdHeader = defineAsyncComponent(() => import('@/components/header/index.vue'))
 const BadgeGroup = defineAsyncComponent(() => import('./components/badgeGroup.vue'))
-
-onMounted(() => {
-    $liushiMonitor.sendSpaLoadPerformance()
-})
 </script>
 
 <template>
