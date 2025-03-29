@@ -13,15 +13,7 @@ export const performanceEventMap = {
         first_screen_ttfb: '首屏_首字节时间'
     },
 
-    // 具体页面性能
-    page_performance_indicators: {
-        // fp: '首次绘制',
-        // fcp: '首次内容绘制',
-        // lcp: '最大内容绘制',
-        // ttfb: '首字节时间',
-        // fmp: '首次最有意义内容绘制',
-        spa_page_load_time: 'SPA页面_路由切换加载时间'
-    },
+    spa_page_load_time: 'SPA页面_路由切换加载时间',
 
     // 资源加载
     dns: 'DNS 查询耗时',
@@ -76,7 +68,7 @@ export type BaseEventTypes<T extends MonitorTypes = MonitorTypes> =
 /**
  * 上报中心订阅事件类型
  */
-export type BaseTransportEventType = 'reportSuccess'
+export type BaseTransportEventType = 'onPrepareNextReport'
 
 /**
  * 全局切面编程订阅事件类型
@@ -84,9 +76,6 @@ export type BaseTransportEventType = 'reportSuccess'
 export type BaseGlobalAOPEventType =
     'onPushAndReplaceState'
     | 'onPopState'
-    | 'onPageHide'
-    | 'onPageShow'
-    | 'onBeforePageUnload'
     | 'onVisibilityToBeHidden'
     | 'onClick'
     | 'onJavaScriptSyncError'

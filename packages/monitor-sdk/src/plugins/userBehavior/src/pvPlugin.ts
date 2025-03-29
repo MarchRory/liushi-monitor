@@ -1,17 +1,18 @@
 import { IBasePlugin } from "monitor-sdk/src";
 import { IPluginTransportDataBaseInfo, RequestBundlePriorityEnum } from "monitor-sdk/src/types";
 import { getCustomFunction, getUrlTimestamp } from "monitor-sdk/src/utils/common";
-import { getCurrentTimeStamp } from "monitor-sdk/src/utils/time";
-import { getCurrentUrl } from "monitor-sdk/src/utils/url";
 
-const PvPlugin: IBasePlugin<'userBehavior'> = {
+const PvPlugin: IBasePlugin<'userBehavior', 'pv'> = {
     type: 'userBehavior',
     eventName: 'pv',
     monitor(client, notify) {
-        client.eventBus.subscribe('onPushAndReplaceState', () => {
-            const originalData: IPluginTransportDataBaseInfo<'pv'> = getUrlTimestamp()
-            notify('pv', originalData)
-        })
+        // client.eventBus.subscribe('onPushAndReplaceState', () => {
+        //     const originalData: IPluginTransportDataBaseInfo<'pv'> = {
+        //         ...getUrlTimestamp(),
+        //         data: null
+        //     }
+        //     notify('pv', originalData)
+        // })
     },
     dataTransformer(client, originalData) {
         const getUserInfo = getCustomFunction('getUserInfo')
@@ -25,15 +26,10 @@ const PvPlugin: IBasePlugin<'userBehavior'> = {
             collectedData: originalData,
         }
     },
-    dataConsumer(transport, encryptedData) {
+    dataConsumer(transport, transformedData) {
         transport.throttledPreLoadRequest({
-            sendData: encryptedData,
+            sendData: transformedData,
             priority: RequestBundlePriorityEnum.USERBEHAVIOR,
-            customCallback: [{
-                handleCustomSuccess(...args) {
-                    console.log('pv发送成功')
-                },
-            }]
         })
     },
 }

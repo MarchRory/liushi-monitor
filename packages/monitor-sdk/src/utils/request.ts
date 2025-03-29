@@ -5,7 +5,7 @@ import type { IProcessingRequestRecord } from "../types/transport";
  * @param data 
  * @returns 
  */
-export function fakeRequest(url: string, data: IProcessingRequestRecord['data']) {
+export function fakeRequest(url: string, data: IProcessingRequestRecord<'ciphertext'>['data']) {
     return new Promise((resolve) => {
         setTimeout(() => {
             console.log('数据模拟上报成功: url=' + url + " data=" + data)

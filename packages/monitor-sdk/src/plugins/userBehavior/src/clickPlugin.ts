@@ -3,14 +3,15 @@ import { DEFAULT_CLICK_COUNT_WHEN_TRANSPORT, DEFAULT_CLICK_ELEMENT_COUNT_WHEN_TR
 import { RequestBundlePriorityEnum } from "monitor-sdk/src/types";
 import { getCustomFunction, getUrlTimestamp } from "monitor-sdk/src/utils/common";
 import { isUndefined } from "monitor-sdk/src/utils/is";
-import { getCurrentTimeStamp } from "monitor-sdk/src/utils/time";
 import { ClickElementTransportData, DefaultClickTransportData, IBaseClickElementInfo, IClickElementEventTarget, IDefaultClickInfo } from "./types/click";
-import { getCurrentUrl } from "monitor-sdk/src/utils/url";
 
-const ClickPlugin: IBasePlugin<'userBehavior'> = {
+const ClickPlugin: IBasePlugin<'userBehavior', 'click'> = {
     type: 'userBehavior',
     eventName: "click",
     monitor(client, notify) {
+        const getUserInfo = getCustomFunction('getUserInfo')
+        const userInfo = getUserInfo ? getUserInfo() : 'unknown'
+
         const {
             isDefaultClickMonitorDisabled = false,
             customClickMonitorConfig,
@@ -22,11 +23,22 @@ const ClickPlugin: IBasePlugin<'userBehavior'> = {
         // 页面关闭前进行未上报数据缓存
         const unloadHandler = (source: IDefaultClickInfo[] | IBaseClickElementInfo[] | null) => {
             if (source && source.length) {
-                const str = JSON.stringify({
-                    ...getUrlTimestamp(),
-                    data: source
+                client.baseTransport.postMessageToWorkerThread({
+                    type: 'preLoadRequest',
+                    payload: {
+                        priority: RequestBundlePriorityEnum.USERBEHAVIOR,
+                        sendData: {
+                            type: 'userBehavior',
+                            eventName: 'click',
+                            userInfo,
+                            deviceInfo: client.deviceInfo,
+                            collectedData: {
+                                ...getUrlTimestamp(),
+                                data: clickElementRecord.slice()
+                            },
+                        }
+                    }
                 })
-                client.storageCenter.handleSaveBeforeUnload(RequestBundlePriorityEnum.USERBEHAVIOR, [str])
             }
         }
         if (!isDefaultClickMonitorDisabled) {
@@ -54,7 +66,11 @@ const ClickPlugin: IBasePlugin<'userBehavior'> = {
                 }
             }
             client.eventBus.subscribe('onClick', anywhereClickMonitor)
-            client.eventBus.subscribe('onBeforePageUnload', () => unloadHandler(defaultClickRecord))
+            window.addEventListener(
+                'beforeunload',
+                () => unloadHandler(defaultClickRecord),
+                { capture: true }
+            )
         }
 
         // 元素点击监听
@@ -106,7 +122,11 @@ const ClickPlugin: IBasePlugin<'userBehavior'> = {
             }
         }
         client.eventBus.subscribe('onClick', clickElementHander)
-        client.eventBus.subscribe('onBeforePageUnload', () => unloadHandler(clickElementRecord))
+        window.addEventListener(
+            'beforeunload',
+            () => unloadHandler(clickElementRecord),
+            { capture: true }
+        )
     },
     dataTransformer(client, originalData) {
         const getUserInfo = getCustomFunction('getUserInfo')
@@ -119,15 +139,11 @@ const ClickPlugin: IBasePlugin<'userBehavior'> = {
             collectedData: originalData,
         }
     },
-    dataConsumer(transport, encryptedData) {
+    dataConsumer(transport, transformedData) {
         transport.preLoadRequest({
+            textType: 'plaintext',
             priority: RequestBundlePriorityEnum.USERBEHAVIOR,
-            sendData: encryptedData,
-            customCallback: [{
-                handleCustomSuccess(...args) {
-                    console.log('click监控数据发送成功')
-                },
-            }]
+            sendData: transformedData,
         })
     },
 }

@@ -1,5 +1,3 @@
-import { PessimisticLockMixin } from "./mixin"
-
 export class Queue<T = unknown> {
     private limit = 10
     private queue: T[]

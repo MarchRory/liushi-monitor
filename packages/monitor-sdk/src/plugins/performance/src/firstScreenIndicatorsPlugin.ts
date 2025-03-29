@@ -20,7 +20,7 @@ import { CLSCapture } from './utils/capture';
  * 阅读下面的文档以了解关于web性能指标的更多内容
  * @see https://web.dev/articles/vitals?hl=zh-cn
  */
-export const FirstScreenPerformanceInficatorsPlugin: IBasePlugin<'performance'> = {
+export const FirstScreenPerformanceInficatorsPlugin: IBasePlugin<'performance', 'first_screen_indicators' | 'inp'> = {
     type: 'performance',
     eventName: 'first_screen_indicators',
     monitor(client, notify) {
@@ -156,12 +156,7 @@ export const FirstScreenPerformanceInficatorsPlugin: IBasePlugin<'performance'> 
     dataConsumer(transport, encryptedData) {
         transport.preLoadRequest({
             sendData: encryptedData,
-            priority: RequestBundlePriorityEnum.PERFORMANCE,
-            customCallback: [{
-                handleCustomSuccess(...args) {
-                    console.log('首屏性能指标上报成功')
-                },
-            }]
+            priority: RequestBundlePriorityEnum.PERFORMANCE
         })
     },
 }

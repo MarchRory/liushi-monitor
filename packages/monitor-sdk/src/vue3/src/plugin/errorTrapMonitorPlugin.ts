@@ -1,15 +1,13 @@
 import type { ComponentPublicInstance } from "vue";
-import { IBasePlugin, IPluginTransportDataBaseInfo, RequestBundlePriorityEnum } from "../../../types";
-import { getCurrentUrl } from "monitor-sdk/src/utils/url";
+import { IBasePlugin, RequestBundlePriorityEnum } from "../../../types";
 import { getCustomFunction, getUrlTimestamp } from "monitor-sdk/src/utils/common";
-import { getCurrentTimeStamp } from "monitor-sdk/src/utils/time";
 import { filterVmCollectedInfo } from "../utils/filter";
 import { Vue3ErrorTrapTransportData } from "../types/plugin";
 
 /**
  * Vue3 报错监控插件
  */
-const Vue3ErrorMonitorPlugin: IBasePlugin<'error'> = {
+const Vue3ErrorMonitorPlugin: IBasePlugin<'error', 'vue3_framework_error'> = {
     type: 'error',
     eventName: 'vue3_framework_error',
     monitor(client, notify) {
@@ -41,15 +39,10 @@ const Vue3ErrorMonitorPlugin: IBasePlugin<'error'> = {
             collectedData: originalData,
         }
     },
-    dataConsumer(transport, encryptedData) {
+    dataConsumer(transport, dataTransformed) {
         transport.preLoadRequest({
-            sendData: encryptedData,
+            sendData: dataTransformed,
             priority: RequestBundlePriorityEnum.ERROR,
-            customCallback: [{
-                handleCustomSuccess(...args) {
-                    console.log('Vue错误上报成功')
-                },
-            }]
         })
     },
 }

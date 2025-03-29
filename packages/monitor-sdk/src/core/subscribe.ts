@@ -1,4 +1,4 @@
-import { BaseEventTypes, BaseGlobalAOPEventType, BaseTransportEventType, GlobalSubscribeTypes, IPluginTransportDataBaseInfo } from "../types"
+import { BaseEventTypes, BaseTransportEventType, GlobalSubscribeTypes, IPluginTransportDataBaseInfo } from "../types"
 
 type CallBack = (data: any) => void
 

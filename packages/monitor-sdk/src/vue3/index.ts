@@ -3,17 +3,20 @@ import SDKBasePlugins from "../plugins";
 import Vue3AppMonitorClient from "./src/client/client";
 import Vue3ErrorMonitorPlugin from "./src/plugin/errorTrapMonitorPlugin";
 import { type App } from 'vue'
+import { IEncryptionConfig } from "../types/excryptiono";
 
 declare global {
     interface Window {
         $liushiMonitor: {
             spaStartLoadTimiing(path: string): void
             sendSpaLoadPerformance(): Promise<void>
+            postEncryptionConfigToWorker(payload: IEncryptionConfig<'unParsed'>): void
         };
     }
     const $liushiMonitor: {
         spaStartLoadTimiing(path: string): void
         sendSpaLoadPerformance(): Promise<void>
+        postEncryptionConfigToWorker(payload: IEncryptionConfig<'unParsed'>): void
     };
 }
 
@@ -29,6 +32,7 @@ function install(vue3App: App, options: ISDKInitialOptions): void {
         ...customPlugins
     ]
     window.$liushiMonitor = monitorInstance
+    // @ts-ignore
     monitorInstance.use(plugins)
 }
 

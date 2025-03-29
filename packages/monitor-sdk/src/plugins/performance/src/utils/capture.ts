@@ -20,20 +20,3 @@ export const CLSCapture = (metric: CLSMetricWithAttribution, notify: Subscribe['
         notify('cls', indicatorData)
     }
 }
-
-/**
- * FMP指标监控上报策略
- * @param fmpTargetTag 被视为meaningful元素的类名标识
- * @param weightTable 权重表
- * @param threshold 阈值分数
- * @param notify 
- */
-export const FMPCapture = (
-    fmpTargetTag: string,
-    weightTable: Record<string, number>,
-    threshold: number,
-    customObserverConfig: MutationObserverInit,
-    notify: Subscribe['notify']
-) => {
-    let preScore = 0
-}

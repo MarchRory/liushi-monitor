@@ -1,13 +1,11 @@
 import { BaseBreadCrumb, BaseTransport, Subscribe } from "monitor-sdk/src/core";
 import { GlobalSubscribeTypes, IBaseBreadCrumbOptions, MonitorTypes } from "monitor-sdk/src/types";
-import { StorageCenter } from "monitor-sdk/src/core/IndicatorStorageCenter";
 import { HistoryParams, IHistoryStateValue } from "../types/types";
 
 export class Vue3BreadCrumbClient extends BaseBreadCrumb {
     private readonly eventBus: Subscribe<GlobalSubscribeTypes<MonitorTypes>>
     constructor(initialOptions: {
         baseTransport: BaseTransport,
-        storageCenter: StorageCenter,
         eventBus: Subscribe<GlobalSubscribeTypes<MonitorTypes>>
         options?: IBaseBreadCrumbOptions,
     }) {
