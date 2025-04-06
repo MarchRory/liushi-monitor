@@ -20,12 +20,12 @@ export const DEFAULT_BREADCRUMB_CONFIG: DeepRequired<Omit<IBaseBreadCrumbOptions
 /**
  * 上报中心默认配置
  */
-export const DEFAULT_REQUEST_INIT_OPTIONS: Omit<Required<ISDKRequestOption>, 'reportUrl' | 'reportbaseURL' | 'reportInterfaceUrl'> = {
+export const DEFAULT_REQUEST_INIT_OPTIONS: Required<Pick<ISDKRequestOption, 'timeout' | 'retryCnt' | 'singleMaxReportSize' | 'reportTaskSizeLimit' | 'transportDelay'>> = {
     timeout: 4 * 1000,
     retryCnt: 3,
     singleMaxReportSize: 3,
     reportTaskSizeLimit: 2,
-    transportDelay: 500
+    transportDelay: 1500
 }
 
 /**
@@ -50,3 +50,7 @@ export const PAGE_PERFORMANCE_MONITOR_RECORD_STORAGE_KEY = 'ls_monitor_page_perf
 export const DEFAULT_CLICK_COUNT_WHEN_TRANSPORT = 50
 
 export const DEFAULT_CLICK_ELEMENT_COUNT_WHEN_TRANSPORT = 15
+
+export const DEFAULT_TEMPORARY_BREADITEM_LIMIT = 15
+
+export const DEFAULT_PV_TEMPORART_POOL_SIZE = 5

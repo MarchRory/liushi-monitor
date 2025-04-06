@@ -1,4 +1,5 @@
 import { type } from "os"
+import { BaseEventTypes, IBaseTransformedData, IPluginTransportDataBaseInfo, MonitorTypes } from "."
 
 /**
  * 请求优先级枚举
@@ -9,37 +10,20 @@ export const enum RequestBundlePriorityEnum {
     ERROR,
 }
 
-export interface IProcessingRequestRecord {
-    data: string[] // 一次性携带多个
+export interface IProcessingRequestRecord<T extends SendDataTextType = 'plaintext'> {
+    data: (T extends 'plaintext' ? IBaseTransformedData<MonitorTypes, BaseEventTypes> : string)[]
+    /**
+     * 文本类型
+     */
+    textType: SendDataTextType,
     /**
      * 上报优先级
      */
     priority: RequestBundlePriorityEnum
     /**
-     * 本地缓存中的提取出来的数据类型
-     */
-    storageType?: 'preload' | 'unPreload'
-    /**
      * 重试次数记录
      */
     retryRecord: number
-    /**
-     * 自定义额外回调
-     */
-    customCallback?: {
-        /**
-         * 上报成功的回调
-         * @param args 
-         * @returns 
-         */
-        handleCustomSuccess?: (...args: any[]) => any,
-        /**
-         * 上报失败的回调
-         * @param args 
-         * @returns 
-         */
-        handleCustomFailure?: (...args: any[]) => any
-    }[]
 }
 
 /**
@@ -47,15 +31,18 @@ export interface IProcessingRequestRecord {
  * returnParam -> 直接返回待上报的参数, 用于页面关闭前缓存未上报的数据
  */
 export type TransportTaskRunType = 'report' | 'returnParam' | undefined
-export type TransportTask = () => (type?: TransportTaskRunType) => Promise<IProcessingRequestRecord | undefined>
+export type TransportTask = () => (type?: TransportTaskRunType) => Promise<IProcessingRequestRecord<'ciphertext'> | undefined>
+
+export type SendDataTextType = 'ciphertext' | 'plaintext'
 
 /**
  * 上报预载方法的参数
  */
-export type IPreLoadParmas = {
+export type IPreLoadParmas<T extends MonitorTypes, E extends BaseEventTypes<T>, S extends SendDataTextType> = {
     /**
      * 加密后的待上报数据
      */
-    sendData: string | string[],
+    sendData: S extends 'plaintext' ? IBaseTransformedData<T, E> : string
+    textType?: SendDataTextType
 
-} & Pick<IProcessingRequestRecord, 'priority' | 'customCallback'>
+} & Pick<IProcessingRequestRecord, 'priority'>

@@ -3,7 +3,7 @@ import { RequestBundlePriorityEnum } from "monitor-sdk/src/types";
 import { getCustomFunction, getUrlTimestamp } from "monitor-sdk/src/utils/common";
 import { UnCatchPromiseErrorTransportData } from "./types/error";
 
-const UnCatchPromiseErrorPlugin: IBasePlugin<'error'> = {
+const UnCatchPromiseErrorPlugin: IBasePlugin<'error', 'uncatch_promise_error'> = {
     type: 'error',
     eventName: 'uncatch_promise_error',
     monitor(_, notify) {
@@ -11,7 +11,14 @@ const UnCatchPromiseErrorPlugin: IBasePlugin<'error'> = {
             const { reason } = ev
             const errorData: UnCatchPromiseErrorTransportData = {
                 ...getUrlTimestamp(),
-                data: { reason: { message: reason.message, stack: reason.stack } }
+                data: {
+                    reason: {
+                        message: JSON.stringify(reason.message),
+                        stack: JSON.stringify(reason.stack),
+                        name: reason.name || null,
+                        code: reason.code || null
+                    }
+                }
             }
             notify('uncatch_promise_error', errorData)
         })
@@ -31,11 +38,6 @@ const UnCatchPromiseErrorPlugin: IBasePlugin<'error'> = {
         transport.preLoadRequest({
             priority: RequestBundlePriorityEnum.ERROR,
             sendData: encryptedData,
-            customCallback: [{
-                handleCustomSuccess(...args) {
-                    console.log('uncatch_promise_error监控数据发送成功')
-                },
-            }]
         })
     },
 }

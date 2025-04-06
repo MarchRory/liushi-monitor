@@ -140,10 +140,6 @@ init();
 onActivated(() => {
   pointStore.updatePointTotal();
 });
-
-onMounted(() => {
-  $liushiMonitor.sendSpaLoadPerformance()
-})
 </script>
 
 <style scoped lang="less">

@@ -15,10 +15,6 @@ const handleSwitchTab = (tabIndex: number) => {
     const {path} = tabs[tabIndex]
     router.push((path))
 }
-
-onMounted(() => {
-    $liushiMonitor.sendSpaLoadPerformance()
-})
 </script>
 
 <template>

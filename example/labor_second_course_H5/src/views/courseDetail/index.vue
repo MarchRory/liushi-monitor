@@ -455,10 +455,6 @@ const chartOpts = computed<EChartsOption>(() => {
 });
 
 init();
-
-onMounted(() => {
-  $liushiMonitor.sendSpaLoadPerformance()
-})
 </script>
 
 <template>

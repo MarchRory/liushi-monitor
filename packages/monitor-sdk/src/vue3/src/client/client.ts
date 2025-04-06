@@ -1,11 +1,9 @@
-import { ISDKInitialOptions, RequestBundlePriorityEnum } from "monitor-sdk/src/types";
+import { IBaseTransformedData, ISDKInitialOptions, RequestBundlePriorityEnum } from "monitor-sdk/src/types";
 import { Vue3BreadCrumbClient } from "./Vue3BreadCrumbClient";
 import { App } from "vue";
 import { BaseClient } from "../../../core";
-import { getCurrentUrl } from "monitor-sdk/src/utils/url";
-import { getCurrentTimeStamp } from "monitor-sdk/src/utils/time";
-import { getCustomFunction } from "monitor-sdk/src/utils/common";
 import { isUndefined } from "monitor-sdk/src/utils/is";
+import { getUrlTimestamp } from "monitor-sdk/src/utils/common";
 
 class Vue3AppMonitorClient extends BaseClient {
     private readonly Vue3BreadCrumb: Vue3BreadCrumbClient
@@ -14,7 +12,6 @@ class Vue3AppMonitorClient extends BaseClient {
         super(initialOptions)
         this.Vue3BreadCrumb = new Vue3BreadCrumbClient({
             baseTransport: this.baseTransport,
-            storageCenter: this.storageCenter,
             eventBus: this.eventBus,
             options: initialOptions.customBreadCrumb
         })
@@ -40,37 +37,27 @@ class Vue3AppMonitorClient extends BaseClient {
         if (this.spaPagePerformanceRecord.beforeSpaChange === 0) return
 
         const loadedTime = performance.now()
-
-        let sendData: string | object = {
-            url: getCurrentUrl(),
-            time: getCurrentTimeStamp(),
-            loadTime: (loadedTime - this.spaPagePerformanceRecord.beforeSpaChange).toFixed(2) + 'ms'
-        }
         this.spaPagePerformanceRecord.beforeSpaChange = 0
 
-        sendData = JSON.stringify({
+        const sendData: IBaseTransformedData<'performance', "spa_page_load_time"> = {
             type: 'performance',
             eventName: 'spa_page_load_time',
             deviceInfo: this.deviceInfo,
             userInfo: 'unknown',
-            collectedData: sendData
-        })
-        const encryptor = getCustomFunction('dataEncryptionMethod')
-        if (encryptor) {
-            sendData = encryptor(sendData)
+            collectedData: {
+                ...getUrlTimestamp(),
+                data: {
+                    loadTime: (loadedTime - this.spaPagePerformanceRecord.beforeSpaChange).toFixed(2) + 'ms'
+                }
+            }
         }
         const { hooks = {} } = this.options
         if (hooks.onBeforeDataReport) {
-            sendData = await hooks.onBeforeDataReport(sendData)
+            await hooks.onBeforeDataReport()
         }
         this.baseTransport.preLoadRequest({
             priority: RequestBundlePriorityEnum.PERFORMANCE,
             sendData,
-            customCallback: [{
-                handleCustomSuccess(...args) {
-                    console.log('SPA页面加载时长上报成功')
-                },
-            }]
         })
     }
 }

@@ -1,29 +1,23 @@
 import { App } from "vue";
 import { SDK_VERSION } from "../configs/constant";
-import { GlobalSubscribeTypes, IBaseClient, IBasePlugin, IBaseTransformedData, IPluginTransportDataBaseInfo, ISDKInitialOptions, MonitorTypes } from "../types";
-import { customFunctionBucket, debounce, getCustomFunction, throttle } from "../utils/common";
+import { GlobalSubscribeTypes, IBaseClient, IBasePlugin, IDeviceInfo, IPluginTransportDataBaseInfo, ISDKInitialOptions, MonitorTypes } from "../types";
+import { customFunctionBucket, debounce, throttle } from "../utils/common";
 import { isUndefined } from "../utils/is";
-import { StorageCenter } from "./IndicatorStorageCenter";
 import { BaseTransport } from "./baseTransport";
 import { Subscribe } from "./subscribe";
 import { detectDevice } from "../utils/device";
-import FmpCalculator from "../plugins/performance/src/utils/FmpCalculator";
 import { aop } from "../utils/aop";
+import { IEncryptionConfig } from "../types/excryption";
 
-export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseClient {
+export class BaseClient<T extends MonitorTypes = MonitorTypes> implements IBaseClient {
     readonly sdk_version = SDK_VERSION
     readonly options: ISDKInitialOptions
-    /**
-     * 缓存中心
-     */
-    readonly storageCenter: StorageCenter
-    readonly eventBus: Subscribe<GlobalSubscribeTypes<E>>
+    readonly eventBus: Subscribe<GlobalSubscribeTypes<T>>
     /**
      * 数据调度与上报工具
      */
     readonly baseTransport: BaseTransport
-    readonly deviceInfo: IBaseTransformedData['deviceInfo']
-    readonly fmpCalculator: FmpCalculator
+    readonly deviceInfo: IDeviceInfo
     readonly VueApp?: App
     readonly pagePerformanceMonitorRecord: Set<string> = new Set()
     private pluginsCount: number = 4
@@ -32,26 +26,16 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
         this.options = initialOptions
         this.VueApp = initialOptions.VueApp
         this.loadCustomBucket(initialOptions)
-        this.storageCenter = new StorageCenter({
-            storageKey: initialOptions.localStorageKey,
-            getPluginsCount: () => this.pluginsCount
-        })
-        this.eventBus = new Subscribe<GlobalSubscribeTypes<E>>()
+        this.eventBus = new Subscribe<GlobalSubscribeTypes<T>>()
         this.baseTransport = new BaseTransport({
-            ...initialOptions,
-            storageCenter: this.storageCenter,
+            reportConfig: initialOptions.reportConfig,
             globalEventBus: this.eventBus,
-            onBeforeAjaxSend: initialOptions.hooks?.onBeforeAjaxSend
         })
-        this.fmpCalculator = new FmpCalculator(initialOptions)
         this.deviceInfo = this.getDeviceInfo()
 
         aop(window.history, 'pushState', (nativeFn: History['pushState']) => this.globalPushAndReplaceAOP(nativeFn, this.eventBus))
         aop(window.history, 'replaceState', (nativeFn: History['replaceState']) => this.globalPushAndReplaceAOP(nativeFn, this.eventBus))
         aop(window, 'onpopstate', (nativeFn: Window['onpopstate']) => this.globalPopStateAOP(nativeFn, this.eventBus))
-        aop(window, 'onpagehide', (nativeFn: Window['onpagehide']) => this.globalPageHideAOP(nativeFn, this.eventBus))
-        aop(window, 'onpageshow', (nativeFn: Window['onpageshow']) => this.globalPageShowAOP(nativeFn, this.eventBus))
-        aop(window, 'onbeforeunload', (nativeFn: Window['onbeforeunload']) => this.globalPageUnloadAOP(nativeFn, this.eventBus))
         aop(document, 'onvisibilitychange', (nativeFn: Document['onvisibilitychange']) => this.globalVisibiityChangeAOP(nativeFn, this.eventBus))
         aop(window, 'onclick', (nativeFn: Window['onclick']) => this.globalClickEventAOP(nativeFn, this.eventBus))
         aop(window, 'onerror', (nativeFn: Window['onerror']) => this.globalJsSyncErrorAOP(nativeFn, this.eventBus))
@@ -61,7 +45,7 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
      * @param plugins 插件列表
      * @returns 
      */
-    use(plugins: IBasePlugin<E>[]) {
+    use(plugins: IBasePlugin<MonitorTypes, any>[]) {
         if (this.options.disbled) return
 
         plugins.forEach((plugin) => {
@@ -78,7 +62,7 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
      * @param currentPlugin 
      * @returns 
      */
-    reportProcessWapper(currentPlugin: IBasePlugin<E>) {
+    reportProcessWapper(currentPlugin: IBasePlugin<MonitorTypes, any>) {
         return async (originalData: IPluginTransportDataBaseInfo) => {
             let customCollectedData = originalData
 
@@ -89,23 +73,16 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
             }
 
             // 格式化收集到的数据
-            let transformedData = currentPlugin.dataTransformer?.call(this, this, customCollectedData) as IBaseTransformedData
+            let transformedData = currentPlugin.dataTransformer?.call(this, this, customCollectedData)
             if (hooks.onDataTransformed) {
                 transformedData = await hooks.onDataTransformed?.call(this, currentPlugin.eventName, transformedData)
             }
 
-            // 数据加密
-            const customEncyptor = getCustomFunction('dataEncryptionMethod')
-            let encryptedData = JSON.stringify(transformedData)
-            if (customEncyptor) {
-                encryptedData = customEncyptor(encryptedData)
-            }
-
             // 数据上报
             if (hooks.onBeforeDataReport) {
-                encryptedData = await hooks.onBeforeDataReport(encryptedData)
+                await hooks.onBeforeDataReport()
             }
-            currentPlugin.dataConsumer?.call(this, this.baseTransport, encryptedData)
+            currentPlugin.dataConsumer?.call(this, this.baseTransport, transformedData)
         }
     }
     private loadCustomBucket(options: ISDKInitialOptions) {
@@ -115,11 +92,11 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
         customFunctionBucket.set('getUserInfo', options.getUserInfo)
     }
     private validateOptions(options: ISDKInitialOptions) {
-        let needOptName: keyof ISDKInitialOptions = ''
+        let needOptName = ''
         if (isUndefined(options.localStorageKey) || !options.localStorageKey) {
             needOptName = 'localStorageKey'
-        } else if (isUndefined(options.reportInterfaceUrl) || !options.reportInterfaceUrl) {
-            needOptName = 'reportInterfaceUrl'
+        } else if (isUndefined(options.reportConfig.reportInterfaceUrl) || !options.reportConfig.reportInterfaceUrl) {
+            needOptName = 'reportConfig.reportInterfaceUrl'
         } else if (isUndefined(options.getUserInfo) || !options.getUserInfo) {
             needOptName = 'getUserInfo'
         } else if (isUndefined(options.dataEncryptionMethod) || !options.dataEncryptionMethod) {
@@ -130,9 +107,9 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
             throw new Error(`初始配置项 ${needOptName} 缺失 或 使用了非法值`)
         }
     }
-    private getDeviceInfo(): IBaseTransformedData['deviceInfo'] {
+    private getDeviceInfo(): IDeviceInfo {
         const userAgent = navigator.userAgent || navigator.vendor
-        const { os, deviceType } = detectDevice(userAgent)
+        const { os, deviceType } = detectDevice(userAgent) as Pick<IDeviceInfo, 'os' | 'deviceType'>
         return {
             os,
             deviceType,
@@ -142,7 +119,9 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
             language: navigator.language
         }
     }
-    // TODO: 毕业论文搞完后 使用配置项优化以下编码
+    postEncryptionConfigToWorker(payload: IEncryptionConfig<'unParsed'>) {
+        this.baseTransport.sendEncryptionConfig(payload)
+    }
     private globalPushAndReplaceAOP(nativeFn: History['pushState'] | History['replaceState'], eventBus: typeof this.eventBus) {
         return function (this: History, ...args: Parameters<typeof nativeFn>) {
             Promise.resolve().then(throttle(() => eventBus.notify('onPushAndReplaceState', args)))
@@ -152,31 +131,6 @@ export class BaseClient<E extends MonitorTypes = MonitorTypes> implements IBaseC
     private globalPopStateAOP(nativeFn: Window['onpopstate'], eventBus: typeof this.eventBus) {
         return function (this: WindowEventHandlers, args: typeof nativeFn extends null ? any[] : PopStateEvent) {
             Promise.resolve().then(debounce(() => eventBus.notify('onPopState', args), 100))
-            if (nativeFn) {
-                return nativeFn.apply(this, [args])
-            }
-        }
-    }
-    private globalPageHideAOP(nativeFn: Window['onpagehide'], eventBus: typeof this.eventBus) {
-        return function (this: WindowEventHandlers, args: PageTransitionEvent) {
-            Promise.resolve().then(throttle(() => eventBus.notify('onPageHide', args)))
-            if (nativeFn) {
-                return nativeFn.apply(this, [args])
-            }
-        }
-    }
-    private globalPageShowAOP(nativeFn: Window['onpageshow'], eventBus: typeof this.eventBus) {
-        return function (this: WindowEventHandlers, args: PageTransitionEvent) {
-            setTimeout(debounce(() => eventBus.notify('onPageShow', args), 100))
-            if (nativeFn) {
-                return nativeFn.apply(this, [args])
-            }
-        }
-    }
-    private globalPageUnloadAOP(nativeFn: Window['onbeforeunload'], eventBus: typeof this.eventBus) {
-        return function (this: WindowEventHandlers, args: BeforeUnloadEvent) {
-            Promise.resolve().then(() => eventBus.notify('onBeforePageUnload', args))
-
             if (nativeFn) {
                 return nativeFn.apply(this, [args])
             }

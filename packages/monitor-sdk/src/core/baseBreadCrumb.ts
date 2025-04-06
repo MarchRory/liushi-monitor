@@ -1,10 +1,9 @@
-import { DEFAULT_BREADCRUMB_CONFIG } from '../configs/constant'
-import { IBaseBreadCrumbItem, IBaseBreadCrumbOptions, IBaseRouteInfo } from '../types'
+import { DEFAULT_BREADCRUMB_CONFIG, DEFAULT_TEMPORARY_BREADITEM_LIMIT } from '../configs/constant'
+import { IBaseBreadCrumbItem, IBaseBreadCrumbOptions, IBaseRouteInfo, IBaseTransformedData } from '../types'
 import { RequestBundlePriorityEnum } from '../types/transport'
-import { debounce, getCustomFunction } from '../utils/common'
+import { debounce, getUrlTimestamp } from '../utils/common'
 import { Stack } from '../utils/dataStructure'
 import { isNull, isUndefined } from '../utils/is'
-import { StorageCenter } from './IndicatorStorageCenter'
 import { formatTimeDifference, getCurrentTimeStamp } from '../utils/time'
 import { BaseTransport } from './baseTransport'
 
@@ -15,15 +14,13 @@ export abstract class BaseBreadCrumb {
     private breadStack: Stack<IBaseBreadCrumbItem>
     private ignoredUrls: Set<string>
     private tabbarUrls: Set<string>
-    private readonly MAX_STACK_SIZE: IBaseBreadCrumbOptions['max_bread_crumbs_stack_size']
-    private readonly MAX_ACCESS_PATH_SIZE: IBaseBreadCrumbOptions['max_access_path_size']
     private readonly baseTransport: BaseTransport // 数据传输中心实例的引用
-    private readonly storageCenter: StorageCenter
+    private readonly temporaryBreadItemLimit = DEFAULT_TEMPORARY_BREADITEM_LIMIT
+    private readonly sendDataTemporaryPool: IBaseBreadCrumbItem[] = []
     readonly debouncedPushRecord
     readonly debouncedPopRecord
-    constructor({ baseTransport, options, storageCenter }: {
+    constructor({ baseTransport, options }: {
         baseTransport: BaseTransport,
-        storageCenter: StorageCenter,
         options?: IBaseBreadCrumbOptions,
     }) {
         this.baseTransport = baseTransport
@@ -31,14 +28,9 @@ export abstract class BaseBreadCrumb {
         const {
             tabbar_urls,
             ignore_urls = DEFAULT_BREADCRUMB_CONFIG.ignore_urls,
-            max_bread_crumbs_stack_size = DEFAULT_BREADCRUMB_CONFIG.max_bread_crumbs_stack_size,
-            max_access_path_size = DEFAULT_BREADCRUMB_CONFIG.max_access_path_size
         } = (options || {})
         this.ignoredUrls = new Set(ignore_urls)
         this.tabbarUrls = new Set(tabbar_urls)
-        this.MAX_STACK_SIZE = max_bread_crumbs_stack_size
-        this.MAX_ACCESS_PATH_SIZE = max_access_path_size
-        this.storageCenter = storageCenter
         this.initBrowserUnloadListener()
         this.debouncedPushRecord = debounce((...args: Parameters<typeof this.pushRecord>) => this.pushRecord(...args))
         this.debouncedPopRecord = debounce((...args: Parameters<typeof this.popRecord>) => this.popRecord(...args))
@@ -101,29 +93,25 @@ export abstract class BaseBreadCrumb {
                 newLastestRecord.access_path.push(...lastestRecord.access_path.slice(1))
             }
             lastestRecord.page_exposure = formatTimeDifference(lastestRecord.leave_time - lastestRecord.enter_time)
-            const encryptor = getCustomFunction('dataEncryptionMethod')
-            let sendData = JSON.stringify({
+            if (this.sendDataTemporaryPool.length < this.temporaryBreadItemLimit) {
+                this.sendDataTemporaryPool.push(lastestRecord)
+            }
+            if (this.sendDataTemporaryPool.length < this.temporaryBreadItemLimit) return
+
+            // 新数据记录后达到容量, 启动上报
+            let sendData: IBaseTransformedData<'userBehavior', 'page_exposure'> = {
                 type: 'userBehavior',
                 eventName: 'page_exposure',
                 userInfo: "unknown",
                 deviceInfo: "unknown",
-                collectedData: lastestRecord
-            })
-            if (encryptor) {
-                sendData = encryptor(sendData)
+                collectedData: {
+                    ...getUrlTimestamp(),
+                    data: this.sendDataTemporaryPool.slice()
+                }
             }
-
             this.baseTransport.preLoadRequest({
                 sendData,
                 priority: RequestBundlePriorityEnum.USERBEHAVIOR,
-                customCallback: [{
-                    handleCustomSuccess: () => {
-                        console.log('用户行为上报成功, 上报数据: ', lastestRecord)
-                    },
-                    handleCustomFailure: () => {
-                        console.warn('用户行为上报失败, 上报数据: ', lastestRecord)
-                    }
-                }]
             })
         })
     }
@@ -145,10 +133,11 @@ export abstract class BaseBreadCrumb {
      * 这里需要优先使用不受页面卸载影响的sendBean进行发送, 或者使用ajax让页面稍稍延迟卸载
      */
     private initBrowserUnloadListener() {
-        const unloadHandler = () => {
-            this.saveToLocalStorag()
-        }
-        window.addEventListener('beforeunload', unloadHandler, { capture: true })
+        window.addEventListener(
+            'beforeunload',
+            () => this.saveToIndexDB(),
+            { capture: true }
+        )
     }
     /**
      * 读取最近的记录
@@ -169,14 +158,25 @@ export abstract class BaseBreadCrumb {
     /**
      * 兜底策略, 剩余未上报的部分全部上传至本地缓存, 下一次启动app时再进行发送
      */
-    private saveToLocalStorag() {
+    private saveToIndexDB() {
         const data = this.breadStack.showAll()
-        const encryptor = getCustomFunction('dataEncryptionMethod')
-        let encryptedData: string = JSON.stringify(data)
-        if (encryptor) {
-            encryptedData = encryptor(encryptedData)
+        if (data.length) {
+            this.baseTransport.postMessageToWorkerThread({
+                type: 'preLoadRequest',
+                payload: {
+                    priority: RequestBundlePriorityEnum.USERBEHAVIOR,
+                    sendData: {
+                        type: 'userBehavior',
+                        eventName: 'page_exposure',
+                        userInfo: 'unknown',
+                        deviceInfo: "unknown",
+                        collectedData: {
+                            ...getUrlTimestamp(),
+                            data: data.slice()
+                        }
+                    }
+                }
+            })
         }
-        const stoarge = this.storageCenter.getSpecificStorage(RequestBundlePriorityEnum.USERBEHAVIOR)
-        stoarge.push([encryptedData])
     }
 }

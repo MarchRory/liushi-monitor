@@ -1,9 +1,6 @@
 import { deepCloneRegExp } from "../configs/reg"
-import { IPluginTransportDataBaseInfo } from "../types"
 import { CustomUserFunctionEnum, UserCustomFunctions } from "../types/function"
-import { Queue } from "./dataStructure"
 import { isObject } from "./is"
-import { PessimisticLockMixin } from "./mixin"
 import { getCurrentTimeStamp } from "./time"
 import { getCurrentUrl } from "./url"
 
@@ -30,59 +27,6 @@ export function deepClone<T = any>(source: T, hash = new WeakMap()): T {
     }
 
     return cloneObj
-}
-
-/**
- * 引入悲观锁队列
- */
-const LockableQueue = PessimisticLockMixin(Queue)
-
-type runTask = (...args: any) => Promise<any>
-/**
- * 有序并发队列, 在队列的基础上加入了并发限制和悲观锁, 用于高并发的有序执行场景
- */
-export class OrderedConcurrentQueue<T extends runTask = runTask> extends LockableQueue<T> {
-    private debounceStart = debounce(() => this.startConsumingTask())
-    constructor(queueLimit: number = 10) {
-        super(queueLimit)
-    }
-    /**
-     * 消费任务
-     * 子类可重写, 要求最后返回一个promise
-     * @param task 
-     * @returns 
-     */
-    protected async processTask(task: T): Promise<void> {
-        await task()
-    }
-    /**
-     * 开始有序消费队列中的任务。
-     * 通过 runWithLock 保证同一时刻只有一个消费流程在执行。
-     */
-    private async startConsumingTask() {
-        await this.runWithLock(async () => {
-            while (this.showAll().length > 0) {
-                const task = this.deQueue();
-                if (!task) break;
-
-                try {
-                    // 按顺序等待当前任务完成，再处理下一个
-                    await this.processTask(task);
-                } catch (error) {
-                    console.error("Error processing task:", error);
-                    // 根据需要决定是继续还是中断
-                }
-            }
-        });
-    }
-    /**
-     * 重写 enQueue 方法，在添加任务后自动触发消费流程。
-     */
-    async enQueue(element: T) {
-        super.enQueue(element);
-        // 自动启动消费流程（如果当前未在消费中，则 runWithLock 会启动，否则直接返回）
-        this.debounceStart();
-    }
 }
 
 /**
@@ -172,7 +116,7 @@ export function findSubstrings(string: string, arr: string[] = []) {
     return arr.filter(el => source.has(el));
 }
 
-export function getUrlTimestamp(): IPluginTransportDataBaseInfo {
+export function getUrlTimestamp() {
     return {
         url: getCurrentUrl(),
         timestamp: getCurrentTimeStamp()

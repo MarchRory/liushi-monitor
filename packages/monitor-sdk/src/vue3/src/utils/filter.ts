@@ -1,5 +1,3 @@
-import { getCurrentTimeStamp } from "monitor-sdk/src/utils/time";
-import { getCurrentUrl } from "monitor-sdk/src/utils/url";
 import type { ComponentPublicInstance } from "vue";
 import { Vue3ErrorTrapTransportData } from "../types/plugin";
 

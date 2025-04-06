@@ -30,10 +30,6 @@ const handleChange = (current: number) => {
 };
 
 loadList();
-
-onMounted(() => {
-  $liushiMonitor.sendSpaLoadPerformance()
-})
 </script>
 
 <template>

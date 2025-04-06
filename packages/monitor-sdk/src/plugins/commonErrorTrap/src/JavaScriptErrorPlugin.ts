@@ -6,7 +6,7 @@ import { JsSyncErrorTransportData } from "./types/error";
 /**
  * 无法捕获异步错误
  */
-const JavaScriptErrorPlugin: IBasePlugin<'error'> = {
+const JavaScriptErrorPlugin: IBasePlugin<'error', 'javaScript_sync_error'> = {
     type: 'error',
     eventName: 'javaScript_sync_error',
     monitor(client, notify) {
@@ -25,6 +25,7 @@ const JavaScriptErrorPlugin: IBasePlugin<'error'> = {
                     }
                 })
             })
+
             const originalData: JsSyncErrorTransportData = {
                 ...getUrlTimestamp(),
                 data: {
@@ -50,11 +51,6 @@ const JavaScriptErrorPlugin: IBasePlugin<'error'> = {
         transport.preLoadRequest({
             priority: RequestBundlePriorityEnum.ERROR,
             sendData: encryptedData,
-            customCallback: [{
-                handleCustomSuccess(...args) {
-                    console.log('javaScript_error监控数据发送成功')
-                },
-            }]
         })
     },
 }

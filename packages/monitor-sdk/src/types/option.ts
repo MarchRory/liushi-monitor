@@ -1,5 +1,5 @@
 import type { InternalAxiosRequestConfig } from 'axios'
-import { ErrorEventTypes, PerformanceEventTypes, UserBehaviorEventTypes } from './eventTypes'
+import { BaseEventTypes, ErrorEventTypes, PerformanceEventTypes, UserBehaviorEventTypes } from './eventTypes'
 import { EncryptedDataType, IBaseTransformedData, IOriginalData } from './logData'
 import { IBaseBreadCrumbOptions } from './breadCrumb'
 import { IBasePlugin, IPluginTransportDataBaseInfo } from './plugins'
@@ -10,7 +10,6 @@ import { IFmpCalculatorOptions } from '../plugins/performance/src/types/fmp'
  * SDK上报method和上报接口
  */
 export interface ISDKRequestOption {
-    [key: string]: any
     /**
      * 上报的baseURL
      */
@@ -20,17 +19,25 @@ export interface ISDKRequestOption {
      */
     reportInterfaceUrl: string
     /**
-     * 同时进行的上报任务数量, 默认为2,
-     * 自定义时随项目实际需求确定, 不建议超过3
+     * indexDB连接名
      */
-    reportTaskSizeLimit?: number
+    dbName: string
     /**
      * 调试模式, 开始后收集到的数据将以伪请求的方式进行打印, 代替真实上报
      * 但不适用于请求测速插件
      */
     debugMode?: boolean
     /**
-     * 超时时间
+     * 同时进行的上报任务数量, 默认为2,
+     * 自定义时随项目实际需求确定, 不建议超过3
+     */
+    reportTaskSizeLimit?: number
+    /**
+     * 自定义额外请求头信息
+     */
+    customExtraRequestHeaderInfo?: Record<string, string>
+    /**
+     * 请求超时时间
      */
     timeout?: number
     /**
@@ -42,11 +49,7 @@ export interface ISDKRequestOption {
      */
     singleMaxReportSize?: number
     /**
-     * 自定义请求头内容
-     */
-    customHeader?: Record<string, string>
-    /**
-     * 收集到数据后, 到启动上报的延迟, 单位ms
+     * 收集到数据后, 到启动上报的延迟, 考虑到和worker通信的时长, 建议单位为秒
      */
     transportDelay?: number
 }
@@ -54,7 +57,7 @@ export interface ISDKRequestOption {
 /**
  * SDK的数据处理HOOK
  */
-export interface IMonitorHooks {
+export interface IMonitorHooks<T extends MonitorTypes, E extends BaseEventTypes<T>> {
     /**
      * 数据收集完成后触发的hook
      * @param eventName 监控事件类型
@@ -68,19 +71,11 @@ export interface IMonitorHooks {
      * @param transformedData 
      * @returns 抛出一个携带二次处理的格式化数据的promise
      */
-    onDataTransformed?(eventName: PerformanceEventTypes | ErrorEventTypes | UserBehaviorEventTypes, transformedData: IBaseTransformedData): Promise<IBaseTransformedData>
+    onDataTransformed?(eventName: PerformanceEventTypes | ErrorEventTypes | UserBehaviorEventTypes, transformedData: IBaseTransformedData<T, E>): Promise<IBaseTransformedData<T, E>>
     /**
-     * 数据加密完成，即将进入上报流程之前触发的hook
-     * @param encryptedData 数据加密后的字符串
-     * @returns 抛出一个携带对加密字符串二次处理后得到的新JSON的promise
+     * 即将进入上报流程之前触发的hook
      */
-    onBeforeDataReport?(encryptedData: EncryptedDataType): Promise<EncryptedDataType>
-    /**
-     * http请求发送前触发的hook, 可以最后对请求的config进行修改
-     * @param config ajax请求的原始配置项
-     * @returns 处理后的ajax请求配置项 (可能在header中新增了一些字段)
-     */
-    onBeforeAjaxSend?(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig
+    onBeforeDataReport?(): Promise<void>
 }
 
 
@@ -122,11 +117,12 @@ export interface IUserInteractionMonitorConfig {
 /**
  * SDK初始化配置参数
  */
-export interface ISDKInitialOptions extends ISDKRequestOption, IFmpCalculatorOptions, ISPACustomConfig, IUserInteractionMonitorConfig {
+export interface ISDKInitialOptions extends IFmpCalculatorOptions, ISPACustomConfig, IUserInteractionMonitorConfig {
     /**
      * 秘钥
      */
     sdkKey: string
+    reportConfig: ISDKRequestOption
     /**
      * 当页面卸载，部分没来得及上报的数据会被缓存到本地缓存中，等待下次启动app后重新上报
      * 缓存的key由用户在此指定
@@ -158,9 +154,9 @@ export interface ISDKInitialOptions extends ISDKRequestOption, IFmpCalculatorOpt
     /**
      * 数据处理HOOK
      */
-    hooks?: IMonitorHooks
+    hooks?: IMonitorHooks<MonitorTypes, BaseEventTypes>
     /**
      * 自定义插件
      */
-    customPlugins?: IBasePlugin<MonitorTypes>[]
+    customPlugins?: IBasePlugin<MonitorTypes, BaseEventTypes>[]
 }

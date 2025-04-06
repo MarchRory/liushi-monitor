@@ -16,20 +16,24 @@ import { liushiMonitor, ISDKInitialOptions } from '@liushi-monitor/monitor-sdk'
 import { useUserStore } from "./store/modules/user";
 
 const liushiMonitorOptions: ISDKInitialOptions = {
-  debugMode: true,
   sdkKey: 'liushi_test_sdk_001',
   localStorageKey: 'liushi_test_storage_001',
   customBreadCrumb: {
     ignore_urls: ['/login'],
     tabbar_urls: ['/home', '/plan', '/user']
   },
-  reportbaseURL: "https://localhost:8080",
-  reportInterfaceUrl: "/monitor",
+  reportConfig: {
+    dbName: 'monitor_data',
+    debugMode: true,
+    reportbaseURL: "https://localhost:8080",
+    reportInterfaceUrl: "/monitor",
+  },
   userInteractionMonitorConfig: {
     customClickMonitorConfig: new Map([
     ]),
     clickMonitorClassName: 'm_click_track'
   },
+
   getUserInfo: () => {
     const userStore = useUserStore()
     return {
@@ -63,6 +67,13 @@ const liushiMonitorOptions: ISDKInitialOptions = {
     // },
   }
 }
+
+setTimeout(() => {
+  $liushiMonitor.postEncryptionConfigToWorker({
+    'SECRET_KEY': 'liushi_KEY',
+    'SECRET_IV': 'liushi_IV'
+  })
+}, 3000)
 
 createApp(App)
   .use(router)
