@@ -19,9 +19,7 @@ export const performanceEventMap = {
     dns: 'DNS 查询耗时',
     tcp: 'TCP 连接耗时',
     ttfb: '首字节时间',
-    request: '请求耗时',
-    response: '响应耗时',
-    http_interaction: '接口响应速度',
+    http: '接口请求时间',
     domReady: 'DOM 解析完成时间',
     script_execution: '脚本执行时间',
 
@@ -51,7 +49,8 @@ export const errorEventMap = {
     javaScript_sync_error: 'js同步代码报错',
     source_load_error: '资源加载报错',
     uncatch_promise_error: '未进行异常处理的报错',
-    online_error_screen_record: '报错现场录屏'
+    post_message_to_worker_error: '主线程向worker通信出错'
+
 } as const
 export type ErrorEventTypes = keyof typeof errorEventMap
 

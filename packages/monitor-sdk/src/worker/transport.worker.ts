@@ -126,6 +126,9 @@ function getNextData(): IProcessingRequestRecord<'ciphertext'> | null {
     if (!bundleData.data.length) {
         return null
     }
+
+    console.log("🚀 ~ getNextData ~ bundleData.data:", bundleData.data);
+
     bundleData.data = [encrypt(JSON.stringify(bundleData.data), encryptionConfig)]
     return bundleData
 }
@@ -332,10 +335,9 @@ self.addEventListener('message', (ev: MessageEvent<ThreadMessage<'MainThread'>>)
 })
 
 self.addEventListener('beforeunload', () => {
-    const res = saveRestDataToStoarge()
+    // const res = saveRestDataToStoarge()
 
-    console.log("🚀 ~ self.addEventListener ~ res:", res);
-
+    // console.log("🚀 ~ self.addEventListener ~ res:", res);
 
     postMessageToMainThread({
         type: 'saveBeforeUnload',

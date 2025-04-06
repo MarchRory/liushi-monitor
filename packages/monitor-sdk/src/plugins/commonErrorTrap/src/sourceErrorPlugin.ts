@@ -32,7 +32,6 @@ const SourceErrorPlugin: IBasePlugin<'error', 'source_load_error'> = {
                     data: err as SourceErrorTransportData
                 })
             }
-
         }
         window.addEventListener('error', sourceErrorHandler, true)
     },

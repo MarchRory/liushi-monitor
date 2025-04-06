@@ -1,7 +1,7 @@
 import { BaseEventTypes, GlobalSubscribeTypes, ISDKInitialOptions, ISDKRequestOption, MonitorTypes } from '../types'
 import { DEFAULT_REQUEST_INIT_OPTIONS } from '../configs/constant'
-import { IPreLoadParmas, SendDataTextType } from '../types/transport'
-import { throttle } from '../utils/common'
+import { IPreLoadParmas, RequestBundlePriorityEnum, SendDataTextType } from '../types/transport'
+import { getCustomFunction, getUrlTimestamp, throttle } from '../utils/common'
 import { Subscribe } from './subscribe'
 import { IMainThreadPostToWorkerMesage, MainThreadPostToWorkerEvent, ThreadMessage } from '../worker/types'
 import { IEncryptionConfig } from '../types/excryption'
@@ -14,7 +14,7 @@ export class BaseTransport {
      */
     private readonly globalEventBus: Subscribe<GlobalSubscribeTypes>
     private readonly customReportConfig: Required<ISDKRequestOption>
-    readonly throttledPreLoadRequest = throttle((...args: Parameters<typeof this.preLoadRequest>) => this.preLoadRequest(...args))
+    readonly throttledPreLoadRequest = throttle((...args: Parameters<typeof this.preLoadRequest>) => this.preLoadRequest(...args), 100)
     private readonly worker: Worker
     constructor(options: {
         reportConfig: ISDKInitialOptions['reportConfig']
@@ -37,7 +37,6 @@ export class BaseTransport {
         this.worker = new Worker(new URL('../worker/transport.worker.ts', import.meta.url), { type: 'module' })
         this.onWorkerThreadMessage()
         this.postMessageToWorkerThread({ type: 'init', payload: this.customReportConfig })
-        //  this.checkStorageAndReReport()
     }
     /**
      * 向worker线程通信
@@ -49,8 +48,29 @@ export class BaseTransport {
             payload: IMainThreadPostToWorkerMesage[T]
         }
     ) {
-        console.log('主线程即将发送数据: ', order)
-        this.worker.postMessage(order)
+        try {
+            this.worker.postMessage(order)
+        } catch (err) {
+            const getUserInfo = getCustomFunction('getUserInfo')
+            const userInfo = getUserInfo ? getUserInfo() : 'unknown'
+            const errOrder: Parameters<typeof this.preLoadRequest>[0] = {
+                priority: RequestBundlePriorityEnum.ERROR,
+                textType: 'plaintext',
+                sendData: {
+                    type: 'error',
+                    eventName: "post_message_to_worker_error",
+                    userInfo: userInfo,
+                    deviceInfo: "unknown",
+                    collectedData: {
+                        ...getUrlTimestamp(),
+                        data: {
+                            reason: err
+                        }
+                    }
+                }
+            }
+            this.preLoadRequest(errOrder)
+        }
     }
     /**
      * 请求预载, 供各插件完成数据处理后调用
@@ -77,32 +97,6 @@ export class BaseTransport {
         })
     }
     /**
-     * 每次启动时检查本地缓存, 重新发送上一次页面卸载时未发送成功的数据
-     */
-    // private checkStorageAndReReport() {
-    //     const splitArr = (source: string[] = []) => {
-    //         const res: string[] = []
-    //         while (source.length && source.length < this.customReportConfig.singleMaxReportSize) {
-    //             const data = source.shift()
-    //             data && res.push(data)
-    //         }
-    //         return res
-    //     }
-
-    //     const run = (source: string[], priority: RequestBundlePriorityEnum) => {
-    //         for (let i = 0; i < source.length; i++) {
-    //             this.preLoadRequest<MonitorTypes, BaseEventTypes, SendDataTextType>({
-    //                 textType: 'ciphertext',
-    //                 sendData: source[i],
-    //                 priority,
-    //             })
-    //         }
-    //     }
-    //     run(behaviorStorage, RequestBundlePriorityEnum.USERBEHAVIOR)
-    //     run(performanceStorage, RequestBundlePriorityEnum.PERFORMANCE)
-    //     run(errorStorage, RequestBundlePriorityEnum.ERROR)
-    // }
-    /**
      * 挂载worker通信监听
      */
     private onWorkerThreadMessage() {
@@ -113,7 +107,7 @@ export class BaseTransport {
                     this.globalEventBus.notify('uncatch_promise_error', payload)
                     break
                 case 'saveBeforeUnload':
-                    this.worker.terminate()
+                    this.worker && this.worker.terminate()
                     break
                 default:
                     break;

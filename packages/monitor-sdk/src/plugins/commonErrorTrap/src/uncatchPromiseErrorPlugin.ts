@@ -11,7 +11,14 @@ const UnCatchPromiseErrorPlugin: IBasePlugin<'error', 'uncatch_promise_error'> =
             const { reason } = ev
             const errorData: UnCatchPromiseErrorTransportData = {
                 ...getUrlTimestamp(),
-                data: { reason: { message: reason.message, stack: reason.stack } }
+                data: {
+                    reason: {
+                        message: JSON.stringify(reason.message),
+                        stack: JSON.stringify(reason.stack),
+                        name: reason.name || null,
+                        code: reason.code || null
+                    }
+                }
             }
             notify('uncatch_promise_error', errorData)
         })

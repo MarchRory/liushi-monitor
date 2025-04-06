@@ -25,6 +25,7 @@ const JavaScriptErrorPlugin: IBasePlugin<'error', 'javaScript_sync_error'> = {
                     }
                 })
             })
+
             const originalData: JsSyncErrorTransportData = {
                 ...getUrlTimestamp(),
                 data: {

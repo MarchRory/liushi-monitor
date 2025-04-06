@@ -11,26 +11,26 @@ const UvPlugin: IBasePlugin<'userBehavior', 'uv'> = {
     type: 'userBehavior',
     eventName: 'uv',
     monitor(client, notify) {
-        // const todayUvRecordMap = getUvRecordStorage()
-        // const recordUv = () => {
-        //     const url = getCurrentUrl().split('?')[0]
-        //     if (todayUvRecordMap.has(url)) return
+        const todayUvRecordMap = getUvRecordStorage()
+        const recordUv = () => {
+            const url = getCurrentUrl().split('?')[0]
+            if (todayUvRecordMap.has(url)) return
 
-        //     todayUvRecordMap.add(url)
-        //     const originalData: IPluginTransportDataBaseInfo<'uv'> = {
-        //         ...getUrlTimestamp(),
-        //         data: null
-        //     }
-        //     notify('uv', originalData)
-        // }
-        // client.eventBus.subscribe('onPushAndReplaceState', recordUv)
-        // window.addEventListener('beforeunload', () => setStorage(
-        //     UV_RECORD_STORAGE_KEY,
-        //     JSON.stringify({
-        //         timestamp: getCurrentTimeStamp(),
-        //         uvRecord: Array.from(todayUvRecordMap)
-        //     })
-        // ))
+            todayUvRecordMap.add(url)
+            const originalData: IPluginTransportDataBaseInfo<'uv'> = {
+                ...getUrlTimestamp(),
+                data: null
+            }
+            notify('uv', originalData)
+        }
+        client.eventBus.subscribe('onPushAndReplaceState', recordUv)
+        window.addEventListener('beforeunload', () => setStorage(
+            UV_RECORD_STORAGE_KEY,
+            JSON.stringify({
+                timestamp: getCurrentTimeStamp(),
+                uvRecord: Array.from(todayUvRecordMap)
+            })
+        ))
     },
     dataTransformer(client, originalData) {
         const getUserInfo = getCustomFunction('getUserInfo')

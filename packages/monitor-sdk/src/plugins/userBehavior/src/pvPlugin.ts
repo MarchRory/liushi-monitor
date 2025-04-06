@@ -6,13 +6,13 @@ const PvPlugin: IBasePlugin<'userBehavior', 'pv'> = {
     type: 'userBehavior',
     eventName: 'pv',
     monitor(client, notify) {
-        // client.eventBus.subscribe('onPushAndReplaceState', () => {
-        //     const originalData: IPluginTransportDataBaseInfo<'pv'> = {
-        //         ...getUrlTimestamp(),
-        //         data: null
-        //     }
-        //     notify('pv', originalData)
-        // })
+        client.eventBus.subscribe('onPushAndReplaceState', () => {
+            const originalData: IPluginTransportDataBaseInfo<'pv'> = {
+                ...getUrlTimestamp(),
+                data: null
+            }
+            notify('pv', originalData)
+        })
     },
     dataTransformer(client, originalData) {
         const getUserInfo = getCustomFunction('getUserInfo')
