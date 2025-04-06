@@ -8,6 +8,7 @@
     "build": "cd packages/monitor-sdk && rollup -c",
     "dev:sdk": "cd packages/monitor-sdk && rollup -c -w",
     "dev:example": "cd example/labor_second_course_H5 && pnpm run dev",
+    "dev:server": "cd packages/server && pnpm run start:dev",
     "changeset": "changeset",
     "packages-version": "changeset version",
     "publish": "changeset publish --registry=https://registry.npmjs.com/",
