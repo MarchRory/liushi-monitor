@@ -48,6 +48,9 @@ export interface IMainThreadPostToWorkerMesage {
 export type MainThreadPostToWorkerEvent = keyof IMainThreadPostToWorkerMesage
 
 
+/**
+ * 线程通信信息 - 分支推断
+ */
 type ThreadType = 'MainThread' | "WorkerThread"
 type DistinguishMessageType<Src extends ThreadType> =
     Src extends 'MainThread'

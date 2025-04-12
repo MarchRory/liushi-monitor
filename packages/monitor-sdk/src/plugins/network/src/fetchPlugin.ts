@@ -3,7 +3,7 @@ import { RequestBundlePriorityEnum } from "monitor-sdk/src/types";
 import { aop } from "monitor-sdk/src/utils/aop";
 import { IHttpMemoryValue } from "./types/httpInfoMap";
 import { getCurrentTimeStamp } from "monitor-sdk/src/utils/time";
-import { isRequest, isURL } from "monitor-sdk/src/utils/is";
+import { isRequest, isString, isURL } from "monitor-sdk/src/utils/is";
 import { getUrlTimestamp } from "monitor-sdk/src/utils/common";
 
 /**
@@ -30,7 +30,7 @@ const FetchPlugin: IBasePlugin<'performance', 'http'> = {
                 }
 
                 let interfaceUrl = ''
-                if (typeof resource === 'string') {
+                if (isString(resource)) {
                     const { method = 'GET' } = options || {}
                     interfaceUrl = resource
                     requestMemory.requestMemoryInfo.method = method

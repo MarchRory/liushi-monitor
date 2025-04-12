@@ -26,7 +26,7 @@ const liushiMonitorOptions: ISDKInitialOptions = {
     dbName: 'monitor_data',
     debugMode: true,
     reportbaseURL: "https://localhost:8080",
-    reportInterfaceUrl: "/monitor",
+    reportInterfaceUrl: "/tracking",
   },
   userInteractionMonitorConfig: {
     customClickMonitorConfig: new Map([

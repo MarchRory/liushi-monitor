@@ -9,6 +9,8 @@
     "dev:sdk": "cd packages/monitor-sdk && rollup -c -w",
     "dev:example": "cd example/labor_second_course_H5 && pnpm run dev",
     "dev:server": "cd packages/server && pnpm run start:dev",
+    "dev:server:debug": "cd packages/server && pnpm run start:debug",
+    "dev:platform": "cd packages/analysis-platform && pnpm run dev",
     "changeset": "changeset",
     "packages-version": "changeset version",
     "publish": "changeset publish --registry=https://registry.npmjs.com/",
@@ -30,10 +32,13 @@
     }
   },
   "devDependencies": {
+    "@ant-design/icons": "^6.0.0",
     "@changesets/cli": "^2.27.12",
     "@commitlint/config-conventional": "^19.7.1",
     "@rollup/plugin-typescript": "^12.1.2",
     "@surma/rollup-plugin-off-main-thread": "^2.2.3",
+    "@tailwindcss/postcss": "^4.1.3",
+    "@tailwindcss/vite": "^4.1.3",
     "@types/crypto-js": "^4.2.2",
     "@types/node": "^22.13.1",
     "@typescript-eslint/eslint-plugin": "6.1.0",
@@ -42,10 +47,12 @@
     "commitizen": "^4.3.1",
     "crypto-js": "^4.2.0",
     "cz-conventional-changelog": "^3.3.0",
+    "dayjs": "^1.11.13",
     "eslint": "8.52.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.3",
     "husky": "^9.1.7",
+    "js-cookie": "^3.0.5",
     "lint-staged": "^15.4.3",
     "prettier": "3.1.0",
     "prettier-eslint": "^16.1.2",
@@ -53,10 +60,13 @@
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-typescript2": "^0.36.0",
     "rollup-plugin-web-worker-loader": "^1.7.0",
+    "tailwindcss": "^4.1.3",
     "tslib": "^2.8.1",
     "typescript": "4.9.5",
+    "vite": "^4.4.0",
     "vue": "^3.5.13",
-    "web-vitals": "^4.2.4"
+    "web-vitals": "^4.2.4",
+    "zustand": "^5.0.3"
   },
   "dependencies": {
     "@commitlint/cli": "^19.7.1"

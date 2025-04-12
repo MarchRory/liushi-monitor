@@ -17,3 +17,7 @@ export function isRequest(source: any): source is Request {
 export function isURL(source: any): source is URL {
     return typeof source !== 'undefined' && Object.prototype.toString.call(source) === "[object URL]"
 }
+
+export function isString(source: any): source is String {
+    return typeof source !== 'undefined' && Object.prototype.toString.call(source) === "[object String]"
+}

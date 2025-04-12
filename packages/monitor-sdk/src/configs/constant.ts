@@ -25,7 +25,7 @@ export const DEFAULT_REQUEST_INIT_OPTIONS: Required<Pick<ISDKRequestOption, 'tim
     retryCnt: 3,
     singleMaxReportSize: 3,
     reportTaskSizeLimit: 2,
-    transportDelay: 1500
+    transportDelay: 1500,
 }
 
 /**

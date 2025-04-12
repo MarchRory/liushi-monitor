@@ -28,6 +28,7 @@ export abstract class BaseBreadCrumb {
         const {
             tabbar_urls,
             ignore_urls = DEFAULT_BREADCRUMB_CONFIG.ignore_urls,
+
         } = (options || {})
         this.ignoredUrls = new Set(ignore_urls)
         this.tabbarUrls = new Set(tabbar_urls)

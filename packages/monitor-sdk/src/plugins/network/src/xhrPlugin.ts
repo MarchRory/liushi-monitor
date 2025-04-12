@@ -4,7 +4,7 @@ import { aop } from "monitor-sdk/src/utils/aop";
 import { getUrlTimestamp } from "monitor-sdk/src/utils/common";
 import { IHttpMemoryValue } from "./types/httpInfoMap";
 import { getCurrentTimeStamp } from "monitor-sdk/src/utils/time";
-import { isURL } from "monitor-sdk/src/utils/is";
+import { isString, isURL } from "monitor-sdk/src/utils/is";
 
 
 const XHRPlugin: IBasePlugin<'performance', 'http'> = {
@@ -30,7 +30,7 @@ const XHRPlugin: IBasePlugin<'performance', 'http'> = {
                 }
 
                 let interfaceURL = ''
-                if (typeof url === 'string') {
+                if (isString(url)) {
                     interfaceURL = url
                 } else if (isURL(url)) {
                     interfaceURL = url.href
