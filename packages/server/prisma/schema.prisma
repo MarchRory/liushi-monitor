@@ -1,0 +1,241 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// Prisma配置
+
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../generated/prisma"
+}
+
+// 数据库配置
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// 数据表模型
+
+model User {
+  id                Int       @id @default(autoincrement()) @map("id")
+  userName          String    @db.Text() @map("user_name")
+  account           String    @db.Text() @map("account")
+  password          String    @db.Text() @map("password")
+  userType          Int       @map("user_type")
+  errors            Error[]   @relation("fk_error_rp_id")
+  isDeleted         Boolean   @default(false)
+}
+
+model Producer {
+  id                  Int           @id @default(autoincrement())
+  deviceBowserName    String        @map("device_bowser_name") @db.Text()
+  deviceBowserVersion String        @map("device_bowser_version") @db.Text()
+  deviceBowserLanguage String       @map("device_bowser_language") @db.Text()
+  deviceOs            String        @map("device_os") @db.Text()
+  deviceType          String        @map("device_type") @db.Text()
+  sex                 Int
+  isDeleted           Boolean       @default(false)
+
+  performances        Performance[] @relation("fk_performance_p_id")
+  views               Views[]       @relation("fk_views_p_id")
+  pathStacks          PathStack[]   @relation("fk_ps_p_id")
+  interactions        Interaction[] @relation("fk_interaction_p_id")
+  exposures           Exposure[]    @relation("fk_exposure_p_id")
+  errors              Error[]       @relation("fk_error_p_id")
+
+
+  @@index([id])
+  @@map("producer")
+}
+
+model TrackEventType {
+  id              Int              @id @default(autoincrement())
+  eventTypeName   String           @map("event_type_name") @db.Text()
+  isDefault       Boolean          @map("is_default") @default(false)
+  isDeleted       Boolean          @default(false)
+
+  performances    Performance[]    @relation("fk_performance_e_id")
+  views           Views[]          @relation("fk_views_e_id")
+  pathStacks      PathStack[]      @relation("fk_ps_e_id")
+  interactions    Interaction[]    @relation("fk_interaction_e_id")
+  exposures       Exposure[]       @relation("fk_exposure_e_id")
+  errors          Error[]          @relation("fk_error_e_id")
+  indicator       TrackIndicator[] @relation(name: "fk_ti_e_id")
+
+  @@map("track_event_type")
+}
+
+model TrackIndicator {
+  id              Int             @id @default(autoincrement())
+  indicatorName   String          @map("indicator_name") @db.Text()
+  isDefault       Boolean         @map("is_default") @default(false)
+  isDeleted       Boolean         @default(false)
+  eventTypeId     Int             @map("event_type_id")
+  
+  eventType       TrackEventType  @relation(name: "fk_ti_e_id", fields: [eventTypeId], references: [id])
+  performances    Performance[]   @relation("fk_performance_i_id")
+  views           Views[]         @relation("fk_views_i_id")
+  pathStacks      PathStack[]     @relation("fk_ps_i_id")
+  interactions    Interaction[]   @relation("fk_interaction_i_id")
+  exposures       Exposure[]      @relation("fk_exposure_i_id")
+  errors          Error[]         @relation("fk_error_i_id")
+
+  @@map("track_indicator")
+}
+
+model TrackComponent {
+  id                Int           @id @default(autoincrement())
+  componentTypeName String        @map("component_type_name") @db.Text()
+  isDefault         Boolean       @map("is_default") @default(false)
+  componentName     String        @map("component_name")      @db.Text()
+  isDeleted         Boolean       @default(false)
+
+  interactions      Interaction[] @relation("fk_interaction_c_id")
+
+  @@map("track_component")
+}
+
+model PathStack {
+  id            Int           @id @default(autoincrement())
+  url           String        @db.Text()
+  timestamp     DateTime      @db.Timestamp()
+  producerId    Int           @map("producer_id")
+  eventTypeId   Int           @map("event_type_id")
+  indicatorId   Int           @map("indicator_id")
+  stack         String        @db.Text()
+  exposures     Exposure[]    @relation("fk_exposure_ps_id")
+  isDeleted     Boolean       @default(false)
+
+  eventType     TrackEventType @relation(name: "fk_ps_e_id", fields: [eventTypeId], references: [id])
+  indicator     TrackIndicator @relation(name: "fk_ps_i_id", fields: [indicatorId], references: [id])
+  producer      Producer       @relation(name: "fk_ps_p_id", fields: [producerId], references: [id])
+
+  @@index([eventTypeId])
+  @@index([indicatorId])
+  @@index([producerId])
+
+  @@map("path_stack")
+}
+
+model Performance {
+  id            Int           @id @default(autoincrement())
+  eventTypeId   Int           @map("event_type_id")
+  indicatorId   Int           @map("indicator_id")
+  value         String        @db.Text()
+  url           String        @db.Text()
+  timestamp     DateTime      @db.Timestamp()
+  producerId    Int           @map("producer_id")
+  isDeleted     Boolean       @default(false)
+
+  eventType     TrackEventType @relation(name: "fk_performance_e_id", fields: [eventTypeId], references: [id])
+  indicator     TrackIndicator @relation(name: "fk_performance_i_id", fields: [indicatorId], references: [id])
+  producer      Producer       @relation(name: "fk_performance_p_id", fields: [producerId], references: [id])
+
+  @@index([eventTypeId])
+  @@index([indicatorId])
+  @@index([producerId])
+
+  @@map("performance")
+}
+
+model Views {
+  id            Int           @id @default(autoincrement())
+  producerId    Int           @map("producer_id")
+  url           String        @db.Text()
+  timestamp     DateTime      @db.Timestamp()
+  eventTypeId   Int           @map("event_type_id")
+  indicatorId   Int           @map("indicator_id")
+  isDeleted     Boolean       @default(false)
+
+  eventType     TrackEventType @relation(name: "fk_views_e_id", fields: [eventTypeId], references: [id])
+  indicator     TrackIndicator @relation(name: "fk_views_i_id", fields: [indicatorId], references: [id])
+  producer      Producer       @relation(name: "fk_views_p_id", fields: [producerId], references: [id])
+
+  @@index([producerId])
+  @@index([indicatorId])
+
+  @@map("views")
+}
+
+model Interaction {
+  id                Int           @id @default(autoincrement())
+  url               String        @db.Text()
+  timestamp         DateTime      @db.Timestamp()
+  producerId        Int           @map("producer_id")
+  eventTypeId       Int           @map("event_type_id")
+  indicatorId       Int           @map("indicator_id")
+  contactPoint      String        @db.Text()
+  nodeName          String        @map("node_name") @db.Text()
+  componentTypeId   Int           @map("component_type_id")
+  featureInfo       String        @map("feature_info") @db.Text()
+  isDeleted         Boolean       @default(false)
+
+  componentType     TrackComponent @relation(name: "fk_interaction_c_id", fields: [componentTypeId], references: [id])
+  eventType         TrackEventType @relation(name: "fk_interaction_e_id", fields: [eventTypeId], references: [id])
+  indicator         TrackIndicator @relation(name: "fk_interaction_i_id", fields: [indicatorId], references: [id])
+  producer          Producer       @relation(name: "fk_interaction_p_id", fields: [producerId], references: [id])
+
+  @@index([eventTypeId])
+  @@index([indicatorId])
+  @@index([producerId])
+  @@index([componentTypeId])
+
+  @@map("interaction")
+}
+
+model Exposure {
+  id            Int           @id @default(autoincrement())
+  url           String        @db.Text()
+  timestamp     DateTime      @db.Timestamp()
+  producerId    Int           @map("producer_id")
+  eventTypeId   Int           @map("event_type_id")
+  indicatorId   Int           @map("indicator_id")
+  value         String        @db.Text()
+  pathStackId   Int           @map("path_stack_id")
+  isDeleted     Boolean       @default(false)
+
+  eventType     TrackEventType @relation(name: "fk_exposure_e_id", fields: [eventTypeId], references: [id])
+  indicator     TrackIndicator @relation(name: "fk_exposure_i_id", fields: [indicatorId], references: [id])
+  producer      Producer       @relation(name: "fk_exposure_p_id", fields: [producerId], references: [id])
+  pathStack     PathStack      @relation(name: "fk_exposure_ps_id", fields: [pathStackId], references: [id])
+
+  @@index([eventTypeId])
+  @@index([indicatorId])
+  @@index([producerId])
+  @@index([pathStackId])
+
+  @@map("exposure")
+}
+
+model Error {
+  id                  Int           @id @default(autoincrement())
+  url                 String        @db.Text()
+  timestamp           DateTime      @db.Timestamp()
+  producerId          Int           @map("producer_id")
+  eventTypeId         Int           @map("event_type_id")
+  indicatorId         Int           @map("indicator_id")
+  description         String        @db.Text() 
+  codeLocation        String        @map("code_location") @db.Text() 
+  nodeName            String        @map("node_name") @db.Text()
+  props               String        @db.Text()
+  stack               String        @db.Text() 
+  responsiblePersonId Int           @map("responsible_person_id")
+  isFixed             Boolean       @map("is_fixed") @default(false)
+  isDeleted           Boolean       @default(false)
+
+  eventType          TrackEventType @relation(name: "fk_error_e_id", fields: [eventTypeId], references: [id])
+  indicator          TrackIndicator @relation(name: "fk_error_i_id", fields: [indicatorId], references: [id])
+  producer           Producer       @relation(name: "fk_error_p_id", fields: [producerId], references: [id])
+  responsiblePerson  User           @relation(name: "fk_error_rp_id", fields: [responsiblePersonId], references: [id])
+
+  @@index([eventTypeId])
+  @@index([indicatorId])
+  @@index([producerId])
+  @@index([responsiblePersonId])
+
+  @@map("error")
+}  

@@ -4,7 +4,7 @@ import { ILoginForm, ISystemUserInfo, ISystemUserListItem, IUserTypeEnum } from 
 
 /****************** 登录 ****************/
 export function Login(parmas: ILoginForm) {
-    return requestInstance.get<ISystemUserInfo>('/login', parmas)
+    return requestInstance.post<ISystemUserInfo>('/login', parmas)
 }
 export function Logout() {
     return requestInstance.get('/logout')

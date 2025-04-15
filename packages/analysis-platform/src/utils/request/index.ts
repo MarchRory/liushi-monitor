@@ -1,14 +1,11 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { message } from 'antd'
 import { IResponseCodeEnum, IResponseModel } from '../../types/request'
 import { MessageInstance } from 'antd/es/message/interface'
 
 class HttpRequest {
     private axiosInstance: AxiosInstance
-    private messageApi: MessageInstance
     constructor() {
-        const [messageApi] = message.useMessage()
-        this.messageApi = messageApi
         this.axiosInstance = this.initAxios()
     }
     private initAxios(): AxiosInstance {
@@ -29,8 +26,11 @@ class HttpRequest {
                 if (+code === IResponseCodeEnum.SUCCESS) {
                     return data
                 }
-
-                this.messageApi.error(messageText)
+                message.open({
+                    type: 'error',
+                    content: messageText || "网络异常",
+                    key: `request-error-${code}-${Math.random() * Math.random()}`
+                })
                 switch (+code) {
                     case IResponseCodeEnum.NO_PERMISSION:
                         // TODO: 登出
@@ -39,15 +39,19 @@ class HttpRequest {
                         break
                 }
             },
-            (error) => {
-                return Promise.reject(error)
+            (error: AxiosError) => {
+                message.open({
+                    type: "error",
+                    content: error.message || "网络异常",
+                    key: `request-error-${error.code}-${Math.random() * Math.random()}`
+                })
             }
         )
 
         return instance
     }
-    private request<T>(config: AxiosRequestConfig): Promise<T> {
-        return this.axiosInstance.request(config)
+    private request<T>(config: AxiosRequestConfig) {
+        return this.axiosInstance.request(config) as Promise<IResponseModel<T>>
     }
 
     /**

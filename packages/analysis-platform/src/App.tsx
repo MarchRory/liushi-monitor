@@ -19,7 +19,7 @@ const App: React.FC = () => {
       }}
     >
       {MessageCtxHolder}
-      {location.pathname === "/" ? <LoginPage /> : <PageLayout />}
+      {window.location.pathname === "/" ? <LoginPage /> : <PageLayout />}
     </ConfigProvider>
   );
 };

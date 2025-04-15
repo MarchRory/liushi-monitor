@@ -64,6 +64,7 @@ const XHRPlugin: IBasePlugin<'performance', 'http'> = {
                             }
                         }
                         httpRequestInfoBucket.delete(responseURL)
+                        this.removeEventListener('loadend', readyStateChangeHandler)
                         notify('http', collectedData)
                     }
                 }
