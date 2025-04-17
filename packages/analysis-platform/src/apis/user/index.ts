@@ -4,10 +4,10 @@ import { ILoginForm, ISystemUserInfo, ISystemUserListItem, IUserTypeEnum } from 
 
 /****************** 登录 ****************/
 export function Login(parmas: ILoginForm) {
-    return requestInstance.post<ISystemUserInfo>('/login', parmas)
+    return requestInstance.post<ISystemUserInfo>('/auth/login', parmas)
 }
 export function Logout() {
-    return requestInstance.get('/logout')
+    return requestInstance.get('/user/logout')
 }
 export function GetUserInfo(token: string) {
     return requestInstance.get<ISystemUserInfo>('/userInfo', { token })

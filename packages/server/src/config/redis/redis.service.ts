@@ -9,12 +9,12 @@ export class RedisService {
 
     constructor(@Inject(REDIS_CLIENT) private readonly clint: Redis) {
         this.client = clint
-        clint.on('connect', async (e) => {
+        this.clint.on('connect', () => {
             console.log('redis 连接成功')
-            this.set('hello', 'world')
-            console.log(await this.get('hello'))
         })
-        clint.on('error', (err) => { console.log('Redis error: ', err) })
+        this.clint.on('error', (err) => {
+            console.log('Redis error: ', err)
+        })
     }
 
     async get(key: string): Promise<string | null> {

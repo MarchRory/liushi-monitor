@@ -5,10 +5,9 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 // Prisma配置
-
 generator client {
   provider = "prisma-client-js"
-  // output   = "../generated/prisma"
+  output   = "../node_modules/.prisma"
 }
 
 // 数据库配置
@@ -23,11 +22,12 @@ datasource db {
 model User {
   id                Int       @id @default(autoincrement()) @map("id")
   userName          String    @db.Text() @map("user_name")
-  account           String    @db.Text() @map("account")
+  account           String    @unique(length: 10) @map("account") 
   password          String    @db.Text() @map("password")
   userType          Int       @map("user_type")
-  errors            Error[]   @relation("fk_error_rp_id")
   isDeleted         Boolean   @default(false)
+
+  errors            Error[]   @relation("fk_error_rp_id")
 }
 
 model Producer {

@@ -11,9 +11,8 @@ import { REDIS_CLIENT } from 'src/common/constant';
         {
             provide: REDIS_CLIENT,
             useFactory: async (configService: ConfigService<IRedisConfig>) => {
-                const redisClient = new Redis({
-                    ...loadRedisConfig(configService)
-                });
+                const redisConfig = loadRedisConfig(configService)
+                const redisClient = new Redis(redisConfig);
                 return redisClient;
             },
             inject: [ConfigService],

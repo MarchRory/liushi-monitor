@@ -1,7 +1,6 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { message } from 'antd'
 import { IResponseCodeEnum, IResponseModel } from '../../types/request'
-import { MessageInstance } from 'antd/es/message/interface'
 
 class HttpRequest {
     private axiosInstance: AxiosInstance
@@ -11,7 +10,8 @@ class HttpRequest {
     private initAxios(): AxiosInstance {
         const instance = axios.create({
             baseURL: import.meta.env.VITE_APP_API_BASE_URL,
-            timeout: 5 * 1000
+            timeout: 5 * 1000,
+            withCredentials: true
         })
 
         instance.interceptors.request.use(

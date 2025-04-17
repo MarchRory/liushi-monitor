@@ -6,6 +6,7 @@
 
 - `pnpm`: ^10
 - `node`: ^18
+- `https`: 由于token放在cookie中，受限于Chorme新版本中, sameSite=none;secure=false 配置只会在https环境下生效, 故需要接入自己的证书开启https运行前后端
 
 # 运行指令
 

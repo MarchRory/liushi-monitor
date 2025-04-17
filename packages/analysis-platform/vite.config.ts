@@ -1,6 +1,8 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import tailwindcss from "@tailwindcss/vite";
+import mkcert from 'vite-plugin-mkcert'
+import fs from 'fs'
 
 // https://vitejs.dev/config/
 export default () => {
@@ -8,7 +10,8 @@ export default () => {
     plugins: [
       react(),
       // @ts-ignore
-      tailwindcss()
+      tailwindcss(),
+      // mkcert()
     ],
     resolve: {
       alias: [
@@ -21,6 +24,10 @@ export default () => {
     server: {
       hmr: true,
       open: true,
+      https: {
+        key: fs.readFileSync('../cert/localhost+2-key.pem'),
+        cert: fs.readFileSync('../cert/localhost+2.pem')
+      }
     },
     build: {
       outDir: "dist", // 指定打包路径，默认为项目根目录下的 dist 目录
