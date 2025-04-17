@@ -1,9 +1,8 @@
-import { AdminRouterItem } from "../../../router";
 import FormPage from ".";
-import { Outlet } from "react-router-dom";
+import { Outlet, RouteObject } from "react-router-dom";
 import CallendarCmp from "./components/calendar";
 
-const demoRoutes: AdminRouterItem[] = [
+const demoRoutes: RouteObject[] = [
   // {
   //   path: "form",
   //   element: <FormPage />,

@@ -1,12 +1,11 @@
 import { RouteObject, createBrowserRouter } from "react-router-dom";
 import App from "../App";
-import { MenuItemType } from "antd/es/menu/interface";
 
-export type AdminRouterItem = RouteObject & {
-  // set antd menu props in meta
-  meta?: MenuItemType;
-  children?: AdminRouterItem[];
-};
+// export type AdminRouterItem = RouteObject & {
+//   // set antd menu props in meta
+//   meta?: MenuItemType;
+//   children?: AdminRouterItem[];
+// };
 
 /**
  * auto load route from views/***\/*.router.ts
@@ -17,12 +16,11 @@ const loadRouteModules = async () => {
     eager: true,
     import: "default",
   });
-  const routeModules: AdminRouterItem[] = [];
+  const routeModules: RouteObject[] = [];
 
-  for await (const [key, module] of Object.entries(routeModuleFiles)) {
-    console.log("key = ", key, "module = ", module);
-
-    if (module) {
+  for await (const [_, module] of Object.entries(routeModuleFiles)) {
+    // @ts-ignore
+    if (module && module[0] && !module[0].meta.public) {
       const routes = Array.isArray(module) ? module : [module];
       routeModules.push(...routes);
     }
@@ -31,9 +29,19 @@ const loadRouteModules = async () => {
   return routeModules;
 };
 
-export const routes: AdminRouterItem[] = [...(await loadRouteModules())];
+const LoginRoute = (
+  Object.values(
+    import.meta.glob("../views/public/login/login.router.tsx", {
+      eager: true,
+      import: "default",
+    }),
+  )[0] as RouteObject[]
+)[0];
+
+export const routes: RouteObject[] = [...(await loadRouteModules())];
 
 export default createBrowserRouter([
+  LoginRoute,
   {
     path: "/",
     element: <App />,

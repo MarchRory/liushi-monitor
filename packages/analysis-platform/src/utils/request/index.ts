@@ -21,23 +21,24 @@ class HttpRequest {
         )
 
         instance.interceptors.response.use(
-            (response: AxiosResponse<IResponseModel>) => {
+            (response: AxiosResponse<IResponseModel>): AxiosResponse['data'] => {
                 const { code, data, messageText } = response.data
-                if (+code === IResponseCodeEnum.SUCCESS) {
-                    return data
+                if (code !== IResponseCodeEnum.SUCCESS) {
+                    message.open({
+                        type: 'error',
+                        content: messageText || "网络异常",
+                        key: `request-error-${code}-${Math.random() * Math.random()}`
+                    })
+                    switch (+code) {
+                        case IResponseCodeEnum.NO_PERMISSION:
+                            // TODO: 登出
+                            return Promise.reject(data)
+                        default:
+                            break
+                    }
+                    return Promise.reject(data)
                 }
-                message.open({
-                    type: 'error',
-                    content: messageText || "网络异常",
-                    key: `request-error-${code}-${Math.random() * Math.random()}`
-                })
-                switch (+code) {
-                    case IResponseCodeEnum.NO_PERMISSION:
-                        // TODO: 登出
-                        return Promise.reject(data)
-                    default:
-                        break
-                }
+                return response.data
             },
             (error: AxiosError) => {
                 message.open({

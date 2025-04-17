@@ -1,17 +1,19 @@
-import { Controller, Get, Post, Body, Param, Delete, HttpCode, Query, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, HttpCode, Query, Put, Request } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Request as ExpressRequest } from 'express';
+import { TOKEN_KEY } from 'src/common/constant';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) { }
 
   @Get('info')
-  findInfo(@Body() token: string) {
+  findInfo(@Request() req: ExpressRequest) {
     // TODO: 从token获取id
-    const id = 1
-    return this.userService.findOne(+id)
+    const token = req.cookies[TOKEN_KEY]
+    return this.userService.findLoginUserInfo(token)
   }
 
   @Post()

@@ -3,11 +3,13 @@ export interface ILoginForm {
     password: string
 }
 export const enum IUserTypeEnum {
+    INITIAL = -1,
     ADMIN,
     ENGINEER,
     OPERATOR,
 }
 export const UserTypesMap = {
+    [IUserTypeEnum.INITIAL]: "",
     [IUserTypeEnum.ADMIN]: '管理员',
     [IUserTypeEnum.ENGINEER]: '开发者',
     [IUserTypeEnum.OPERATOR]: '运营员'

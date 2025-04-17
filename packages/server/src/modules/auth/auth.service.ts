@@ -43,7 +43,7 @@ export class AuthService {
         if (!token) {
             token = this.jwtService.sign(
                 { id: user.id, userType: user.userType },
-                { expiresIn: this.TOKEN_EXPIRE }
+                { expiresIn: Date.now() + this.TOKEN_EXPIRE }
             )
             await this.redisService.set(redisTokenKey, token, this.TOKEN_EXPIRE)
             res.cookie(TOKEN_KEY, token, {
@@ -56,5 +56,27 @@ export class AuthService {
         }
 
         return responseBundler(ResponseCode.SUCCESS, { token })
+    }
+    async logout(token: string, @Response({ passthrough: true }) res: ExpressResponse) {
+        const { id } = this.jwtService.verify(token, { secret: TOKEN_KEY })
+        const redisTokenKey = `${TOKEN_KEY}:${id}`
+        try {
+            await this.redisService.del(redisTokenKey)
+            res.clearCookie(TOKEN_KEY, {
+                httpOnly: true, // 防止XSS
+                secure: true, // 生产环境用HTTPS时设置为true
+                sameSite: 'none', // 跨域场景必须设置为none
+                path: '/', // Cookie生效路径（默认整个应用）
+            })
+            return responseBundler(ResponseCode.SUCCESS)
+        } catch (e) {
+            res.clearCookie(TOKEN_KEY, {
+                httpOnly: true, // 防止XSS
+                secure: true, // 生产环境用HTTPS时设置为true
+                sameSite: 'none', // 跨域场景必须设置为none
+                path: '/', // Cookie生效路径（默认整个应用）
+            })
+            return responseBundler(ResponseCode.INTERNAL_ERROR, { error: e })
+        }
     }
 }

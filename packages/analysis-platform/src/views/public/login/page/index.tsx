@@ -1,13 +1,25 @@
 import React, { useCallback } from "react";
 import { Form, Input, Button, FormProps } from "antd";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
-import { ILoginForm } from "../../../apis/user/types";
-import * as userApis from "../../../apis/user/index";
+import { ILoginForm } from "../../../../apis/user/types";
+import * as userApis from "../../../../apis/user/index";
+import useUserStore from "../../../../store/user";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage: React.FC = () => {
+  const setUserInfo = useUserStore((state) => state.setUserInfo);
+  const navigate = useNavigate();
+
   const onSubmit: FormProps<ILoginForm>["onFinish"] = useCallback(
-    (values: ILoginForm) => {
-      userApis.Login(values).then((res) => {});
+    async (values: ILoginForm) => {
+      try {
+        await userApis.Login(values);
+        const { data: UserData } = await userApis.GetUserInfo();
+        setUserInfo(UserData);
+        navigate("/user", { replace: true });
+      } catch (e) {
+        console.log(e);
+      }
     },
     [],
   );

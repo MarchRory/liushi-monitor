@@ -1,11 +1,11 @@
 import { Breadcrumb } from "antd";
 import { BreadcrumbItemType } from "antd/es/breadcrumb/Breadcrumb";
 import { useEffect, useState } from "react";
-import { useMatches } from "react-router-dom";
-import { AdminRouterItem, routes } from "../router";
+import { RouteObject, useMatches } from "react-router-dom";
 import { assign } from "lodash-es";
+import useUserStore from "../store/user";
 
-const flattenRoutes = (routes: AdminRouterItem[], prefix = "/") => {
+const flattenRoutes = (routes: RouteObject[], prefix = "/") => {
   let map: {
     [key: string]: {
       path: string;
@@ -31,11 +31,21 @@ const flattenRoutes = (routes: AdminRouterItem[], prefix = "/") => {
 
   return map;
 };
+type FlattenRoutesType = ReturnType<typeof flattenRoutes>;
 
 const PageBreadcrumb: React.FC = () => {
-  const flattendRoutes = flattenRoutes(routes);
+  const { menu } = useUserStore((state) => ({
+    menu: state.menu,
+  }));
+  const [flattendRoutes, setFlattendRoutes] = useState<FlattenRoutesType>(
+    [] as unknown as FlattenRoutesType,
+  );
   const matches = useMatches();
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItemType[]>([]);
+
+  useEffect(() => {
+    setFlattendRoutes(flattenRoutes(menu));
+  }, [menu]);
 
   useEffect(() => {
     setBreadcrumbs(

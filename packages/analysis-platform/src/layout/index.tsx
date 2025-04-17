@@ -19,9 +19,10 @@ const PageLayout: React.FC = () => {
         <Headerbar colorBgContainer={colorBgContainer} />
         <PageBreadcrumb />
         <PageContent></PageContent>
-        <Footer style={{ textAlign: "center" }}>
-          React Admin Dashboard ©{new Date().getFullYear()} Created by Yujian
-          Xue
+        <Footer
+          style={{ textAlign: "center", padding: "15px 0", color: "gray" }}
+        >
+          <h2>六时监控-数据分析平台</h2>
         </Footer>
       </Layout>
     </Layout>

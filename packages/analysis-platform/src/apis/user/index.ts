@@ -4,13 +4,13 @@ import { ILoginForm, ISystemUserInfo, ISystemUserListItem, IUserTypeEnum } from 
 
 /****************** 登录 ****************/
 export function Login(parmas: ILoginForm) {
-    return requestInstance.post<ISystemUserInfo>('/auth/login', parmas)
+    return requestInstance.post<{ token: string }>('/auth/login', parmas)
 }
 export function Logout() {
-    return requestInstance.get('/user/logout')
+    return requestInstance.post('/auth/logout', null)
 }
-export function GetUserInfo(token: string) {
-    return requestInstance.get<ISystemUserInfo>('/userInfo', { token })
+export function GetUserInfo() {
+    return requestInstance.get<Omit<ISystemUserInfo, 'id'>>('/user/info')
 }
 /****************** 登录 ****************/
 

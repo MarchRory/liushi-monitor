@@ -1,16 +1,26 @@
 import { useEffect, useState } from "react";
 import { Layout, Menu } from "antd";
-import { AdminRouterItem, routes } from "../router";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, RouteObject } from "react-router-dom";
+import { IUserTypeEnum } from "../apis/user/types";
+import { routes } from "../router";
+import useUserStore from "../store/user";
 
 const { Sider } = Layout;
 
-const getMenuItems = (routes: AdminRouterItem[]): any[] => {
+const getMenuItems = (
+  routes: RouteObject[],
+  allowRoles: IUserTypeEnum[],
+): any[] => {
   return routes
     .map((itm) => {
-      if (!itm.meta) return null;
+      if (
+        !itm.meta ||
+        itm.meta.auth !== IUserTypeEnum.ADMIN ||
+        !allowRoles.includes(itm.meta.auth)
+      )
+        return null;
       let children = null;
-      if (itm.children) children = getMenuItems(itm.children);
+      if (itm.children) children = getMenuItems(itm.children, allowRoles);
       return children
         ? {
             ...itm.meta,
@@ -30,12 +40,25 @@ const getMenuItems = (routes: AdminRouterItem[]): any[] => {
  * @returns
  */
 const PageSidebar = (props: { autoCollapse?: boolean }) => {
+  const { user_type, menu, setMenu } = useUserStore((state) => ({
+    user_type: state.user_type,
+    menu: state.menu,
+    setMenu: state.setMenu,
+  }));
   const { autoCollapse = true } = props;
-  const menuItems = getMenuItems(routes);
   const navigate = useNavigate();
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [lastOpenedMenu, setLastOpenedMenu] = useState<string[]>([]);
   const location = useLocation();
+
+  useEffect(() => {
+    if (user_type === IUserTypeEnum.INITIAL) {
+      setMenu([]);
+    } else {
+      const menuItems = getMenuItems(routes, [user_type]);
+      setMenu(menuItems);
+    }
+  }, [user_type]);
 
   const onSwitchMenu = ({
     key,
@@ -64,7 +87,7 @@ const PageSidebar = (props: { autoCollapse?: boolean }) => {
         onOpenChange={onOpenChange}
         selectedKeys={selectedKeys}
         mode="inline"
-        items={menuItems}
+        items={menu}
         onClick={onSwitchMenu}
       />
     </Sider>
