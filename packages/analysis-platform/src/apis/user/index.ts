@@ -30,7 +30,7 @@ export function AddSystemUser(form: Omit<ISystemUserListItem, 'id'>) {
 export function UpdateSystemUser(form: ISystemUserListItem) {
     return requestInstance.put('/user', form)
 }
-export function DeleteSystemUser(id: string) {
+export function DeleteSystemUser(id: number) {
     return requestInstance.delete('/user', [id])
 }
 /****************** 系统用户管理 ****************/

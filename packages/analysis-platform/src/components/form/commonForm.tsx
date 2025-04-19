@@ -1,14 +1,7 @@
-import React, {
-  ChangeEvent,
-  ChangeEventHandler,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { Button, Form, FormItemProps, Input, Modal, Select, Space } from "antd";
+import React, { useEffect, useState } from "react";
+import { Button, Form, FormItemProps, Modal, Space } from "antd";
 import { useCommonForm } from "./useCommonForm";
 import { FormInstance } from "antd/lib";
-import { debounce } from "lodash-es";
 import { PartiallyRequired } from "../../types/utils";
 
 export type FormItemConfig<T extends Object> = PartiallyRequired<
@@ -59,12 +52,13 @@ export function CommonForm<T extends Object>({
         <Form
           form={form}
           layout="horizontal"
-          labelCol={{ span: 4 }}
+          labelCol={{ span: 8 }}
           onFinish={(data) => handleSubmit(formType, data)}
           className="space-y-4"
         >
           {formItems.map((item, index) => (
             <Form.Item
+              valuePropName={item.name === "isDefault" ? "checked" : "value"}
               key={index}
               name={item.name}
               label={item.label}

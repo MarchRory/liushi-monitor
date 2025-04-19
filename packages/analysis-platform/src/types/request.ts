@@ -27,7 +27,7 @@ export interface IListModel<T extends Object> {
 /**
  * 列表请求参数模型
  */
-export type ListRequestParamsModel<T extends Object> = T & {
+export type ListRequestParamsModel<T extends Object = Object> = T & {
     pageNum: number
     pageSize: number
 }

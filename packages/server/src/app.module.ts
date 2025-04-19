@@ -12,7 +12,6 @@ import { JwtAuthGuard } from './shared/guard/role.guard';
 import { AuthExceptionFilter } from './shared/filters/authError.filter';
 import { JwtStrategy } from './shared/strategies/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
-import { PrismaExceptionFilter } from './shared/filters/dbError.filter';
 
 @Module({
   imports: [

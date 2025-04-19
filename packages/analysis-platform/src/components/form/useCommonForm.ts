@@ -11,7 +11,7 @@ type FormBaseMethods<
 > = {
     createApi: (data: R) => Promise<IResponseModel>,
     updateApi: (data: T) => Promise<IResponseModel>,
-    getItemApi: (id: number) => Promise<IResponseModel<FormValues<T>>>
+    getItemApi?: (id: number) => Promise<IResponseModel<FormValues<T>>>
     onCreateSuccess?: (data: IResponseModel) => void
     onUpdateSuccess?: (data: IResponseModel) => void
 }
@@ -52,7 +52,7 @@ export function useCommonForm<T extends Object>({
         setVisible(true)
         try {
             setModalLoading(true)
-            if (formType === 'update' && typeof id === 'number') {
+            if (formType === 'update' && typeof id === 'number' && getItemApi) {
                 const { code, data } = await getItemApi(id)
                 setId(id)
                 setTimeout(() => {

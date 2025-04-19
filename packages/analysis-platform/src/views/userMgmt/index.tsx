@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Button, Flex, Form, Input, Select, TableColumnType, Tag } from "antd";
+import React from "react";
+import { Form, Input, Select, TableColumnType, Tag } from "antd";
 import * as userAPis from "../../apis/user";
 import { useTable, CommonTable } from "../../components/table";
 import {
@@ -48,12 +48,12 @@ const formItems: FormItemConfig<ISystemUserListItem>[] = [
     label: "账号",
     rules: [
       { required: true },
-      // {
-      //   validator: (_, v: string) => {
-      //     if (!(v.length >= 4 && v.length <= 10)) return Promise.reject();
-      //   },
-      //   message: "账号长度为4到10个字符",
-      // },
+      {
+        validator: (_, v: string) => {
+          if (!(v.length >= 4 && v.length <= 10)) return Promise.reject();
+        },
+        message: "账号长度为4到10个字符",
+      },
     ],
     component: () => <Input placeholder="请设置账号" />,
   },
@@ -62,12 +62,12 @@ const formItems: FormItemConfig<ISystemUserListItem>[] = [
     label: "密码",
     rules: [
       { required: true },
-      // {
-      //   validator: (_, v: string) => {
-      //     if (!(v.length >= 4 && v.length <= 15)) return Promise.reject();
-      //   },
-      //   message: "密码长度为4到15个字符",
-      // },
+      {
+        validator: (_, v: string) => {
+          if (!(v.length >= 4 && v.length <= 15)) return Promise.reject();
+        },
+        message: "密码长度为4到15个字符",
+      },
     ],
     component: () => <Input.Password placeholder="请设置密码" />,
   },
@@ -110,12 +110,12 @@ const UserMgmtPage: React.FC = () => {
     closeModal,
     handleSubmit,
     resetForm,
-  } = useCommonForm<ISystemUserListItem>({
+  } = useCommonForm({
     createApi: userAPis.AddSystemUser,
     updateApi: userAPis.UpdateSystemUser,
     getItemApi: userAPis.GetSystemUserInfo,
     onCreateSuccess: () => loadList(),
-    onUpdateSuccess: () => loadList,
+    onUpdateSuccess: () => loadList(),
     initialValue: {
       account: "",
       password: "",
@@ -139,7 +139,7 @@ const UserMgmtPage: React.FC = () => {
             onChange={(userType) => updateSearchParams({ userType })}
           />,
         ]}
-        actions={(column: ISystemUserListItem) => [
+        actions={(column) => [
           {
             variant: "filled",
             text: "编辑",

@@ -1,3 +1,5 @@
+import { IBaseDataInfo } from "../../types/common"
+
 export interface ILoginForm {
     account: string
     password: string
@@ -32,8 +34,7 @@ export const UserTypesMap: UserTypeMap = {
     }
 }
 
-export interface ISystemUserInfo {
-    id: number
+export interface ISystemUserInfo extends IBaseDataInfo {
     userName: string
     userType: IUserTypeEnum
 }

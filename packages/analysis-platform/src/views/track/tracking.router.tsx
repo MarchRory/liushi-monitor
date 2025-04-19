@@ -1,8 +1,8 @@
 import { RouteObject } from "react-router-dom";
 import { IUserTypeEnum } from "../../apis/user/types";
 import TrackingPage from "./index";
-import EventMgmt from "./children/eventMgmt";
-import ComponentMgmt from "./children/componentMgmt";
+import EventMgmt from "./eventMgmt";
+import ComponentMgmt from "./componentMgmt";
 
 const userMgmtRoutes: RouteObject[] = [
   {
@@ -21,8 +21,8 @@ const userMgmtRoutes: RouteObject[] = [
         meta: {
           auth: IUserTypeEnum.ADMIN,
           key: "/track/event",
-          label: "事件管理",
-          title: "事件管理",
+          label: "埋点事件",
+          title: "埋点事件",
         },
       },
       {
@@ -31,8 +31,8 @@ const userMgmtRoutes: RouteObject[] = [
         meta: {
           key: "/track/component",
           auth: IUserTypeEnum.ADMIN,
-          label: "组件管理",
-          title: "组件管理",
+          label: "监控组件",
+          title: "监控组件",
         },
       },
     ],

@@ -103,7 +103,7 @@ class HttpRequest {
      * @param otherConfig 可选, axios其他配置
      * @returns 
      */
-    delete<T = any>(url: string, deletedIds?: string[], otherConfig?: Omit<AxiosRequestConfig, 'url' | 'method'>) {
+    delete<T = any>(url: string, deletedIds?: number[], otherConfig?: Omit<AxiosRequestConfig, 'url' | 'method'>) {
         const ids: string =
             deletedIds
                 ? '/' + deletedIds.join('/')
