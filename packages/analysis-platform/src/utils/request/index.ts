@@ -32,7 +32,7 @@ class HttpRequest {
                     switch (+code) {
                         case IResponseCodeEnum.NO_PERMISSION:
                             // TODO: 登出
-                            return Promise.reject(data)
+                            break;
                         default:
                             break
                     }
@@ -40,10 +40,19 @@ class HttpRequest {
                 }
                 return response.data
             },
-            (error: AxiosError) => {
+            (error: AxiosError<IResponseModel>) => {
+                const { message: errorMsg, response } = error
+                let msg = ''
+                if (response && response.data && response.data.messageText) {
+                    msg = response.data.messageText
+                } else if (errorMsg) {
+                    msg = errorMsg
+                } else {
+                    msg = '网络异常'
+                }
                 message.open({
                     type: "error",
-                    content: error.message || "网络异常",
+                    content: msg,
                     key: `request-error-${error.code}-${Math.random() * Math.random()}`
                 })
             }

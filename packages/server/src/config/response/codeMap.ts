@@ -20,14 +20,17 @@ export const enum ResponseCode {
     // -------------------- 服务器错误 (5xx) --------------------
     INTERNAL_ERROR = 500,   // 内部服务器错误（未知异常）
     DB_ERROR = 501,         // 数据库操作失败
-    REDIS_ERROR = 502,      // Redis操作失败
+
+    DUPLICATE_KEY = 1004,    // P2002 唯一约束
+    RECORD_NOT_FOUND = 1005,  // P2025 记录不存在
+    FOREIGN_KEY_ERROR = 1006, // P2003 外键约束
+    REDIS_ERROR = 5003,       // Redis 异常
 
     // -------------------- 业务逻辑错误 (1xxx+) --------------------
     // 认证模块 (1000-1099)
     AUTH_ACCOUNT_NOT_EXIST = 1001, // 账号不存在
     AUTH_PASSWORD_ERROR = 1002,    // 密码错误
     AUTH_TOKEN_EXPIRED = 1003,    // Token过期
-    AUTH_REFRESH_TOKEN_INVALID = 1004, // 刷新Token无效
 
     // 用户模块 (1100-1199)
     USER_EXIST = 1101,      // 用户已存在（注册时）
@@ -37,7 +40,7 @@ export const enum ResponseCode {
  * 响应消息模板
  */
 export const responseMsgMap: Record<ResponseCode, string> = {
-    [ResponseCode.SUCCESS]: '',
+    [ResponseCode.SUCCESS]: '操作成功',
 
     [ResponseCode.BAD_REQUEST]: '请求参数错误',
     [ResponseCode.UNAUTHORIZED]: '登录过期, 请重新登录',
@@ -46,13 +49,17 @@ export const responseMsgMap: Record<ResponseCode, string> = {
     [ResponseCode.TOO_MANY_REQUESTS]: '请求过于频繁，请稍后再试',
 
     [ResponseCode.INTERNAL_ERROR]: '服务器内部错误，请联系管理员',
-    [ResponseCode.DB_ERROR]: '数据库操作失败',
+    [ResponseCode.DB_ERROR]: '数据库操作失败，请稍后重试',
     [ResponseCode.REDIS_ERROR]: '缓存服务异常',
 
     [ResponseCode.AUTH_ACCOUNT_NOT_EXIST]: '账号不存在',
     [ResponseCode.AUTH_PASSWORD_ERROR]: '密码错误',
     [ResponseCode.AUTH_TOKEN_EXPIRED]: '登录状态过期，请重新登录',
-    [ResponseCode.AUTH_REFRESH_TOKEN_INVALID]: '刷新Token无效',
 
     [ResponseCode.USER_EXIST]: '账号已存在',
+
+    [ResponseCode.DUPLICATE_KEY]: "key已存在",
+    [ResponseCode.RECORD_NOT_FOUND]: "查找的记录不存在",
+    [ResponseCode.FOREIGN_KEY_ERROR]: '存在关联数据，无法直接删除',
+
 };

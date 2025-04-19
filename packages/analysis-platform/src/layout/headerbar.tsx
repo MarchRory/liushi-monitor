@@ -56,7 +56,7 @@ const Headerbar = (props: { colorBgContainer: string }) => {
             }
           />
           <p style={{ marginRight: 120 }}>
-            {user_name} - {UserTypesMap[user_type]}
+            {user_name} - {UserTypesMap[user_type].text}
           </p>
           <Button onClick={onLogout} type="primary" color="red">
             退出登录

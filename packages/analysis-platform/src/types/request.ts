@@ -1,6 +1,10 @@
 export const enum IResponseCodeEnum {
     SUCCESS = 200,
-    NO_PERMISSION = 401
+    NO_PERMISSION = 401,
+    KEY_EXIT = 1004,// P2002 唯一约束
+    RECORD_NOT_FOUND = 1005,  // P2025 记录不存在
+    FOREIGN_KEY_ERROR = 1006, // P2003 外键约束
+    REDIS_ERROR = 5003,       // Redis 异常
 }
 
 /**

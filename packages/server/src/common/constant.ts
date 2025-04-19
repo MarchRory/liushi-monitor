@@ -17,6 +17,7 @@ export const JWT_CONFIG: JwtModuleOptions = {
  * 用户身份
  */
 export const enum IUserTypeEnum {
+    INITIAL = -1,
     ADMIN,
     ENGINEER,
     OPERATOR,

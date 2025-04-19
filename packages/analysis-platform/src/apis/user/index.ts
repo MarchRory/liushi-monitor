@@ -1,4 +1,5 @@
 import { IListModel, ListRequestParamsModel } from "../../types/request";
+import { FormValues } from "../../types/utils";
 import requestInstance from "../../utils/request";
 import { ILoginForm, ISystemUserInfo, ISystemUserListItem, IUserTypeEnum } from "./types";
 
@@ -17,13 +18,16 @@ export function GetUserInfo() {
 
 
 /****************** 系统用户管理 ****************/
-export function GetSystemUserList(searchParams: ListRequestParamsModel<{ userType: IUserTypeEnum | null }>) {
+export function GetSystemUserList(searchParams: ListRequestParamsModel<{ userType: IUserTypeEnum }>) {
     return requestInstance.get<IListModel<ISystemUserListItem>>('/user', searchParams)
+}
+export function GetSystemUserInfo(id: number) {
+    return requestInstance.get<FormValues<ISystemUserListItem>>(`/user/${id}`)
 }
 export function AddSystemUser(form: Omit<ISystemUserListItem, 'id'>) {
     return requestInstance.post('/user', form)
 }
-export function UpdateSystemUserInfo(form: ISystemUserListItem) {
+export function UpdateSystemUser(form: ISystemUserListItem) {
     return requestInstance.put('/user', form)
 }
 export function DeleteSystemUser(id: string) {

@@ -1,8 +1,9 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common'
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common'
 import * as  fs from 'fs'
 import * as CookieParser from 'cookie-parser'
 import { AppModule } from './app.module';
+import { PrismaExceptionFilter } from './shared/filters/dbError.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -18,6 +19,7 @@ async function bootstrap() {
     }
   });
   app.useGlobalPipes(new ValidationPipe())
+  app.useGlobalFilters(new PrismaExceptionFilter())
   app.use(CookieParser())
   await app.listen(process.env.PORT ?? 443);
 }

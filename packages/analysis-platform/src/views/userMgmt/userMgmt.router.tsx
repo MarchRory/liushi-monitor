@@ -1,11 +1,11 @@
-import DemoPage from "./index";
-import { AdminRouterItem } from "../../router";
+import UserMgmtPage from "./index";
 import { IUserTypeEnum } from "../../apis/user/types";
+import { RouteObject } from "react-router-dom";
 
-const userMgmtRoutes: AdminRouterItem[] = [
+const userMgmtRoutes: RouteObject[] = [
   {
     path: "user",
-    element: <DemoPage />,
+    element: <UserMgmtPage />,
     meta: {
       auth: IUserTypeEnum.ADMIN,
       label: "用户管理",

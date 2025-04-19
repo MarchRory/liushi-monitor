@@ -4,7 +4,7 @@ import { Response as ExpressResponse } from 'express'
 import { LoginAuthDTO } from './dto/auth';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import { RedisService } from 'src/config/redis/redis.service';
-import { responseBundler } from 'src/shared/bundler/response';
+import { responseBundler } from 'src/utils/bundler/response';
 import { ResponseCode } from 'src/config/response/codeMap';
 import { TOKEN_KEY, TOKEN_EXPIRE } from 'src/common/constant';
 
@@ -42,7 +42,7 @@ export class AuthService {
 
         if (!token) {
             token = this.jwtService.sign(
-                { id: user.id, userType: user.userType },
+                { id: user.id, user_type: user.userType },
                 { expiresIn: Date.now() + this.TOKEN_EXPIRE }
             )
             await this.redisService.set(redisTokenKey, token, this.TOKEN_EXPIRE)
