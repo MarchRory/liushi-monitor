@@ -1,0 +1,1 @@
+export const SEARCH_ALL_VALUE = -1

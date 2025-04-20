@@ -1,4 +1,12 @@
-import { Table, Spin, Space, Popconfirm, Button, TableColumnType } from "antd";
+import {
+  Table,
+  Spin,
+  Space,
+  Popconfirm,
+  Button,
+  TableColumnType,
+  Flex,
+} from "antd";
 import { useTable } from "./useTable";
 import React, { useEffect, useMemo } from "react";
 import { IResponseModel } from "../../types/request";
@@ -69,18 +77,12 @@ export function CommonTable<R extends object, T extends object>({
       ? columns
       : [...columns, actionColumn];
   }, [columns, actions, handleDelete, rowKey]);
-
-  useEffect(() => {
-    loadList();
-  }, []);
-
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
       {/* 搜索区域 */}
       {searchComponent?.length ? (
         <div className="mb-6 border-b pb-4">
-          <div className="flex flex-wrap gap-4">
-            {" "}
+          <Flex>
             {searchComponent.map((component, index) => (
               <div key={index} className="flex items-center gap-2">
                 {component}
@@ -95,7 +97,7 @@ export function CommonTable<R extends object, T extends object>({
                 )}
               </div>
             ))}
-          </div>
+          </Flex>
         </div>
       ) : (
         <div className="mb-6 border-b pb-4">

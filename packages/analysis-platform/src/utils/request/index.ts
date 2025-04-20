@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { message } from 'antd'
-import { IResponseCodeEnum, IResponseModel } from '../../types/request'
+import { IHttpError, IResponseCodeEnum, IResponseModel } from '../../types/request'
 
 class HttpRequest {
     private axiosInstance: AxiosInstance
@@ -40,11 +40,11 @@ class HttpRequest {
                 }
                 return response.data
             },
-            (error: AxiosError<IResponseModel>) => {
+            (error: AxiosError<IResponseModel & IHttpError>) => {
                 const { message: errorMsg, response } = error
                 let msg = ''
-                if (response && response.data && response.data.messageText) {
-                    msg = response.data.messageText
+                if (response && response.data && (response.data.messageText || response.data.message)) {
+                    msg = response.data.messageText || response.data.message
                 } else if (errorMsg) {
                     msg = errorMsg
                 } else {

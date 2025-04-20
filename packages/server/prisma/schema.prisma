@@ -55,6 +55,7 @@ model Producer {
 model TrackEventType {
   id              Int              @id @default(autoincrement())
   eventTypeName   String           @map("event_type_name") @db.Text()
+  eventTypeCn     String           @map("event_type_cn") @db.Text()
   isDefault       Boolean          @map("is_default") @default(false)
   isDeleted       Boolean          @default(false)
 
@@ -72,6 +73,7 @@ model TrackEventType {
 model TrackIndicator {
   id              Int             @id @default(autoincrement())
   indicatorName   String          @map("indicator_name") @db.Text()
+  indicatorCn     String          @map("indicator_cn") @db.Text()
   isDefault       Boolean         @map("is_default") @default(false)
   isDeleted       Boolean         @default(false)
   eventTypeId     Int             @map("event_type_id")
@@ -87,14 +89,28 @@ model TrackIndicator {
   @@map("track_indicator")
 }
 
-model TrackComponent {
-  id                Int           @id @default(autoincrement())
-  componentTypeName String        @map("component_type_name") @db.Text()
-  isDefault         Boolean       @map("is_default") @default(false)
-  componentName     String        @map("component_name")      @db.Text()
-  isDeleted         Boolean       @default(false)
+model TrackComponentType {
+  id                Int                  @id @default(autoincrement())
+  componentTypeName String               @map("component_type_name") @db.Text()
+  componentTypeCn   String               @map("component_type_cn") @db.Text()
+  isDefault         Boolean              @map("is_default") @default(false)
+  isDeleted         Boolean              @default(false)
 
-  interactions      Interaction[] @relation("fk_interaction_c_id")
+  component         TrackComponent[]     @relation("fk_tc_c_id")
+
+  @@map("track_component_type")
+}
+
+model TrackComponent {
+  id                Int                @id @default(autoincrement())
+  componentTypeId   Int                @map("component_type_id")
+  isDefault         Boolean            @map("is_default") @default(false)
+  componentName     String             @map("component_name")      @db.Text()
+  componentCn       String             @map("component_cn") @db.Text()
+  isDeleted         Boolean            @default(false)
+
+  interactions      Interaction[]      @relation("fk_interaction_c_id")
+  componentType     TrackComponentType @relation(name: "fk_tc_c_id", fields: [componentTypeId], references: [id])
 
   @@map("track_component")
 }

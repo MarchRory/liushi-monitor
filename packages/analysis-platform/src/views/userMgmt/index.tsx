@@ -51,6 +51,7 @@ const formItems: FormItemConfig<ISystemUserListItem>[] = [
       {
         validator: (_, v: string) => {
           if (!(v.length >= 4 && v.length <= 10)) return Promise.reject();
+          return Promise.resolve();
         },
         message: "账号长度为4到10个字符",
       },
@@ -65,6 +66,7 @@ const formItems: FormItemConfig<ISystemUserListItem>[] = [
       {
         validator: (_, v: string) => {
           if (!(v.length >= 4 && v.length <= 15)) return Promise.reject();
+          return Promise.resolve();
         },
         message: "密码长度为4到15个字符",
       },
@@ -90,6 +92,7 @@ const UserMgmtPage: React.FC = () => {
     pagination,
     tableState,
     loading,
+    pageParams,
     loadList,
     handleDelete,
     updateSearchParams,
@@ -134,9 +137,11 @@ const UserMgmtPage: React.FC = () => {
         searchComponent={[
           <Select
             defaultValue={IUserTypeEnum.INITIAL}
+            value={pageParams.userType}
             options={options}
-            style={{ width: 180 }}
-            onChange={(userType) => updateSearchParams({ userType })}
+            onChange={(userType) => {
+              updateSearchParams({ userType });
+            }}
           />,
         ]}
         actions={(column) => [

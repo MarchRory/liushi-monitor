@@ -1,10 +1,11 @@
-import { TrackEventType } from '@prisma/client'
+import { TrackEventType } from '.prisma/client'
 
 import { Exclude } from "class-transformer";
 
 export class EventItemEntity {
     id: number;
     eventTypeName: string;
+    eventTypeCn: string
     isDefault: boolean;
     indicatorCount: number
 

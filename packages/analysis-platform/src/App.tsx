@@ -33,6 +33,11 @@ const App: React.FC = () => {
           colorPrimary: theme.primaryColor,
         },
       }}
+      select={{
+        style: {
+          minWidth: 150,
+        },
+      }}
     >
       {MessageCtxHolder}
       {window.location.pathname === "/" ? <LoginPage /> : <PageLayout />}

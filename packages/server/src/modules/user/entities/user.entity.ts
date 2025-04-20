@@ -1,4 +1,4 @@
-import { User } from '@prisma/client'
+import { User } from '.prisma/client'
 
 import { Exclude } from "class-transformer";
 

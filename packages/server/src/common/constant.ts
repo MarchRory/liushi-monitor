@@ -22,3 +22,7 @@ export const enum IUserTypeEnum {
     ENGINEER,
     OPERATOR,
 }
+
+export const EVENTTYPE_MAP_CACHE = 'EVENTTYPE_MAP_CACHE'
+export const COMPTYPE_MAP_CACHE = "COMPTYPE_MAP_CACHE"
+export const SEARCH_ALL_VALUE = -1

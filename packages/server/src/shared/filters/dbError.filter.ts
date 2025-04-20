@@ -6,7 +6,7 @@ import {
     HttpStatus,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '.prisma/client';
 import { ResponseCode, responseMsgMap } from 'src/config/response/codeMap';
 import { responseBundler } from 'src/utils/bundler/response';
 

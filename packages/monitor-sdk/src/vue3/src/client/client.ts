@@ -39,9 +39,9 @@ class Vue3AppMonitorClient extends BaseClient {
         const loadedTime = performance.now()
         this.spaPagePerformanceRecord.beforeSpaChange = 0
 
-        const sendData: IBaseTransformedData<'performance', "spa_page_load_time"> = {
+        const sendData: IBaseTransformedData<'performance', 'vue3_spa_page_load_time'> = {
             type: 'performance',
-            eventName: 'spa_page_load_time',
+            eventName: 'vue3_spa_page_load_time',
             deviceInfo: this.deviceInfo,
             userInfo: 'unknown',
             collectedData: {

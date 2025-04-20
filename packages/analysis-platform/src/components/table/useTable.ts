@@ -1,7 +1,8 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { message } from 'antd';
 import { TablePaginationConfig } from 'antd/lib/table';
 import { IResponseModel, IListModel, ListRequestParamsModel, IResponseCodeEnum } from '../../types/request';
+import { debounce } from 'lodash-es';
 
 type CommonObj = Record<string, any>;
 
@@ -68,7 +69,6 @@ export function useTable<R extends object, T extends object>({
                 });
             }
         } catch (error) {
-            message.error('请求失败，请检查网络');
             setTableState({ tableData: [], totalAll: 0 });
         } finally {
             setLoading(false);
@@ -89,28 +89,37 @@ export function useTable<R extends object, T extends object>({
                     if (tableState.tableData.length === 1 && pageParams.pageNum > 1) {
                         setPageParams(prev => ({ ...prev, page: prev.pageNum - 1 }));
                     }
+                    message.open({
+                        type: 'success',
+                        content: "删除成功"
+                    })
                     loadList();
                 }
             } catch (error) {
-                message.error('删除失败，请重试');
+                message.open({
+                    type: 'error',
+                    content: '删除失败，请重试'
+                });
             }
         },
         [deleteApi, loadList, tableState, pageParams]
     );
 
-    const updateSearchParams = useCallback((newParams: Partial<Omit<T, keyof ListRequestParamsModel<T>>>) => {
+    const updateSearchParams = useCallback((newParams: Partial<ListRequestParamsModel<T>>) => {
         setPageParams(prev => ({ ...prev, ...newParams, pageNum: 1 })); // 重置页码
-        loadList();
-    }, [loadList]);
+    }, [pageParams]);
 
     // 分页事件处理
     const handlePageChange = useCallback(
         (pageNum: number, pageSize: number) => {
             setPageParams(prev => ({ ...prev, pageNum, pageSize }));
-            loadList();
         },
-        [loadList]
+        [pageParams]
     );
+
+    useEffect(debounce(() => {
+        loadList()
+    }), [pageParams])
 
     return {
         tableState,

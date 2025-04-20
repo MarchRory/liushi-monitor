@@ -2,33 +2,33 @@ import React from "react";
 import { BooleanToNumber } from "../../utils/transformer";
 import * as trackingApis from "../../apis/track";
 import { CommonTable, useTable } from "../../components/table";
-import { IEventListItem, IEventType } from "../../apis/track/types";
 import { Form, Input, Switch, TableColumnType, Tag } from "antd";
 import { useCommonForm } from "../../components/form";
-import { DefaultIndicatorNap } from "../../types/common";
 import { CommonForm, FormItemConfig } from "../../components/form/commonForm";
+import { ICompType, ICompTypeListItem } from "../../apis/track/types";
+import { DefaultIndicatorNap } from "../../types/common";
 
-const columns: TableColumnType<IEventListItem>[] = [
+const columns: TableColumnType<ICompTypeListItem>[] = [
   {
-    title: "监控事件大类",
-    dataIndex: "eventTypeName",
+    title: "监控组件大类",
+    dataIndex: "componentTypeName",
     align: "center",
   },
   {
     title: "中文释义",
-    dataIndex: "eventTypeCn",
+    dataIndex: "componentTypeCn",
     align: "center",
   },
   {
-    title: "监控指标数量",
-    dataIndex: "indicatorCount",
+    title: "具体组件数量",
+    dataIndex: "componentCount",
     align: "center",
   },
   {
     title: "事件类型",
     dataIndex: "isDefault",
     align: "center",
-    render: (value: IEventType["isDefault"]) => {
+    render: (value: ICompTypeListItem["isDefault"]) => {
       const boolNumber = BooleanToNumber(value);
       const config = DefaultIndicatorNap[boolNumber];
       return <Tag color={config.tagColor}>{config.text}</Tag>;
@@ -36,32 +36,32 @@ const columns: TableColumnType<IEventListItem>[] = [
   },
 ];
 
-const formItems: FormItemConfig<IEventType>[] = [
+const formItems: FormItemConfig<ICompType>[] = [
   {
-    name: "eventTypeName",
+    name: "componentTypeName",
     label: "监控事件大类(英文)",
     rules: [{ required: true }],
     component: () => <Input placeholder="请输入英文, 便于配置" />,
   },
   {
-    name: "eventTypeCn",
+    name: "componentTypeCn",
     label: "中文释义",
     rules: [{ required: true }],
-    component: () => <Input placeholder="请输入监控事件大类的中文名" />,
+    component: () => <Input placeholder="请输入监控组件大类的中文名" />,
   },
   {
     name: "isDefault",
     label: "是否SDK默认",
-    rules: [{ required: true }],
-    component: () => <Switch defaultChecked />,
+    rules: [],
+    component: () => <Switch defaultChecked disabled />,
   },
 ];
 
-const EventMgmt: React.FC = () => {
-  const [form] = Form.useForm<IEventType>();
+const CompTypeMgmt: React.FC = () => {
+  const [form] = Form.useForm<ICompType>();
   const { tableState, loading, pagination, loadList, handleDelete } = useTable({
-    requestApi: trackingApis.GetEventTypeList,
-    deleteApi: trackingApis.DeleteEventType,
+    requestApi: trackingApis.GetCompTypeList,
+    deleteApi: trackingApis.DeleteCompType,
   });
 
   const {
@@ -75,12 +75,11 @@ const EventMgmt: React.FC = () => {
     handleSubmit,
     resetForm,
   } = useCommonForm({
-    createApi: trackingApis.AddEventType,
-    updateApi: trackingApis.UpdateEventType,
+    createApi: trackingApis.AddCompType,
+    updateApi: trackingApis.UpdateCompType,
     onCreateSuccess: () => loadList(),
     onUpdateSuccess: () => loadList(),
     initialValue: {
-      eventTypeName: "",
       isDefault: false,
     },
     formInstance: form,
@@ -88,7 +87,7 @@ const EventMgmt: React.FC = () => {
 
   return (
     <>
-      <CommonTable<IEventListItem, {}>
+      <CommonTable<ICompTypeListItem, {}>
         rowKey="id"
         columns={columns}
         isAllowDelete={(column) => !column.isDefault}
@@ -101,10 +100,10 @@ const EventMgmt: React.FC = () => {
         loadList={loadList}
       />
 
-      <CommonForm<IEventType>
+      <CommonForm<ICompType>
         id={id}
         form={form}
-        title="系统用户"
+        title="监控组件大类"
         formType={formType}
         formItems={formItems}
         modalLoading={modalLoading}
@@ -119,4 +118,4 @@ const EventMgmt: React.FC = () => {
   );
 };
 
-export default EventMgmt;
+export default CompTypeMgmt;

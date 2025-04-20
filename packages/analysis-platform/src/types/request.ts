@@ -7,6 +7,12 @@ export const enum IResponseCodeEnum {
     REDIS_ERROR = 5003,       // Redis 异常
 }
 
+export interface IHttpError {
+    message: string
+    error: string
+    statusCode: number
+}
+
 /**
  * 响应数据模型
  */

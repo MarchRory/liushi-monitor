@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtService } from '@nestjs/jwt';
-import { IUserTypeEnum, TOKEN_KEY } from 'src/common/constant';
+import { IUserTypeEnum, SEARCH_ALL_VALUE, TOKEN_KEY } from 'src/common/constant';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import { RedisService } from 'src/config/redis/redis.service';
 import { listBundler, responseBundler } from 'src/utils/bundler/response';
@@ -64,8 +64,8 @@ export class UserService {
     const skip = (pageNum - 1) * pageSize;
 
     const where: { userType?: IUserTypeEnum } = {};
-    if (typeof dto.userType !== 'undefined' && dto.userType !== null && dto.userType === IUserTypeEnum.ADMIN) {
-      where.userType = dto.userType;
+    if (typeof dto.userType !== 'undefined' && dto.userType !== null && dto.userType != SEARCH_ALL_VALUE) {
+      where.userType = +dto.userType;
     }
 
     const [list, total] = await Promise.all([

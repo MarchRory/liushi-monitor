@@ -13,17 +13,19 @@ const PageLayout: React.FC = () => {
   } = theme.useToken();
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout style={{ height: "100vh" }}>
       <PageSidebar />
       <Layout>
         <Headerbar colorBgContainer={colorBgContainer} />
         <PageBreadcrumb />
-        <PageContent></PageContent>
-        <Footer
-          style={{ textAlign: "center", padding: "15px 0", color: "gray" }}
-        >
-          <h2>六时监控-数据分析平台</h2>
-        </Footer>
+        <div style={{ height: "100%", overflowY: "auto" }}>
+          <PageContent></PageContent>
+          <Footer
+            style={{ textAlign: "center", padding: "10px 0", color: "gray" }}
+          >
+            <h2>六时监控-数据分析平台</h2>
+          </Footer>
+        </div>
       </Layout>
     </Layout>
   );

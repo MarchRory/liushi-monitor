@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { IResponseCodeEnum, IResponseModel } from "../../types/request"
 import { FormValues } from '../../types/utils'
 import { FormInstance } from 'rc-field-form'
+import { message } from 'antd'
 
 export type FormType = 'create' | 'update'
 
@@ -86,6 +87,10 @@ export function useCommonForm<T extends Object>({
                 type === 'create' && onCreateSuccess && onCreateSuccess(data)
                 type === 'update' && onUpdateSuccess && onUpdateSuccess(data)
             }
+            message.open({
+                type: "success",
+                content: `${type === 'create' ? '创建' : "修改"}成功`
+            })
             closeModal()
         } catch (e) {
             console.log('form error: ', e)

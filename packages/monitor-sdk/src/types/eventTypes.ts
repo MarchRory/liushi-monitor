@@ -13,7 +13,7 @@ export const performanceEventMap = {
         first_screen_ttfb: '首屏_首字节时间'
     },
 
-    spa_page_load_time: 'SPA页面_路由切换加载时间',
+    vue3_spa_page_load_time: 'vue3页面_路由切换加载时间',
 
     // 资源加载
     dns: 'DNS 查询耗时',

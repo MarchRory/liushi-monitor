@@ -1,11 +1,15 @@
 import { Optional } from '@nestjs/common';
-import { TrackEventType } from '@prisma/client'
+import { TrackEventType } from '.prisma/client'
 import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator'
 
 export class CreateEventDto {
     @IsNotEmpty()
     @IsString()
     eventTypeName: string
+
+    @IsNotEmpty()
+    @IsString()
+    eventTypeCn: string
 
     @IsBoolean()
     isDefault: boolean
@@ -22,6 +26,10 @@ export class FindEventDto {
     @IsNotEmpty()
     @IsString()
     eventTypeName: string
+
+    @IsNotEmpty()
+    @IsString()
+    eventTypeCn
 
     @IsBoolean()
     isDefault: boolean

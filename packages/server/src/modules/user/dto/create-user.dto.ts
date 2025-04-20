@@ -1,4 +1,4 @@
-import { User } from "@prisma/client";
+import { User } from ".prisma/client";
 import { IsNotEmpty, IsString, Length } from "class-validator";
 import { IUserTypeEnum } from "src/common/constant";
 

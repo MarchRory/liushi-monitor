@@ -9,6 +9,7 @@ import {
 } from "antd";
 import React, { useCallback, useEffect, useState } from "react";
 import * as trackingApis from "../../apis/track";
+import { IEventListItem, IEventType, IIndicator } from "../../apis/track/types";
 import { DefaultIndicatorNap } from "../../types/common";
 import { BooleanToNumber } from "../../utils/transformer";
 import { CommonForm, FormItemConfig } from "../../components/form/commonForm";
@@ -16,29 +17,28 @@ import { CommonTable, useTable } from "../../components/table";
 import { useCommonForm } from "../../components/form";
 import { IResponseCodeEnum } from "../../types/request";
 import { SEARCH_ALL_VALUE } from "../../utils/constant";
-import { IComp, ICompListItem, ICompType } from "../../apis/track/types";
 
-const columns: TableColumnType<ICompListItem>[] = [
+const columns: TableColumnType<IIndicator>[] = [
   {
-    title: "组件名",
-    dataIndex: "componentName",
+    title: "指标名",
+    dataIndex: "indicatorName",
     align: "center",
   },
   {
     title: "中文释义",
-    dataIndex: "componentCn",
+    dataIndex: "indicatorCn",
     align: "center",
   },
   {
-    title: "所属监控组件大类",
-    dataIndex: "componentCn",
+    title: "所属监控事件大类",
+    dataIndex: "eventTypeCn",
     align: "center",
   },
   {
-    title: "组件类型",
+    title: "指标类型",
     dataIndex: "isDefault",
     align: "center",
-    render: (value: ICompListItem["isDefault"]) => {
+    render: (value: IEventType["isDefault"]) => {
       const boolNumber = BooleanToNumber(value);
       const config = DefaultIndicatorNap[boolNumber];
       return <Tag color={config.tagColor}>{config.text}</Tag>;
@@ -47,56 +47,54 @@ const columns: TableColumnType<ICompListItem>[] = [
 ];
 
 const formItems: (
-  compTypeOpts: SelectProps<IComp>["options"],
-) => FormItemConfig<IComp>[] = (compTypeOpts) => [
+  eventOpts: SelectProps<IEventListItem>["options"],
+) => FormItemConfig<IIndicator>[] = (eventOpts) => [
   {
-    name: "componentName",
-    label: "组件名",
+    name: "indicatorName",
+    label: "指标名",
     rules: [{ required: true }],
-    component: () => (
-      <Input placeholder="请输入英文, 与被监控项目中的对应组件名匹配" />
-    ),
+    component: () => <Input placeholder="请输入英文, 便于配置" />,
   },
   {
-    name: "componentCn",
+    name: "indicatorCn",
     label: "中文释义",
     rules: [{ required: true }],
-    component: () => <Input placeholder="请输入组件名的中文名" />,
+    component: () => <Input placeholder="请输入指标名的中文名" />,
   },
   {
-    name: "componentTypeId",
-    label: "所属监控组件大类",
+    name: "eventTypeId",
+    label: "所属监控事件大类",
     rules: [{ required: true }],
-    component: () => <Select options={compTypeOpts} />,
+    component: () => <Select options={eventOpts} />,
   },
   {
     name: "isDefault",
     label: "是否SDK默认",
-    rules: [],
-    component: () => <Switch defaultChecked disabled />,
+    rules: [{ required: true }],
+    component: () => <Switch defaultChecked />,
   },
 ];
 
-const CompMgmt: React.FC = () => {
-  const [compTypeOpts, setEventOpts] = useState<
-    SelectProps<ICompType>["options"]
+const IndicatorMgmt: React.FC = () => {
+  const [eventOpts, setEventOpts] = useState<
+    SelectProps<IEventListItem>["options"]
   >([]);
   const initData = useCallback(async () => {
-    const { code, data } = await trackingApis.GetCompTypeList({
+    const { code, data } = await trackingApis.GetEventTypeList({
       pageNum: 1,
       pageSize: 20,
     });
     if (code === IResponseCodeEnum.SUCCESS) {
       setEventOpts(() =>
-        data.list.map(({ id, componentTypeCn }) => ({
+        data.list.map(({ id, eventTypeCn }) => ({
           value: +id,
-          label: componentTypeCn,
+          label: eventTypeCn,
         })),
       );
     }
   }, []);
 
-  const [form] = Form.useForm<IComp>();
+  const [form] = Form.useForm<IIndicator>();
   const {
     tableState,
     pagination,
@@ -106,8 +104,8 @@ const CompMgmt: React.FC = () => {
     loadList,
     handleDelete,
   } = useTable({
-    requestApi: trackingApis.GetCompList,
-    deleteApi: trackingApis.DeleteComp,
+    requestApi: trackingApis.GetIndicatorsList,
+    deleteApi: trackingApis.DeleteIndicator,
   });
 
   const {
@@ -121,12 +119,12 @@ const CompMgmt: React.FC = () => {
     handleSubmit,
     resetForm,
   } = useCommonForm({
-    createApi: trackingApis.AddComp,
-    updateApi: trackingApis.UpdateComp,
+    createApi: trackingApis.AddIndicator,
+    updateApi: trackingApis.UpdateIndicator,
     onCreateSuccess: () => loadList(),
     onUpdateSuccess: () => loadList(),
     initialValue: {
-      componentTypeId: SEARCH_ALL_VALUE,
+      eventTypeId: SEARCH_ALL_VALUE,
       isDefault: false,
     },
     formInstance: form,
@@ -136,7 +134,7 @@ const CompMgmt: React.FC = () => {
   }, []);
   return (
     <>
-      <CommonTable<ICompListItem, {}>
+      <CommonTable<IIndicator, {}>
         rowKey="id"
         columns={columns}
         isAllowDelete={(column) => !column.isDefault}
@@ -146,12 +144,10 @@ const CompMgmt: React.FC = () => {
             defaultValue={SEARCH_ALL_VALUE}
             options={[
               { value: SEARCH_ALL_VALUE, label: "全部" },
-              ...(compTypeOpts || []),
+              ...(eventOpts || []),
             ]}
-            value={pageParams.componentTypeId}
-            onChange={(componentTypeId) =>
-              updateSearchParams({ componentTypeId })
-            }
+            value={pageParams.eventTypeId}
+            onChange={(eventTypeId) => updateSearchParams({ eventTypeId })}
           />,
         ]}
         loading={loading}
@@ -161,12 +157,12 @@ const CompMgmt: React.FC = () => {
         loadList={loadList}
       />
 
-      <CommonForm<IComp>
+      <CommonForm<IIndicator>
         id={id}
         form={form}
         title="监控指标"
         formType={formType}
-        formItems={formItems(compTypeOpts)}
+        formItems={formItems(eventOpts)}
         modalLoading={modalLoading}
         visible={visible}
         submitLoading={submitLoading}
@@ -179,4 +175,4 @@ const CompMgmt: React.FC = () => {
   );
 };
 
-export default CompMgmt;
+export default IndicatorMgmt;
