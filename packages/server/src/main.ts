@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common'
+import { ValidationPipe } from '@nestjs/common'
 import * as  fs from 'fs'
 import * as CookieParser from 'cookie-parser'
 import { AppModule } from './app.module';
@@ -12,7 +12,7 @@ async function bootstrap() {
       cert: fs.readFileSync('../cert/localhost+2.pem')
     },
     cors: {
-      origin: 'https://localhost:5173', // 前端开发环境
+      origin: '*', // 前端开发环境
       credentials: true,
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
       allowedHeaders: 'Content-Type, Accept, Authorization',

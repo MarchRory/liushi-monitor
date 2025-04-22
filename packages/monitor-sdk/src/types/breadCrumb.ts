@@ -23,7 +23,7 @@ export interface IBaseBreadCrumbItem {
     /**
      * 页面访问路径, 记录从当前页面开始, 一直访问子页面直到回到当前页面并退出的整个过程中，用户依次访问的页面url
      */
-    access_path: string[]
+    stack: string[]
     /**
      * 从前置页面进入当前页面的时间戳
      */
@@ -35,7 +35,7 @@ export interface IBaseBreadCrumbItem {
     /**
      * 当前页面及其包括内容的整体曝光时间（包括当前页面的子页面）
      */
-    page_exposure: string
+    page_exposure: number
 }
 
 /**
@@ -59,5 +59,5 @@ export interface IBaseBreadCrumbOptions {
      * 单起点路径最大保留的子页面页面记录规模，默认15
      * 该项为应对内存泄漏使用，建议根据app实际子页面层级设置
      */
-    max_access_path_size?: number
+    max_stack_size?: number
 }

@@ -13,6 +13,7 @@ import { CreateComponentTypeDto, UpdateComponentTypeDto } from './dto/component-
 import { ComponentTypeEntity } from './entities/component-type.entity';
 import { CreateComponentDto, FindComponentListDto, UpdateComponentDto } from './dto/component.dto';
 import { ComponentEntity } from './entities/component.entity';
+import { PrismaTransactionClient } from 'src/types/prisma';
 
 @Injectable()
 export class TrackingService {
@@ -99,20 +100,101 @@ export class TrackingService {
     }
 
     async removeEvent(id: number) {
-        const event = await this.prismaService.trackEventType.findUnique({
-            where: {
-                id,
-                isDeleted: false
+        try {
+            // 先查询确认事件类型存在
+            const event = await this.prismaService.trackEventType.findUnique({
+                where: {
+                    id,
+                    isDeleted: false
+                }
+            });
+
+            if (!event) {
+                return responseBundler(
+                    ResponseCode.DB_ERROR,
+                    null,
+                    "待删除的事件不存在"
+                );
             }
-        })
 
-        const eventMapCache = await this.getEventMapCache()
-        delete eventMapCache[id]
-        await this.redisService.set(EVENTTYPE_MAP_CACHE, JSON.stringify(eventMapCache))
+            // 使用事务处理数据库操作和关联表处理
+            return await this.prismaService.$transaction(async (prisma) => {
+                // 检查是否有依赖此事件类型的数据
+                const dependentRecordsCount = await this.checkEventsDependentRecords(prisma, id);
 
-        if (!event) return responseBundler(
-            ResponseCode.DB_ERROR, null, "待删除的事件不存在")
-        return this.updateEvent({ ...event, isDeleted: true })
+                if (dependentRecordsCount > 0) {
+                    return responseBundler(
+                        ResponseCode.DB_ERROR,
+                        null,
+                        `无法删除：该事件类型被${dependentRecordsCount}条记录引用`
+                    )
+                }
+
+                // 执行事件类型的软删除
+                const updatedEvent = await prisma.trackEventType.update({
+                    where: { id },
+                    data: { isDeleted: true }
+                });
+
+                // 成功后更新缓存
+                const eventMapCache = await this.getEventMapCache();
+                delete eventMapCache[id];
+                await this.redisService.set(EVENTTYPE_MAP_CACHE, JSON.stringify(eventMapCache));
+
+                return responseBundler(
+                    ResponseCode.SUCCESS,
+                    updatedEvent,
+                    "事件类型删除成功"
+                );
+            });
+        } catch (error) {
+            console.error("删除事件类型失败:", error);
+            return responseBundler(
+                ResponseCode.DB_ERROR,
+                null,
+                "删除事件类型时发生错误：" + error.message
+            );
+        }
+    }
+
+    // 辅助方法：检查依赖记录数量
+    async checkEventsDependentRecords(prisma: PrismaTransactionClient, eventId: number) {
+        // 分别查询每个关联表中引用此事件类型的记录数
+        const [
+            performancesCount,
+            viewsCount,
+            pathStacksCount,
+            interactionsCount,
+            exposuresCount,
+            errorsCount,
+            indicatorsCount
+        ] = await Promise.all([
+            prisma.performance.count({
+                where: { eventTypeId: eventId, isDeleted: false }
+            }),
+            prisma.views.count({
+                where: { eventTypeId: eventId, isDeleted: false }
+            }),
+            prisma.pathStack.count({
+                where: { eventTypeId: eventId, isDeleted: false }
+            }),
+            prisma.interaction.count({
+                where: { eventTypeId: eventId, isDeleted: false }
+            }),
+            prisma.exposure.count({
+                where: { eventTypeId: eventId, isDeleted: false }
+            }),
+            prisma.error.count({
+                where: { eventTypeId: eventId, isDeleted: false }
+            }),
+            prisma.trackIndicator.count({
+                where: { eventTypeId: eventId, isDeleted: false }
+            })
+        ]);
+
+        // 返回总数
+        return performancesCount + viewsCount + pathStacksCount +
+            interactionsCount + exposuresCount + errorsCount + indicatorsCount;
     }
     /******************************** 监控事件大类CRUD ***********************************/
 
@@ -250,20 +332,68 @@ export class TrackingService {
     }
 
     async removeComponentType(id: number) {
-        const compType = await this.prismaService.trackComponentType.findUnique({
-            where: {
-                id,
-                isDeleted: false
+        try {
+            // 先查询确认数据存在
+            const compType = await this.prismaService.trackComponentType.findUnique({
+                where: {
+                    id,
+                    isDeleted: false
+                }
+            });
+
+            if (!compType) {
+                return responseBundler(
+                    ResponseCode.DB_ERROR,
+                    null,
+                    "待删除的组件类型不存在"
+                );
             }
-        })
 
-        const compTypeMapCache = await this.getComponentTypeMapCache()
-        delete compTypeMapCache[id]
-        await this.redisService.set(COMPTYPE_MAP_CACHE, JSON.stringify(compTypeMapCache))
+            // 使用事务处理数据库操作和缓存更新
+            return await this.prismaService.$transaction(async (prisma) => {
+                // 检查是否有依赖此组件类型的组件
+                const dependentComponents = await prisma.trackComponent.count({
+                    where: {
+                        componentTypeId: id,
+                        isDeleted: false
+                    }
+                });
 
-        if (!compType) return responseBundler(
-            ResponseCode.DB_ERROR, null, "待删除的事件不存在")
-        return this.updateComponentType({ ...compType, isDeleted: true })
+                if (dependentComponents > 0) {
+                    // 如果有依赖项，可以选择拒绝删除或级联软删除
+                    // 这里以拒绝删除为例
+                    return responseBundler(
+                        ResponseCode.DB_ERROR,
+                        null,
+                        `无法删除：该组件类型被${dependentComponents}个组件引用`
+                    );
+                }
+
+                // 执行软删除
+                const updatedCompType = await prisma.trackComponentType.update({
+                    where: { id },
+                    data: { isDeleted: true }
+                });
+
+                // 成功后更新缓存
+                const compTypeMapCache = await this.getComponentTypeMapCache();
+                delete compTypeMapCache[id];
+                await this.redisService.set(COMPTYPE_MAP_CACHE, JSON.stringify(compTypeMapCache));
+
+                return responseBundler(
+                    ResponseCode.SUCCESS,
+                    updatedCompType,
+                    "组件类型删除成功"
+                );
+            });
+        } catch (error) {
+            console.error("删除组件类型失败:", error);
+            return responseBundler(
+                ResponseCode.DB_ERROR,
+                null,
+                "删除组件类型时发生错误：" + error.message
+            );
+        }
     }
     /***************************** 监控业务组件大类CRUD ********************************/
 

@@ -9,18 +9,17 @@ const { Sider } = Layout;
 
 const getMenuItems = (
   routes: RouteObject[],
-  allowRoles: IUserTypeEnum[],
+  userType: IUserTypeEnum,
 ): any[] => {
   return routes
     .map((itm) => {
       if (
         !itm.meta ||
-        itm.meta.auth !== IUserTypeEnum.ADMIN ||
-        !allowRoles.includes(itm.meta.auth)
+        (userType != IUserTypeEnum.ADMIN && userType != itm.meta.auth)
       )
         return null;
       let children = null;
-      if (itm.children) children = getMenuItems(itm.children, allowRoles);
+      if (itm.children) children = getMenuItems(itm.children, userType);
       return children
         ? {
             ...itm.meta,
@@ -41,7 +40,7 @@ const getMenuItems = (
  */
 const PageSidebar = (props: { autoCollapse?: boolean }) => {
   const { user_type, menu, setMenu } = useUserStore((state) => ({
-    user_type: state.user_type,
+    user_type: state.userType,
     menu: state.menu,
     setMenu: state.setMenu,
   }));
@@ -55,7 +54,7 @@ const PageSidebar = (props: { autoCollapse?: boolean }) => {
     if (user_type === IUserTypeEnum.INITIAL) {
       setMenu([]);
     } else {
-      const menuItems = getMenuItems(routes, [user_type]);
+      const menuItems = getMenuItems(routes, user_type);
       setMenu(menuItems);
     }
   }, [user_type]);

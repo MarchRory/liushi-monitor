@@ -1,13 +1,12 @@
-import { type } from "os"
-import { BaseEventTypes, IBaseTransformedData, IPluginTransportDataBaseInfo, MonitorTypes } from "."
+import { BaseEventTypes, IBaseTransformedData, MonitorTypes } from "."
 
 /**
- * 请求优先级枚举
+ * 上报优先级枚举, 适配bullmq,数值越小, 
  */
 export const enum RequestBundlePriorityEnum {
-    USERBEHAVIOR = 1,
+    ERROR = 1,
     PERFORMANCE,
-    ERROR,
+    USERBEHAVIOR,
 }
 
 export interface IProcessingRequestRecord<T extends SendDataTextType = 'plaintext'> {

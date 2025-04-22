@@ -23,6 +23,7 @@ export class TaskScheduler<T extends MaybeHigherOrderFunction<'higher', 'promise
             const preloadTask = this.taskQueue.deQueue();
             if (preloadTask) {
                 this.activeTasks++;
+                console.log('send: ', args)
                 const taskSelf = preloadTask(...args)
                 taskSelf().then(() => {
                     this.activeTasks--;

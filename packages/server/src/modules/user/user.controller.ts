@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, HttpCode, Query, Put, Request, UseGuards, UseInterceptors, ClassSerializerInterceptor, SerializeOptions } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, HttpCode, Query, Put, Request, UseGuards, UseInterceptors, ClassSerializerInterceptor, SerializeOptions, Logger } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,7 +10,10 @@ import { JwtAuthGuard } from 'src/shared/guard/role.guard';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) { }
+  private readonly logger = new Logger(UserController.name)
+  constructor(
+    private readonly userService: UserService,
+  ) { }
 
   @Get('info')
   findInfo(@Request() req: ExpressRequest) {

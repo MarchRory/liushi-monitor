@@ -36,10 +36,7 @@ export class UserService {
         return responseBundler(ResponseCode.AUTH_ACCOUNT_NOT_EXIST)
       }
 
-      return responseBundler(ResponseCode.SUCCESS, {
-        user_name: user.userName,
-        user_type: user.userType
-      })
+      return responseBundler(ResponseCode.SUCCESS, user)
     } catch (e) {
       return responseBundler(ResponseCode.INTERNAL_ERROR, {
         error: e

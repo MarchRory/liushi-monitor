@@ -24,9 +24,9 @@ const liushiMonitorOptions: ISDKInitialOptions = {
   },
   reportConfig: {
     dbName: 'monitor_data',
-    debugMode: true,
-    reportbaseURL: "https://localhost:8080",
-    reportInterfaceUrl: "/tracking",
+    debugMode: false,
+    reportbaseURL: "https://localhost:443",
+    reportInterfaceUrl: "/monitor",
   },
   userInteractionMonitorConfig: {
     customClickMonitorConfig: new Map([
@@ -70,8 +70,8 @@ const liushiMonitorOptions: ISDKInitialOptions = {
 
 setTimeout(() => {
   $liushiMonitor.postEncryptionConfigToWorker({
-    'SECRET_KEY': 'liushi_KEY',
-    'SECRET_IV': 'liushi_IV'
+    'SECRET_KEY': '9fH3kL0pQrStUvWx',
+    'SECRET_IV': 'AbCdEfGhIjKlMnOp'
   })
 }, 3000)
 

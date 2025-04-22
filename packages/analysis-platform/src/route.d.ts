@@ -1,4 +1,4 @@
-import { NonIndexRouteObject, IndexRouteObject } from 'react-router-dom'
+import { NonIndexRouteObject, IndexRouteObject, To } from 'react-router-dom'
 
 declare module 'react-router-dom' {
     interface MenuItem {
@@ -6,7 +6,7 @@ declare module 'react-router-dom' {
         auth?: IUserTypeEnum,
         label: string,
         title: string,
-        key: string,
+        key: To,
     }
     interface NonIndexRouteObject {
         meta?: MenuItem

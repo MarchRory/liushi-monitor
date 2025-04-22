@@ -1,4 +1,4 @@
-import { Body, ClassSerializerInterceptor, Controller, Delete, Get, Param, Post, Put, Query, SerializeOptions, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, ClassSerializerInterceptor, Controller, Delete, Get, Logger, Param, Post, Put, Query, SerializeOptions, UseGuards, UseInterceptors } from '@nestjs/common';
 import { TrackingService } from './tracking.service';
 import { IUserTypeEnum } from 'src/common/constant';
 import { RequireRole } from 'src/shared/decorators/role.decorator';
@@ -11,8 +11,9 @@ import { CreateComponentTypeDto, UpdateComponentTypeDto } from './dto/component-
 
 @Controller('tracking')
 export class TrackingController {
+  private readonly logger = new Logger(TrackingController.name)
   constructor(
-    private readonly trackingService: TrackingService
+    private readonly trackingService: TrackingService,
   ) { }
 
   @Post()

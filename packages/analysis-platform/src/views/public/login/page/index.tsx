@@ -1,13 +1,16 @@
 import React, { useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Form, Input, Button, FormProps } from "antd";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { ILoginForm } from "../../../../apis/user/types";
 import * as userApis from "../../../../apis/user/index";
 import useUserStore from "../../../../store/user";
-import { useNavigate } from "react-router-dom";
+import { getHomePath } from "../../../../utils/navigate";
 
 const LoginPage: React.FC = () => {
-  const setUserInfo = useUserStore((state) => state.setUserInfo);
+  const { setUserInfo } = useUserStore((state) => ({
+    setUserInfo: state.setUserInfo,
+  }));
   const navigate = useNavigate();
 
   const onSubmit: FormProps<ILoginForm>["onFinish"] = useCallback(
@@ -16,9 +19,10 @@ const LoginPage: React.FC = () => {
         await userApis.Login(values);
         const { data: UserData } = await userApis.GetUserInfo();
         setUserInfo(UserData);
-        navigate("/user", { replace: true });
+        const targetPath = getHomePath(UserData.userType);
+        targetPath && navigate(targetPath, { replace: true });
       } catch (e) {
-        console.log(e);
+        console.log("login error: ", e);
       }
     },
     [],

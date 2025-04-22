@@ -14,8 +14,8 @@ const Headerbar = (props: { colorBgContainer: string }) => {
     (state) => state.setCompactAlgorithm,
   );
   const { user_name, user_type, logOut } = useUserStore((state) => ({
-    user_name: state.user_name,
-    user_type: state.user_type,
+    user_name: state.userName,
+    user_type: state.userType,
     logOut: state.clearAndLogout,
   }));
 

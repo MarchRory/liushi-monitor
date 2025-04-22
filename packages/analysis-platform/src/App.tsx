@@ -6,6 +6,7 @@ import useConfigStore from "./store/config";
 import { useNavigate } from "react-router-dom";
 import LoginPage from "./views/public/login/page";
 import useUserStore from "./store/user";
+import { getHomePath } from "./utils/navigate";
 
 const App: React.FC = () => {
   const theme = useConfigStore((state) => state.themeConfig);
@@ -17,11 +18,14 @@ const App: React.FC = () => {
     !isLogin && navigate("/", { replace: true });
   }, [isLogin]);
 
-  const setUserInfo = useUserStore((state) => state.setUserInfo);
+  const { setUserInfo } = useUserStore((state) => ({
+    setUserInfo: state.setUserInfo,
+  }));
   useEffect(() => {
     userApis.GetUserInfo().then(({ data }) => {
       setUserInfo(data);
-      navigate("/user", { replace: true });
+      const targetPath = getHomePath(data.userType);
+      targetPath && navigate(targetPath, { replace: true });
     });
   }, []);
 

@@ -74,7 +74,6 @@ function parseEncryptionConfig(payload: IEncryptionConfig<'unParsed'>) {
     if (!SECRET_IV || !SECRET_KEY) {
         console.warn('SECRET_IV 与 SECRET_KEY 是必需的, 否则监控无法上报')
     }
-
     encryptionConfig.SECRET_IV = CryptoJS.enc.Utf8.parse(SECRET_IV)
     encryptionConfig.SECRET_KEY = CryptoJS.enc.Utf8.parse(SECRET_KEY)
     isParsedSecret = true
@@ -127,8 +126,6 @@ function getNextData(): IProcessingRequestRecord<'ciphertext'> | null {
         return null
     }
 
-    console.log("🚀 ~ getNextData ~ bundleData.data:", bundleData.data);
-
     bundleData.data = [encrypt(JSON.stringify(bundleData.data), encryptionConfig)]
     return bundleData
 }
@@ -171,7 +168,9 @@ async function sendWithRetry(
 
     const url = getRequestConfig('reportInterfaceUrl')
     try {
-        await requestHandler(url, params.data);
+        await requestHandler(url, {
+            [params.priority]: params.data
+        });
         workerEventBus.notify('onPrepareNextReport')
         handleRequestSuccess(params)
     } catch {

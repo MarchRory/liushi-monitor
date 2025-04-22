@@ -20,4 +20,9 @@ export const enum RedisEnvConfigEnum {
     REDIS_DB = 'REDIS_DB'
 }
 
-export type EnvConfig = IDBConfig & IRedisConfig
+export interface IDecryptConfig {
+    SECRET_KEY: string
+    SECRET_IV: string
+}
+
+export type EnvConfig = IDBConfig & IRedisConfig & IDecryptConfig

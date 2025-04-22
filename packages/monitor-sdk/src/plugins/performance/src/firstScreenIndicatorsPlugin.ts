@@ -23,7 +23,7 @@ import { CLSCapture } from './utils/capture';
 export const FirstScreenPerformanceInficatorsPlugin: IBasePlugin<'performance', 'first_screen_indicators' | 'inp'> = {
     type: 'performance',
     eventName: 'first_screen_indicators',
-    monitor(client, notify) {
+    monitor(_, notify) {
         const firstScreenIndicatorsTotal = Object.keys(performanceEventMap.first_screen_indicators).length
         let hasRecordIndicatorsCnt = 0
         const originalData: Record<keyof typeof performanceEventMap['first_screen_indicators'], object> = {
@@ -41,6 +41,7 @@ export const FirstScreenPerformanceInficatorsPlugin: IBasePlugin<'performance', 
                         timestamp: getCurrentTimeStamp(),
                         url: getCurrentUrl(),
                         indicatorData: {
+                            rating: '',
                             value: entry.startTime
                         }
                     }
@@ -61,7 +62,6 @@ export const FirstScreenPerformanceInficatorsPlugin: IBasePlugin<'performance', 
                             ...originalData
                         }
                     })
-                    client.pagePerformanceMonitorRecord.add(getCurrentUrl())
                     paintObserver?.disconnect()
                 }
             } else {
@@ -79,6 +79,7 @@ export const FirstScreenPerformanceInficatorsPlugin: IBasePlugin<'performance', 
         ) {
             setTimeout(() => {
                 const { attribution, value, rating, name } = metric
+                console.log(name, ': ', attribution, value, rating)
                 let isReportINP = false
 
                 const indicatorName = `first_screen_${name.toLowerCase()}` as keyof typeof performanceEventMap['first_screen_indicators']
@@ -98,7 +99,7 @@ export const FirstScreenPerformanceInficatorsPlugin: IBasePlugin<'performance', 
                     case 'TTFB':
                         delete (attribution as TTFBAttribution).navigationEntry
                         indicatorData = {
-                            value: value,
+                            ...indicatorData,
                             ...(attribution as TTFBAttribution)
                         }
                         break;

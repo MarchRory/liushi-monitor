@@ -58,7 +58,7 @@ const XHRPlugin: IBasePlugin<'performance', 'http'> = {
                                 responseType: responseType || 'json',
                                 interfaceUrl: responseURL,
                                 responseCode: resObj.code || null,
-                                spentTime: getCurrentTimeStamp() - startTime + 'ms',
+                                spentTime: getCurrentTimeStamp() - startTime,
                                 method,
                                 originRequestType
                             }

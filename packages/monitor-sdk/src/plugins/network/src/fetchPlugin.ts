@@ -54,14 +54,13 @@ const FetchPlugin: IBasePlugin<'performance', 'http'> = {
                             if (!requestMemoryInfo) return
 
                             const { startTime, method, originRequestType } = requestMemoryInfo.requestMemoryInfo
-                            console.log('xhr: ', res)
                             const collectedData = {
                                 ...getUrlTimestamp(),
                                 data: {
                                     responseType: 'json',
                                     interfaceUrl: url,
                                     responseCode: 200,
-                                    spentTime: getCurrentTimeStamp() - startTime + 'ms',
+                                    spentTime: getCurrentTimeStamp() - startTime,
                                     method,
                                     originRequestType
                                 }

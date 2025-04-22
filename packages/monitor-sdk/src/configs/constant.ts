@@ -13,7 +13,7 @@ export const UV_RECORD_STORAGE_KEY = 'ls_uv_record_map'
  */
 export const DEFAULT_BREADCRUMB_CONFIG: DeepRequired<Omit<IBaseBreadCrumbOptions, 'tabbar_urls'>> = {
     ignore_urls: [],
-    max_access_path_size: 15,
+    max_stack_size: 15,
     max_bread_crumbs_stack_size: 50
 }
 

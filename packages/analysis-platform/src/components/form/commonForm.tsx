@@ -31,7 +31,6 @@ export function CommonForm<T extends Object>({
   closeModal,
   handleSubmit,
 }: CommonFormProps<T> & ReturnType<typeof useCommonForm<T>>) {
-  // const form = Form.useFormInstance<ISystemUserListItem>();
   const [submitText, setText] = useState<SubmitText>("创建");
   useEffect(() => {
     setText(() => (formType === "create" ? "创建" : "更新"));

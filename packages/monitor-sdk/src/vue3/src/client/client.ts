@@ -37,8 +37,6 @@ class Vue3AppMonitorClient extends BaseClient {
         if (this.spaPagePerformanceRecord.beforeSpaChange === 0) return
 
         const loadedTime = performance.now()
-        this.spaPagePerformanceRecord.beforeSpaChange = 0
-
         const sendData: IBaseTransformedData<'performance', 'vue3_spa_page_load_time'> = {
             type: 'performance',
             eventName: 'vue3_spa_page_load_time',
@@ -47,10 +45,11 @@ class Vue3AppMonitorClient extends BaseClient {
             collectedData: {
                 ...getUrlTimestamp(),
                 data: {
-                    loadTime: (loadedTime - this.spaPagePerformanceRecord.beforeSpaChange).toFixed(2) + 'ms'
+                    value: +((loadedTime - this.spaPagePerformanceRecord.beforeSpaChange).toFixed())
                 }
             }
         }
+        this.spaPagePerformanceRecord.beforeSpaChange = 0
         const { hooks = {} } = this.options
         if (hooks.onBeforeDataReport) {
             await hooks.onBeforeDataReport()

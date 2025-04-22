@@ -1,4 +1,4 @@
-import { Controller, Post, HttpCode, Body, Response, Request } from '@nestjs/common';
+import { Controller, Post, HttpCode, Body, Response, Request, Logger } from '@nestjs/common';
 import { Request as ExpressRequest } from 'express';
 import { Response as ExpressResponse } from 'express'
 import { AuthService } from './auth.service';
@@ -7,7 +7,10 @@ import { TOKEN_KEY } from 'src/common/constant';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  private readonly logger = new Logger(AuthController.name)
+  constructor(
+    private readonly authService: AuthService,
+  ) { }
 
   @Post('login')
   @HttpCode(200)

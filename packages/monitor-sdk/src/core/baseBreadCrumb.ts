@@ -54,21 +54,21 @@ export abstract class BaseBreadCrumb {
         const enter_time = getCurrentTimeStamp()
 
         // 兼容tabbar界面
-        // const access_path = !lastestRecord ? [from] : [...lastestRecord.access_path, from]
-        const prePathRecord = lastestRecord ? lastestRecord.access_path[lastestRecord.access_path.length - 1] : null // 路径栈中, 当前栈顶页面路径
-        let access_path: string[] = []
+        // const stack = !lastestRecord ? [from] : [...lastestRecord.stack, from]
+        const prePathRecord = lastestRecord ? lastestRecord.stack[lastestRecord.stack.length - 1] : null // 路径栈中, 当前栈顶页面路径
+        let stack: string[] = []
         if (isNull(prePathRecord) || this.bothTabbarPaths([prePathRecord, from])) {
-            access_path = [from]
+            stack = [from]
         } else {
-            access_path = [prePathRecord, from]
+            stack = [prePathRecord, from]
         }
 
         const data: IBaseBreadCrumbItem = {
             url: from,
             enter_time,
             leave_time: -1, // 未退出页面标记
-            page_exposure: '0', // 初始化
-            access_path
+            page_exposure: 0, // 初始化
+            stack
         }
 
         this.pushImmediately(data)
@@ -89,11 +89,11 @@ export abstract class BaseBreadCrumb {
         const { to } = routeInfo
         // 利用微任务避免时间差计算时间长阻塞业务中的同步代码
         Promise.resolve().then(() => {
-            lastestRecord.access_path.push(to)
-            if (newLastestRecord && newLastestRecord.access_path.length) {
-                newLastestRecord.access_path.push(...lastestRecord.access_path.slice(1))
+            lastestRecord.stack.push(to)
+            if (newLastestRecord && newLastestRecord.stack.length) {
+                newLastestRecord.stack.push(...lastestRecord.stack.slice(1))
             }
-            lastestRecord.page_exposure = formatTimeDifference(lastestRecord.leave_time - lastestRecord.enter_time)
+            lastestRecord.page_exposure = lastestRecord.leave_time - lastestRecord.enter_time // formatTimeDifference(lastestRecord.leave_time - lastestRecord.enter_time)
             if (this.sendDataTemporaryPool.length < this.temporaryBreadItemLimit) {
                 this.sendDataTemporaryPool.push(lastestRecord)
             }
