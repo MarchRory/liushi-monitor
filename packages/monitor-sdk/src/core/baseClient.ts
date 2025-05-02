@@ -1,6 +1,14 @@
 import { App } from "vue";
 import { SDK_VERSION } from "../configs/constant";
-import { GlobalSubscribeTypes, IBaseClient, IBasePlugin, IDeviceInfo, IPluginTransportDataBaseInfo, ISDKInitialOptions, MonitorTypes } from "../types";
+import {
+    GlobalSubscribeTypes,
+    IBaseClient,
+    IBasePlugin,
+    IDeviceInfo,
+    IPluginTransportDataBaseInfo,
+    ISDKInitialOptions,
+    MonitorTypes
+} from "../types";
 import { customFunctionBucket, debounce, throttle } from "../utils/common";
 import { isUndefined } from "../utils/is";
 import { BaseTransport } from "./baseTransport";
@@ -54,7 +62,7 @@ export class BaseClient<T extends MonitorTypes = MonitorTypes> implements IBaseC
             this.pluginsCount++
             plugin.monitor.call(this, this, this.eventBus.notify.bind(this.eventBus))
             const monitorCallback = this.reportProcessWapper(plugin)
-            this.eventBus.subscribe(plugin.eventName, monitorCallback)
+            this.eventBus.subscribe(plugin.indicatorName, monitorCallback)
         })
     }
     /**
@@ -69,13 +77,13 @@ export class BaseClient<T extends MonitorTypes = MonitorTypes> implements IBaseC
             const { hooks = {} } = this.options
             // 数据收集
             if (hooks.onDataCollected) {
-                customCollectedData = await hooks.onDataCollected?.call(this, currentPlugin.eventName, originalData)
+                customCollectedData = await hooks.onDataCollected?.call(this, currentPlugin.indicatorName, originalData)
             }
 
             // 格式化收集到的数据
             let transformedData = currentPlugin.dataTransformer?.call(this, this, customCollectedData)
             if (hooks.onDataTransformed) {
-                transformedData = await hooks.onDataTransformed?.call(this, currentPlugin.eventName, transformedData)
+                transformedData = await hooks.onDataTransformed?.call(this, currentPlugin.indicatorName, transformedData)
             }
 
             // 数据上报
@@ -109,14 +117,13 @@ export class BaseClient<T extends MonitorTypes = MonitorTypes> implements IBaseC
     }
     private getDeviceInfo(): IDeviceInfo {
         const userAgent = navigator.userAgent || navigator.vendor
-        const { os, deviceType } = detectDevice(userAgent) as Pick<IDeviceInfo, 'os' | 'deviceType'>
+        const { deviceOs, deviceType } = detectDevice(userAgent)
         return {
-            os,
+            deviceOs,
             deviceType,
-            userAgent,
-            bowserVersion: navigator.appVersion,
-            bowserName: navigator.appName,
-            language: navigator.language
+            deviceBowserVersion: navigator.appVersion,
+            deviceBowserName: navigator.appName,
+            deviceBowserLanguage: navigator.language
         }
     }
     postEncryptionConfigToWorker(payload: IEncryptionConfig<'unParsed'>) {

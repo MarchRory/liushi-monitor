@@ -1,3 +1,9 @@
+import {
+    PathStack as PathSttackModel,
+    Exposure as ExposureModel,
+    Interaction as InteractionModel
+} from '.prisma/client'
+
 export type UserBehaviorEventTypes =
     'pv'
     | 'uv'
@@ -48,3 +54,12 @@ export type IBaseBreadCrumbItem = {
      */
     page_exposure: number
 }
+
+export type BehaviorCollectedType<T extends UserBehaviorEventTypes = UserBehaviorEventTypes> =
+    T extends 'click' ? IDefaultClickInfo | IBaseClickElementInfo : never
+
+export type TransformedBehaviorData =
+    Pick<PathSttackModel, 'stack'>
+    // | Pick<ExposureModel, 'value'>
+    | Pick<IBaseBreadCrumbItem, 'page_exposure' | "stack" | "url">
+    | Pick<InteractionModel, 'contactPoint' | "nodeName" | "featureInfo" | "componentTypeId">

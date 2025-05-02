@@ -6,20 +6,28 @@ import { RedisModule } from 'src/config/redis/redis.module';
 import { DecryptModule } from 'src/config/decrypt/decrypt.module';
 import { BullmqModule } from 'src/config/mq/bullmq.module';
 import { MonitorScheduler } from './monitor.scheduler';
+import { TrackingService } from '../tracking/tracking.service';
+import { ErrorService } from './error.service';
+import { PerformanceService } from './performance.service';
+import { BehaviorService } from './userbehavior.service';
 
 @Module({
   imports: [
     PrismaModule,
     RedisModule,
     DecryptModule,
-    BullmqModule
+    BullmqModule,
   ],
   controllers: [
     MonitorController
   ],
   providers: [
     MonitorService,
-    MonitorScheduler
+    MonitorScheduler,
+    TrackingService,
+    ErrorService,
+    PerformanceService,
+    BehaviorService
   ],
 })
 export class MonitorModule { }

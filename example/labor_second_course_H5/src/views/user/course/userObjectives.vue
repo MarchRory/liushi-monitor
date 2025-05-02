@@ -105,6 +105,10 @@ const openObject = (id) => {
   router.push({ path: "/coursesPlanDetail", query: { id: id } });
 };
 loadList();
+
+onMounted(() => {
+  $liushiMonitor.sendSpaLoadPerformance()
+})
 </script>
 
 <style scoped lang="less">

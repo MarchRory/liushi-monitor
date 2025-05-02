@@ -1,10 +1,12 @@
-import ClickPlugin from "./src/clickPlugin";
+import DefaultClickPlugin from "./src/defaultClickPlugin";
+import CompClickPlugin from './src/compClickPlugin'
 import PvPlugin from "./src/pvPlugin";
 import UvPlugin from "./src/uvPlugin";
 
 const BaseUserBehaviorPlugins = [
     PvPlugin,
     UvPlugin,
-    ClickPlugin
+    DefaultClickPlugin,
+    CompClickPlugin
 ]
 export default BaseUserBehaviorPlugins

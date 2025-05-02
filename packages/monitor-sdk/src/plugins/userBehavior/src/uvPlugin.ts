@@ -8,8 +8,8 @@ import { getUvRecordStorage } from "./utils/storage";
 import { UV_RECORD_STORAGE_KEY } from "monitor-sdk/src/configs/constant";
 
 const UvPlugin: IBasePlugin<'userBehavior', 'uv'> = {
-    type: 'userBehavior',
-    eventName: 'uv',
+    eventTypeName: 'userBehavior',
+    indicatorName: 'uv',
     monitor(client, notify) {
         const todayUvRecordMap = getUvRecordStorage()
         const recordUv = () => {
@@ -36,8 +36,8 @@ const UvPlugin: IBasePlugin<'userBehavior', 'uv'> = {
         const getUserInfo = getCustomFunction('getUserInfo')
         const userInfo = getUserInfo ? getUserInfo() : 'unknown'
         return {
-            type: 'userBehavior',
-            eventName: 'uv',
+            eventTypeName: 'userBehavior',
+            indicatorName: 'uv',
             userInfo,
             deviceInfo: client.deviceInfo,
             collectedData: originalData,

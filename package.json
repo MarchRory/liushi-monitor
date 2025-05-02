@@ -11,6 +11,7 @@
     "dev:server": "cd packages/server && pnpm run start:dev",
     "dev:server:debug": "cd packages/server && pnpm run start:debug",
     "dev:platform": "cd packages/analysis-platform && pnpm run dev",
+    "db:migerate": "cd packages/server && pnpm run db:migerate",
     "prisma:studio": "cd packages/server && npx prisma studio",
     "changeset": "changeset",
     "packages-version": "changeset version",
@@ -64,6 +65,7 @@
     "typescript": "4.9.5",
     "vite": "^4.4.0",
     "vue": "^3.5.13",
+    "vue-router": "^4.2.4",
     "web-vitals": "^4.2.4",
     "zustand": "^5.0.3"
   },

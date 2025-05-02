@@ -1,10 +1,15 @@
 import { DEFAULT_BREADCRUMB_CONFIG, DEFAULT_TEMPORARY_BREADITEM_LIMIT } from '../configs/constant'
-import { IBaseBreadCrumbItem, IBaseBreadCrumbOptions, IBaseRouteInfo, IBaseTransformedData } from '../types'
+import {
+    IBaseBreadCrumbItem,
+    IBaseBreadCrumbOptions,
+    IBaseRouteInfo,
+    IBaseTransformedData
+} from '../types'
 import { RequestBundlePriorityEnum } from '../types/transport'
 import { debounce, getUrlTimestamp } from '../utils/common'
 import { Stack } from '../utils/dataStructure'
 import { isNull, isUndefined } from '../utils/is'
-import { formatTimeDifference, getCurrentTimeStamp } from '../utils/time'
+import { getCurrentTimeStamp } from '../utils/time'
 import { BaseTransport } from './baseTransport'
 
 /**
@@ -87,13 +92,12 @@ export abstract class BaseBreadCrumb {
 
         lastestRecord.leave_time = getCurrentTimeStamp()
         const { to } = routeInfo
-        // 利用微任务避免时间差计算时间长阻塞业务中的同步代码
         Promise.resolve().then(() => {
             lastestRecord.stack.push(to)
             if (newLastestRecord && newLastestRecord.stack.length) {
                 newLastestRecord.stack.push(...lastestRecord.stack.slice(1))
             }
-            lastestRecord.page_exposure = lastestRecord.leave_time - lastestRecord.enter_time // formatTimeDifference(lastestRecord.leave_time - lastestRecord.enter_time)
+            lastestRecord.page_exposure = lastestRecord.leave_time - lastestRecord.enter_time
             if (this.sendDataTemporaryPool.length < this.temporaryBreadItemLimit) {
                 this.sendDataTemporaryPool.push(lastestRecord)
             }
@@ -101,8 +105,8 @@ export abstract class BaseBreadCrumb {
 
             // 新数据记录后达到容量, 启动上报
             let sendData: IBaseTransformedData<'userBehavior', 'page_exposure'> = {
-                type: 'userBehavior',
-                eventName: 'page_exposure',
+                eventTypeName: 'userBehavior',
+                indicatorName: 'page_exposure',
                 userInfo: "unknown",
                 deviceInfo: "unknown",
                 collectedData: {
@@ -167,8 +171,8 @@ export abstract class BaseBreadCrumb {
                 payload: {
                     priority: RequestBundlePriorityEnum.USERBEHAVIOR,
                     sendData: {
-                        type: 'userBehavior',
-                        eventName: 'page_exposure',
+                        eventTypeName: 'userBehavior',
+                        indicatorName: 'page_exposure',
                         userInfo: 'unknown',
                         deviceInfo: "unknown",
                         collectedData: {

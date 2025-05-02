@@ -1,9 +1,23 @@
-import { BaseEventTypes, GlobalSubscribeTypes, ISDKInitialOptions, ISDKRequestOption, MonitorTypes } from '../types'
+import {
+    BaseEventTypes,
+    GlobalSubscribeTypes,
+    ISDKInitialOptions,
+    ISDKRequestOption,
+    MonitorTypes
+} from '../types'
 import { DEFAULT_REQUEST_INIT_OPTIONS } from '../configs/constant'
-import { IPreLoadParmas, RequestBundlePriorityEnum, SendDataTextType } from '../types/transport'
+import {
+    IPreLoadParmas,
+    RequestBundlePriorityEnum,
+    SendDataTextType
+} from '../types/transport'
 import { getCustomFunction, getUrlTimestamp, throttle } from '../utils/common'
 import { Subscribe } from './subscribe'
-import { IMainThreadPostToWorkerMesage, MainThreadPostToWorkerEvent, ThreadMessage } from '../worker/types'
+import {
+    IMainThreadPostToWorkerMesage,
+    MainThreadPostToWorkerEvent,
+    ThreadMessage
+} from '../worker/types'
 import { IEncryptionConfig } from '../types/excryption'
 /**
  * 基本数据上报中心
@@ -57,8 +71,8 @@ export class BaseTransport {
                 priority: RequestBundlePriorityEnum.ERROR,
                 textType: 'plaintext',
                 sendData: {
-                    type: 'error',
-                    eventName: "post_message_to_worker_error",
+                    eventTypeName: 'error',
+                    indicatorName: "post_message_to_worker_error",
                     userInfo: userInfo,
                     deviceInfo: "unknown",
                     collectedData: {

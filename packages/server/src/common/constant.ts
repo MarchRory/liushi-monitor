@@ -3,6 +3,7 @@ import { JwtModuleOptions } from "@nestjs/jwt";
 export const CONFIG_OPTIONS = 'CONFIG_OPTIONS';
 export const REDIS_CLIENT = 'REDIS_CLIENT'
 export const MONITOR_QUEUE = 'MONITOR_QUEUE'
+export const MONITOR_MQ_WORKER = "MONITOR_MQ_WORKER"
 export const LOG_MQ_NAME = 'MONITOR_EVENTS'
 export const MQ_JOB_TOKEN = 'LOG_MQ_TOKEN'
 export const COUNT_OF_EXECS_TO_CONSUME_LOWER_PRIORITY_JOB = 10
@@ -38,5 +39,13 @@ export const enum IUserTypeEnum {
 }
 
 export const EVENTTYPE_MAP_CACHE = 'EVENTTYPE_MAP_CACHE'
+export const INDICATOR_MAP_CACHE = 'INDICATOR_MAP_CACHE'
 export const COMPTYPE_MAP_CACHE = "COMPTYPE_MAP_CACHE"
+/**
+ * 查找全部的搜索值
+ */
 export const SEARCH_ALL_VALUE = -1
+/**
+ * 数据库中未设置具体意义数值的占位值
+ */
+export const UN_SIT_NUMBER_VALUE = -1

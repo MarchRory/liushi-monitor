@@ -33,7 +33,8 @@ export type PerformanceEventTypes = keyof typeof performanceEventMap
  * 用户行为埋点事件
  */
 export const userBehaviorEventMap = {
-    click: '用户点击',
+    defaultClick: '默认全局点击',
+    compClick: "业务组件点击",
     pv: '页面访问量',
     uv: '用户访问量',
     page_exposure: '页面停留时间',

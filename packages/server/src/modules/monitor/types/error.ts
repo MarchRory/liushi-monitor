@@ -1,3 +1,6 @@
+import { Error as ErrorModel } from '.prisma/client'
+import { BaseLogIds } from "./base"
+
 export type ErrorEventTypes =
     'vue3_framework_error'
     | 'javaScript_sync_error'
@@ -19,7 +22,12 @@ export type JsSyncErrorData = {
 }
 
 export type UnCatchPromiseErrorData = {
-    reason: PromiseRejectionEvent['reason']
+    reason: {
+        message: string
+        stack: string
+        name: string | null
+        code: number | null
+    }
 }
 
 export type SourceErrorData = {
@@ -28,7 +36,8 @@ export type SourceErrorData = {
 }
 
 export type Vue3ErrorTrapData = {
-    err: unknown
+    stack: Error['stack'],
+    srcName: Error['name'],
     info: string
     errorComponentData: {
         componentName: string
@@ -36,3 +45,6 @@ export type Vue3ErrorTrapData = {
         props: object
     }
 }
+
+export type TransformedErrorData = Pick<ErrorModel, 'description' | "codeLocation" | "props" | "srcName" | "stack">
+

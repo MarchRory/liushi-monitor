@@ -8,8 +8,8 @@ import { Vue3ErrorTrapTransportData } from "../types/plugin";
  * Vue3 报错监控插件
  */
 const Vue3ErrorMonitorPlugin: IBasePlugin<'error', 'vue3_framework_error'> = {
-    type: 'error',
-    eventName: 'vue3_framework_error',
+    eventTypeName: 'error',
+    indicatorName: 'vue3_framework_error',
     monitor(client, notify) {
         const vueApp = client.VueApp
         if (!vueApp) throw new Error('vue示例获取失败, 无法配置监听')
@@ -32,8 +32,8 @@ const Vue3ErrorMonitorPlugin: IBasePlugin<'error', 'vue3_framework_error'> = {
         const userInfo = getUserInfo ? getUserInfo() : 'unknown'
 
         return {
-            type: 'error',
-            eventName: 'vue3_framework_error',
+            eventTypeName: 'error',
+            indicatorName: 'vue3_framework_error',
             userInfo,
             deviceInfo: client.deviceInfo,
             collectedData: originalData,

@@ -124,6 +124,10 @@ watch(
     }
   }
 );
+
+onMounted(() => {
+  $liushiMonitor.sendSpaLoadPerformance()
+})
 </script>
 
 <template>

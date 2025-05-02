@@ -35,6 +35,10 @@ const search = () => {
 const actions: HeaderDefaultAction[] = [
   { icon: 'tabler:search', trigger: search}
 ]
+
+onMounted(() => {
+  $liushiMonitor.sendSpaLoadPerformance()
+})
 </script>
 
 <template>

@@ -268,6 +268,10 @@ const submit = debounce(() => {
       });
     });
 }, 500);
+
+onMounted(() => {
+  $liushiMonitor.sendSpaLoadPerformance()
+})
 </script>
 
 <template>

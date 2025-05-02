@@ -2,7 +2,7 @@ import { ISDKInitialOptions } from "../types";
 import SDKBasePlugins from "../plugins";
 import Vue3AppMonitorClient from "./src/client/client";
 import Vue3ErrorMonitorPlugin from "./src/plugin/errorTrapMonitorPlugin";
-import { type App } from 'vue'
+import { ComponentPublicInstance, type App } from 'vue'
 import { IEncryptionConfig } from "../types/excryption";
 
 declare global {
@@ -23,8 +23,8 @@ declare global {
 /**
  * 注册监控插件
  */
-function install(vue3App: App, options: ISDKInitialOptions): void {
-    const monitorInstance = new Vue3AppMonitorClient({ ...options, VueApp: vue3App })
+function install(VueApp: App, options: ISDKInitialOptions): void {
+    const monitorInstance = new Vue3AppMonitorClient({ ...options, VueApp })
     const { customPlugins = [] } = options
     const plugins = [
         Vue3ErrorMonitorPlugin,

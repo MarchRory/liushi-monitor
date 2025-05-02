@@ -1,7 +1,8 @@
 import { IPluginTransportDataBaseInfo } from "monitor-sdk/src/types";
 
 export type Vue3ErrorTrapTransportData = IPluginTransportDataBaseInfo<'vue3_framework_error', {
-    err: unknown
+    stack: string
+    srcName: string,
     info: string
     errorComponentData: {
         componentName: string

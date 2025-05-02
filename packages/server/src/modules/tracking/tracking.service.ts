@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { TrackEventType, TrackIndicator } from '.prisma/client'
 import { FindListBaseDto } from 'src/common/dtos/find-list';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import { EventItemEntity } from './entities/event.entity';
@@ -8,7 +9,7 @@ import { CreateEventDto, UpdateEventDto } from './dto/event.dto';
 import { CreateIndicatorDto, FindIndicatorListDto, UpdateIndicatorDto, } from './dto/indicator.dto'
 import { IndicatorItemEntity } from './entities/indicator.entity';
 import { RedisService } from 'src/config/redis/redis.service';
-import { COMPTYPE_MAP_CACHE, EVENTTYPE_MAP_CACHE, SEARCH_ALL_VALUE } from 'src/common/constant';
+import { COMPTYPE_MAP_CACHE, EVENTTYPE_MAP_CACHE, INDICATOR_MAP_CACHE, SEARCH_ALL_VALUE } from 'src/common/constant';
 import { CreateComponentTypeDto, UpdateComponentTypeDto } from './dto/component-type.dto'
 import { ComponentTypeEntity } from './entities/component-type.entity';
 import { CreateComponentDto, FindComponentListDto, UpdateComponentDto } from './dto/component.dto';
@@ -33,16 +34,60 @@ export class TrackingService {
                 },
                 skip: 0,
                 take: 20,
-                select: { eventTypeCn: true, id: true }
+                select: { eventTypeCn: true, id: true, eventTypeName: true }
             })
-            for (const { id, eventTypeCn } of eventList) {
-                eventNameMap[id] = eventTypeCn
+            for (const { id, eventTypeCn, eventTypeName } of eventList) {
+                eventNameMap[id] = { eventTypeCn, eventTypeName }
             }
             this.redisService.set(EVENTTYPE_MAP_CACHE, JSON.stringify(eventNameMap))
         } else {
             eventNameMap = JSON.parse(eventNameMap)
         }
-        return eventNameMap as unknown as Record<number, string>
+        return eventNameMap as unknown as Record<number, Pick<TrackEventType, 'eventTypeName' | "eventTypeCn">>
+    }
+
+    async getIndicatorMapCache() {
+        let indicatorNameMap: string | null | object = await this.redisService.get(INDICATOR_MAP_CACHE)
+        if (!indicatorNameMap) {
+            indicatorNameMap = {}
+            const eventList = await this.prismaService.trackIndicator.findMany({
+                where: {
+                    isDeleted: false
+                },
+                skip: 0,
+                take: 20,
+                select: { indicatorCn: true, id: true, indicatorName: true }
+            })
+            for (const { id, indicatorCn, indicatorName } of eventList) {
+                indicatorNameMap[id] = { indicatorCn, indicatorName }
+            }
+            this.redisService.set(INDICATOR_MAP_CACHE, JSON.stringify(indicatorNameMap))
+        } else {
+            indicatorNameMap = JSON.parse(indicatorNameMap)
+        }
+        return indicatorNameMap as unknown as Record<number, Pick<TrackIndicator, 'indicatorName' | "indicatorCn">>
+    }
+
+    async getComponentTypeMapCache() {
+        let componentTypeMap: string | null | object = await this.redisService.get(COMPTYPE_MAP_CACHE)
+        if (!componentTypeMap) {
+            componentTypeMap = {}
+            const compTypeList = await this.prismaService.trackComponentType.findMany({
+                where: {
+                    isDeleted: false
+                },
+                skip: 0,
+                take: 20,
+                select: { componentTypeCn: true, id: true }
+            })
+            for (const { id, componentTypeCn } of compTypeList) {
+                componentTypeMap[id] = componentTypeCn
+            }
+            this.redisService.set(COMPTYPE_MAP_CACHE, JSON.stringify(componentTypeMap))
+        } else {
+            componentTypeMap = JSON.parse(componentTypeMap)
+        }
+        return componentTypeMap as unknown as Record<number, string>
     }
 
     /******************************** 监控事件大类CRUD ***********************************/
@@ -73,12 +118,18 @@ export class TrackingService {
     }
 
     async createEvent(dto: CreateEventDto) {
-        await this.prismaService.trackEventType.create({
+        const { id } = await this.prismaService.trackEventType.create({
             data: {
                 ...dto,
                 isDeleted: false
             }
         })
+        const eventMapCache = await this.getEventMapCache()
+        eventMapCache[id] = {
+            eventTypeName: dto.eventTypeName,
+            eventTypeCn: dto.eventTypeCn
+        }
+        await this.redisService.set(EVENTTYPE_MAP_CACHE, JSON.stringify(eventMapCache))
         return responseBundler(ResponseCode.SUCCESS)
     }
 
@@ -91,10 +142,9 @@ export class TrackingService {
         })
 
         const eventMapCache = await this.getEventMapCache()
-        if (eventMapCache[dto.id] !== dto.eventTypeName) {
-            eventMapCache[dto.id] = dto.eventTypeName
-            await this.redisService.set(EVENTTYPE_MAP_CACHE, JSON.stringify(eventMapCache))
-        }
+        eventMapCache[dto.id].eventTypeCn = dto.eventTypeCn
+        eventMapCache[dto.id].eventTypeName = dto.eventTypeName
+        await this.redisService.set(EVENTTYPE_MAP_CACHE, JSON.stringify(eventMapCache))
 
         return responseBundler(ResponseCode.SUCCESS)
     }
@@ -157,7 +207,7 @@ export class TrackingService {
         }
     }
 
-    // 辅助方法：检查依赖记录数量
+    // 检查依赖记录数量
     async checkEventsDependentRecords(prisma: PrismaTransactionClient, eventId: number) {
         // 分别查询每个关联表中引用此事件类型的记录数
         const [
@@ -192,9 +242,42 @@ export class TrackingService {
             })
         ]);
 
-        // 返回总数
         return performancesCount + viewsCount + pathStacksCount +
             interactionsCount + exposuresCount + errorsCount + indicatorsCount;
+    }
+
+    async checkIndicatorDependentRecords(prisma: PrismaTransactionClient, indicatorId: number) {
+        const [
+            performancesCount,
+            viewsCount,
+            pathStacksCount,
+            interactionsCount,
+            exposuresCount,
+            errorsCount,
+        ] = await Promise.all([
+            prisma.performance.count({
+                where: { eventTypeId: indicatorId, isDeleted: false }
+            }),
+            prisma.views.count({
+                where: { eventTypeId: indicatorId, isDeleted: false }
+            }),
+            prisma.pathStack.count({
+                where: { eventTypeId: indicatorId, isDeleted: false }
+            }),
+            prisma.interaction.count({
+                where: { eventTypeId: indicatorId, isDeleted: false }
+            }),
+            prisma.exposure.count({
+                where: { eventTypeId: indicatorId, isDeleted: false }
+            }),
+            prisma.error.count({
+                where: { eventTypeId: indicatorId, isDeleted: false }
+            })
+        ]);
+
+        // 返回总数
+        return performancesCount + viewsCount + pathStacksCount +
+            interactionsCount + exposuresCount + errorsCount
     }
     /******************************** 监控事件大类CRUD ***********************************/
 
@@ -218,17 +301,23 @@ export class TrackingService {
             this.prismaService.trackIndicator.count({ where }),
         ]);
         let eventCnNameMap = await this.getEventMapCache()
-        const res = list.map((item) => new IndicatorItemEntity({ ...item, eventTypeCn: eventCnNameMap[item.eventTypeId + ''] }))
+        const res = list.map((item) => new IndicatorItemEntity({ ...item, eventTypeCn: eventCnNameMap[item.eventTypeId + ''].eventTypeName }))
         return responseBundler(ResponseCode.SUCCESS, listBundler(total, res));
     }
 
     async createIndicator(dto: CreateIndicatorDto) {
-        await this.prismaService.trackIndicator.create({
+        const { id } = await this.prismaService.trackIndicator.create({
             data: {
                 ...dto,
                 isDeleted: false
             }
         })
+        const indicatorMapCache = await this.getIndicatorMapCache()
+        indicatorMapCache[id] = {
+            indicatorCn: dto.indicatorCn,
+            indicatorName: dto.indicatorName
+        }
+        await this.redisService.set(INDICATOR_MAP_CACHE, JSON.stringify(indicatorMapCache))
         return responseBundler(ResponseCode.SUCCESS)
     }
 
@@ -239,44 +328,67 @@ export class TrackingService {
             },
             data: dto
         })
+        const indicatorMapCache = await this.getIndicatorMapCache()
+        indicatorMapCache[dto.id].indicatorCn = dto.indicatorCn
+        indicatorMapCache[dto.id].indicatorName = dto.indicatorName
+        await this.redisService.set(INDICATOR_MAP_CACHE, JSON.stringify(indicatorMapCache))
         return responseBundler(ResponseCode.SUCCESS)
     }
 
     async removeIndicator(id: number) {
-        const event = await this.prismaService.trackIndicator.findUnique({
-            where: {
-                id,
-                isDeleted: false
-            }
-        })
-        if (!event) return responseBundler(
-            ResponseCode.DB_ERROR, null, "待删除的指标不存在")
-        return this.updateIndicator({ ...event, isDeleted: true })
+        try {
+            const event = await this.prismaService.trackIndicator.findUnique({
+                where: {
+                    id,
+                    isDeleted: false
+                }
+            })
+            if (!event) return responseBundler(ResponseCode.DB_ERROR, null, "待删除的指标不存在")
+
+            // 使用事务处理数据库操作和关联表处理
+            return await this.prismaService.$transaction(async (prisma) => {
+                // 检查是否有依赖此事件类型的数据
+                const dependentRecordsCount = await this.checkIndicatorDependentRecords(prisma, id);
+
+                if (dependentRecordsCount > 0) {
+                    return responseBundler(
+                        ResponseCode.DB_ERROR,
+                        null,
+                        `无法删除：该指标类型被${dependentRecordsCount}条记录引用`
+                    )
+                }
+
+                // 执行事件类型的软删除
+                const updatedEvent = await prisma.trackIndicator.update({
+                    where: { id },
+                    data: { isDeleted: true }
+                });
+
+                // 成功后更新缓存
+                const indicatorMapCache = await this.getIndicatorMapCache();
+                delete indicatorMapCache[id];
+                await this.redisService.set(EVENTTYPE_MAP_CACHE, JSON.stringify(indicatorMapCache));
+
+                return responseBundler(
+                    ResponseCode.SUCCESS,
+                    updatedEvent,
+                    "指标类型删除成功"
+                );
+            })
+
+        } catch (error) {
+            console.error("删除指标类型失败:", error);
+            return responseBundler(
+                ResponseCode.DB_ERROR,
+                null,
+                "删除指标类型时发生错误：" + error.message
+            );
+        }
+
     }
     /***************************** 事件具体指标CRUD ********************************/
 
 
-    async getComponentTypeMapCache() {
-        let componentTypeMap: string | null | object = await this.redisService.get(COMPTYPE_MAP_CACHE)
-        if (!componentTypeMap) {
-            componentTypeMap = {}
-            const compTypeList = await this.prismaService.trackComponentType.findMany({
-                where: {
-                    isDeleted: false
-                },
-                skip: 0,
-                take: 20,
-                select: { componentTypeCn: true, id: true }
-            })
-            for (const { id, componentTypeCn } of compTypeList) {
-                componentTypeMap[id] = componentTypeCn
-            }
-            this.redisService.set(COMPTYPE_MAP_CACHE, JSON.stringify(componentTypeMap))
-        } else {
-            componentTypeMap = JSON.parse(componentTypeMap)
-        }
-        return componentTypeMap as unknown as Record<number, string>
-    }
     /***************************** 监控业务组件大类CRUD ********************************/
     async findComponentTypeList(dto: FindListBaseDto) {
         const pageNum = Math.max(+dto.pageNum || 1, 1);

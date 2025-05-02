@@ -4,7 +4,7 @@ export interface IDefaultClickInfo {
     clientX: number
     clientY: number
 }
-export type DefaultClickTransportData = IPluginTransportDataBaseInfo<'click', {
+export type DefaultClickTransportData = IPluginTransportDataBaseInfo<'defaultClick', {
     clickRecord: IDefaultClickInfo[]
 }>
 
@@ -23,7 +23,7 @@ export interface IBaseClickElementInfo extends IDefaultClickInfo {
      */
     innerText: string
 }
-export type ClickElementTransportData = IPluginTransportDataBaseInfo<'click', {
+export type ClickElementTransportData = IPluginTransportDataBaseInfo<"compClick", {
     clickElementRecord: IBaseClickElementInfo[]
 }>
 

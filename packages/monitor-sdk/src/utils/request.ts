@@ -11,7 +11,7 @@ export function fakeRequest(
 ) {
     return new Promise((resolve) => {
         setTimeout(() => {
-            console.log('数据模拟上报成功: url=' + url + " data=" + data)
+            console.log('数据模拟上报成功: url=' + url + " data=", data)
             resolve(undefined)
         }, 500 * (1 + Math.random()))
     })

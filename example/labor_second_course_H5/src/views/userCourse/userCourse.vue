@@ -122,6 +122,10 @@ watch(
     otherParams.value.passType = newVal >= 3 ? 1 : null;
   }
 );
+
+onMounted(() => {
+  $liushiMonitor.sendSpaLoadPerformance()
+})
 </script>
 
 <style scoped lang="less">

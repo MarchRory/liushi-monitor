@@ -225,6 +225,10 @@ const refresh = () => {
     objInfo.value = data;
   });
 })();
+
+onMounted(() => {
+  $liushiMonitor.sendSpaLoadPerformance()
+})
 </script>
 
 <template>

@@ -1,9 +1,25 @@
 import axios, { AxiosInstance } from 'axios'
 import CryptoJS from 'crypto-js';
 import { TaskScheduler } from '../core/scheduler'
-import { BaseEventTypes, BaseTransportEventType, IPreLoadParmas, IProcessingRequestRecord, MonitorTypes, RequestBundlePriorityEnum, SendDataTextType, TransportTask, TransportTaskRunType } from '../types'
+import {
+    BaseEventTypes,
+    BaseTransportEventType,
+    IPreLoadParmas,
+    IProcessingRequestRecord,
+    MonitorTypes,
+    RequestBundlePriorityEnum,
+    SendDataTextType,
+    TransportTask,
+    TransportTaskRunType
+} from '../types'
 import { Subscribe } from '../core'
-import { IWorkerPostToMainThreadMessage, ThreadMessage, TransportWorkerConfig, WorkerConfigKey, WorkerPostToMainThreadEvent } from './types'
+import {
+    IWorkerPostToMainThreadMessage,
+    ThreadMessage,
+    TransportWorkerConfig,
+    WorkerConfigKey,
+    WorkerPostToMainThreadEvent
+} from './types'
 import { fakeRequest } from '../utils/request'
 import { encrypt } from '../utils/encryption'
 import { IEncryptionConfig } from '../types/excryption'
@@ -125,8 +141,10 @@ function getNextData(): IProcessingRequestRecord<'ciphertext'> | null {
     if (!bundleData.data.length) {
         return null
     }
-
-    bundleData.data = [encrypt(JSON.stringify(bundleData.data), encryptionConfig)]
+    const debugMode = getRequestConfig('debugMode')
+    if (debugMode === false) {
+        bundleData.data = [encrypt(JSON.stringify(bundleData.data), encryptionConfig)]
+    }
     return bundleData
 }
 /**

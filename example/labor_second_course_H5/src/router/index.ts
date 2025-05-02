@@ -8,6 +8,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "登录",
       index: 1,
+      isPage: true
     },
     component: () => import("@/views/login/index.vue"),
   },
@@ -17,6 +18,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "请稍后",
       index: 1,
+      isPage: true
     },
     component: () => import("@/views/welcome/index.vue"),
   },
@@ -35,6 +37,7 @@ export const routes: Array<RouteRecordRaw> = [
           title: "首页",
           icon: "tabler:brand-google-home",
           index: 1,
+          isPage: true
         },
       },
       {
@@ -44,6 +47,7 @@ export const routes: Array<RouteRecordRaw> = [
           title: "二课进度",
           icon: "tabler:brand-linktree",
           index: 1,
+          isPage: true
         },
         component: () => import("@/views/plan/index.vue"),
       },
@@ -54,6 +58,7 @@ export const routes: Array<RouteRecordRaw> = [
           title: "个人中心",
           icon: "tabler:user-hexagon",
           index: 1,
+          isPage: true
         },
         component: () => import("@/views/user/index.vue"),
       },
@@ -65,6 +70,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "账户设置",
       index: 2,
+      isPage: true
     },
     component: () => import("@/views/user/children/accountSetting.vue"),
   },
@@ -74,6 +80,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "个人信息",
       index: 3,
+      isPage: true
     },
     component: () => import("@/views/user/children/baseInfo.vue"),
   },
@@ -84,6 +91,7 @@ export const routes: Array<RouteRecordRaw> = [
       title: "我的课程",
       icon: "orders-o",
       index: 3,
+      isPage: true
     },
     component: () => import("@/views/userCourse/userCourse.vue"),
   },
@@ -93,6 +101,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "密码更新",
       index: 3,
+      isPage: true
     },
     component: () => import("@/views/user/children/passwordInfo.vue"),
   },
@@ -102,6 +111,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "历史规划",
       index: 2,
+      isPage: true
     },
     component: () => import("@/views/user/course/userObjectives.vue"),
   },
@@ -111,6 +121,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "考评消息",
       index: 2,
+      isPage: true
     },
     component: () => import("@/views/evalutions/index.vue"),
   },
@@ -120,6 +131,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "历史规划",
       index: 2,
+      isPage: true
     },
     component: () => import("@/views/user/course/userObjectives.vue"),
   },
@@ -129,6 +141,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "课程规划详情",
       index: 2,
+      isPage: true
     },
     component: () => import("@/views/plan/coursesPlanDetail/index.vue"),
   },
@@ -138,6 +151,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "课程搜索",
       index: 2,
+      isPage: true
     },
     component: () => import("@/views/searchRes/index.vue"),
   },
@@ -147,6 +161,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "课程详情",
       index: 3,
+      isPage: true
     },
     component: () => import("@/views/courseDetail/index.vue"),
   },
@@ -156,6 +171,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "年度报告列表",
       index: 2,
+      isPage: true
     },
     component: () => import("@/views/annulReport/index.vue"),
   },
@@ -165,6 +181,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "年度报告",
       index: 3,
+      isPage: true
     },
     component: () => import("@/views/annulReport/children/annulReport.vue"),
   },
@@ -174,6 +191,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "引导页",
       index: 1,
+      isPage: true
     },
     component: () => import("@/views/guide/index.vue"),
   },
@@ -183,6 +201,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "课程评价",
       index: 3,
+      isPage: true
     },
     component: () => import("@/views/command/index.vue"),
   },
@@ -192,6 +211,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "我的flag",
       index: 2,
+      isPage: true
     },
     component: () => import("@/views/Flag/index.vue"),
   },
@@ -201,6 +221,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "立个Flag",
       index: 3,
+      isPage: true
     },
     component: () => import("@/views/Flag/children/createFlag.vue"),
   },
@@ -210,6 +231,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "个人计划",
       index: 2,
+      isPage: true
     },
     component: () => import("@/views/personalPlan/index.vue"),
     redirect: "/personalPlan/userPlanList",
@@ -219,6 +241,7 @@ export const routes: Array<RouteRecordRaw> = [
         name: "userPlanList",
         meta: {
           title: "我的计划",
+          isPage: true
         },
         component: () =>
           import("@/views/personalPlan/children/my-plan-list.vue"),
@@ -228,6 +251,7 @@ export const routes: Array<RouteRecordRaw> = [
         name: "createPlan",
         meta: {
           title: "待创建",
+          isPage: true
         },
         component: () =>
           import("@/views/personalPlan/children/create-plan-list.vue"),
@@ -239,6 +263,7 @@ export const routes: Array<RouteRecordRaw> = [
     name: "createPlanForm",
     meta: {
       title: "创建计划",
+      isPage: true,
       index: 3,
     },
     component: () =>
@@ -250,6 +275,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "家长问卷调查",
       index: 3,
+      isPage: true
     },
     component: () => import("@/views/questionnaire/index.vue"),
   },
@@ -259,6 +285,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "第三方问卷调查",
       index: 3,
+      isPage: true
     },
     component: () => import("@/views/questionnaire/thirdParty.vue"),
   },
@@ -268,6 +295,7 @@ export const routes: Array<RouteRecordRaw> = [
     meta: {
       title: "荣誉墙",
       index: 2,
+      isPage: true
     },
     component: () => import("@/views/honoraryTitle/index.vue"),
   },

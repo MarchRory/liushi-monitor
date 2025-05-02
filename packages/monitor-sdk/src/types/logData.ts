@@ -9,11 +9,10 @@ export interface IOriginalData extends Object {
 
 export type IDeviceInfo<T extends 'allow' | "unallow" = 'allow'> = T extends 'allow' ? {
     [key: string]: any
-    bowserName: string
-    bowserVersion: string
-    language: string
-    userAgent: string
-    os: "iOS" | "Android" | "Unknown"
+    deviceBowserName: string
+    deviceBowserVersion: string
+    deviceBowserLanguage: string
+    deviceOs: "iOS" | "Android" | "Unknown"
     deviceType: 'Android' | "iPad" | 'iPhone' | "Unknown"
 } : "unknown"
 
@@ -22,8 +21,8 @@ export type IDeviceInfo<T extends 'allow' | "unallow" = 'allow'> = T extends 'al
  */
 export type IBaseTransformedData<T extends MonitorTypes, E extends BaseEventTypes<T>> = {
     [key: string]: any
-    type: T
-    eventName: E,
+    eventTypeName: T
+    indicatorName: E,
     userInfo: object | string
     deviceInfo: IDeviceInfo<'allow' | 'unallow'>
     collectedData: IPluginTransportDataBaseInfo<E>

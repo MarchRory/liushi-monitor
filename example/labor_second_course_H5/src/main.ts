@@ -38,7 +38,6 @@ const liushiMonitorOptions: ISDKInitialOptions = {
     const userStore = useUserStore()
     return {
       userId: userStore.userId,
-      campus: userStore.campus,
       sex: userStore.sex,
     }
   },

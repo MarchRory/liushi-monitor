@@ -4,6 +4,8 @@ import { IBaseBreadCrumbItem, UserBehaviorEventTypes } from './userBehavior'
 
 export type BaseEventTypes = "error" | "performance" | "userBehavior"
 
+export type BaseLogIds = 'id' | "producerId" | "eventTypeId" | "indicatorId"
+
 export type BaseIndicatorTypes<T extends BaseEventTypes = BaseEventTypes> =
     T extends 'performance' ? PerformanceEventTypes
     : T extends 'userBehavior' ? UserBehaviorEventTypes
@@ -16,13 +18,19 @@ type NotNeedDataEventType = 'pv' | 'uv'
 
 export type IDeviceInfo<T extends 'allow' | "unallow" = 'allow'> = T extends 'allow' ? {
     [key: string]: any
-    bowserName: string
-    bowserVersion: string
-    language: string
-    userAgent: string
-    os: "iOS" | "Android" | "Unknown"
+    deviceBowserName: string
+    deviceBowserVersion: string
+    deviceBowserLanguage: string
+    deviceOs: "iOS" | "Android" | "Unknown"
     deviceType: 'Android' | "iPad" | 'iPhone' | "Unknown"
 } : "unknown"
+
+export interface ICollectedUserInfo {
+    [key: string]: any
+    userId: number
+    sex: number
+}
+
 
 /**
  * 插件上报数据格式
@@ -45,12 +53,12 @@ export interface IPluginTransportDataBaseInfo<
 
 export interface IBaseTransformedData<
     T extends BaseEventTypes = BaseEventTypes,
-    E extends BaseIndicatorTypes<T> = BaseIndicatorTypes<T>
+    E extends BaseIndicatorTypes<T> = BaseIndicatorTypes<T>,
 > {
     [key: string]: any
-    type: T
-    eventName: E,
+    eventTypeName: T
+    indicatorName: E,
     userInfo: object | string
-    deviceInfo: IDeviceInfo<'allow' | 'unallow'>
+    deviceInfo: IDeviceInfo<'allow' | 'unallow'> | string
     collectedData: IPluginTransportDataBaseInfo<E>
 }

@@ -31,14 +31,15 @@ model User {
 }
 
 model Producer {
-  id                  Int           @id @default(autoincrement())
-  deviceBowserName    String        @map("device_bowser_name") @db.Text()
-  deviceBowserVersion String        @map("device_bowser_version") @db.Text()
-  deviceBowserLanguage String       @map("device_bowser_language") @db.Text()
-  deviceOs            String        @map("device_os") @db.Text()
-  deviceType          String        @map("device_type") @db.Text()
-  sex                 Int
-  isDeleted           Boolean       @default(false)
+  id                   Int           @id @default(autoincrement())
+  userId               Int           @map("user_id") @unique()
+  deviceBowserName     String        @map("device_bowser_name") @db.Text()
+  deviceBowserVersion  String        @map("device_bowser_version") @db.Text()
+  deviceBowserLanguage String        @map("device_bowser_language") @db.Text()
+  deviceOs             String        @map("device_os") @db.Text()
+  deviceType           String        @map("device_type") @db.Text()
+  sex                  Int
+  isDeleted            Boolean       @default(false)
 
   performances        Performance[] @relation("fk_performance_p_id")
   views               Views[]       @relation("fk_views_p_id")
@@ -46,9 +47,10 @@ model Producer {
   interactions        Interaction[] @relation("fk_interaction_p_id")
   exposures           Exposure[]    @relation("fk_exposure_p_id")
   errors              Error[]       @relation("fk_error_p_id")
+  httprequest         HttpRequest[] @relation("fk_httprequest_p_id")
 
 
-  @@index([id])
+  @@index([userId])
   @@map("producer")
 }
 
@@ -65,7 +67,8 @@ model TrackEventType {
   interactions    Interaction[]    @relation("fk_interaction_e_id")
   exposures       Exposure[]       @relation("fk_exposure_e_id")
   errors          Error[]          @relation("fk_error_e_id")
-  indicator       TrackIndicator[] @relation(name: "fk_ti_e_id")
+  indicator       TrackIndicator[] @relation("fk_ti_e_id")
+  httprequest     HttpRequest[]    @relation("fk_httprequest_e_id")
 
   @@map("track_event_type")
 }
@@ -85,6 +88,7 @@ model TrackIndicator {
   interactions    Interaction[]   @relation("fk_interaction_i_id")
   exposures       Exposure[]      @relation("fk_exposure_i_id")
   errors          Error[]         @relation("fk_error_i_id")
+  httprequest     HttpRequest[]   @relation("fk_httprequest_i_id")
 
   @@map("track_indicator")
 }
@@ -128,7 +132,7 @@ model PathStack {
 
   eventType     TrackEventType @relation(name: "fk_ps_e_id", fields: [eventTypeId], references: [id])
   indicator     TrackIndicator @relation(name: "fk_ps_i_id", fields: [indicatorId], references: [id])
-  producer      Producer       @relation(name: "fk_ps_p_id", fields: [producerId], references: [id])
+  producer      Producer       @relation(name: "fk_ps_p_id", fields: [producerId], references: [userId])
 
   @@index([eventTypeId])
   @@index([indicatorId])
@@ -141,7 +145,9 @@ model Performance {
   id            Int           @id @default(autoincrement())
   eventTypeId   Int           @map("event_type_id")
   indicatorId   Int           @map("indicator_id")
-  value         String        @db.Text()
+  value         Int           @db.Int()
+  rating        String        @db.Text()
+  detail        String        @db.Text()
   url           String        @db.Text()
   timestamp     DateTime      @db.Timestamp()
   producerId    Int           @map("producer_id")
@@ -149,13 +155,34 @@ model Performance {
 
   eventType     TrackEventType @relation(name: "fk_performance_e_id", fields: [eventTypeId], references: [id])
   indicator     TrackIndicator @relation(name: "fk_performance_i_id", fields: [indicatorId], references: [id])
-  producer      Producer       @relation(name: "fk_performance_p_id", fields: [producerId], references: [id])
+  producer      Producer       @relation(name: "fk_performance_p_id", fields: [producerId], references: [userId])
 
   @@index([eventTypeId])
   @@index([indicatorId])
   @@index([producerId])
 
   @@map("performance")
+}
+
+model HttpRequest {
+  id            Int           @id @default(autoincrement())
+  eventTypeId   Int           @map("event_type_id")
+  indicatorId   Int           @map("indicator_id")
+  url           String        @db.Text()
+  timestamp     DateTime      @db.Timestamp()
+  value         Int           @db.Int()
+  producerId    Int           @map("producer_id")
+  responseType  String        @db.Text() @map("response_type")
+  interfaceUrl  String        @db.Text() @map("interface_url")
+  responseCode  Int           @db.Int()  @map("response_code")
+  method        String        @db.Text()
+  isDeleted     Boolean       @default(false)
+
+  eventType     TrackEventType @relation(name: "fk_httprequest_e_id", fields: [eventTypeId], references: [id])
+  indicator     TrackIndicator @relation(name: "fk_httprequest_i_id", fields: [indicatorId], references: [id])
+  producer      Producer       @relation(name: "fk_httprequest_p_id", fields: [producerId], references: [userId])
+
+  @@map("http_request")
 }
 
 model Views {
@@ -169,7 +196,7 @@ model Views {
 
   eventType     TrackEventType @relation(name: "fk_views_e_id", fields: [eventTypeId], references: [id])
   indicator     TrackIndicator @relation(name: "fk_views_i_id", fields: [indicatorId], references: [id])
-  producer      Producer       @relation(name: "fk_views_p_id", fields: [producerId], references: [id])
+  producer      Producer       @relation(name: "fk_views_p_id", fields: [producerId], references: [userId])
 
   @@index([producerId])
   @@index([indicatorId])
@@ -193,7 +220,7 @@ model Interaction {
   componentType     TrackComponent @relation(name: "fk_interaction_c_id", fields: [componentTypeId], references: [id])
   eventType         TrackEventType @relation(name: "fk_interaction_e_id", fields: [eventTypeId], references: [id])
   indicator         TrackIndicator @relation(name: "fk_interaction_i_id", fields: [indicatorId], references: [id])
-  producer          Producer       @relation(name: "fk_interaction_p_id", fields: [producerId], references: [id])
+  producer          Producer       @relation(name: "fk_interaction_p_id", fields: [producerId], references: [userId])
 
   @@index([eventTypeId])
   @@index([indicatorId])
@@ -210,13 +237,13 @@ model Exposure {
   producerId    Int           @map("producer_id")
   eventTypeId   Int           @map("event_type_id")
   indicatorId   Int           @map("indicator_id")
-  value         String        @db.Text()
+  value         Int           @db.Int()
   pathStackId   Int           @map("path_stack_id")
   isDeleted     Boolean       @default(false)
 
   eventType     TrackEventType @relation(name: "fk_exposure_e_id", fields: [eventTypeId], references: [id])
   indicator     TrackIndicator @relation(name: "fk_exposure_i_id", fields: [indicatorId], references: [id])
-  producer      Producer       @relation(name: "fk_exposure_p_id", fields: [producerId], references: [id])
+  producer      Producer       @relation(name: "fk_exposure_p_id", fields: [producerId], references: [userId])
   pathStack     PathStack      @relation(name: "fk_exposure_ps_id", fields: [pathStackId], references: [id])
 
   @@index([eventTypeId])
@@ -236,7 +263,7 @@ model Error {
   indicatorId         Int           @map("indicator_id")
   description         String        @db.Text() 
   codeLocation        String        @map("code_location") @db.Text() 
-  nodeName            String        @map("node_name") @db.Text()
+  srcName             String        @map("src_name") @db.Text()
   props               String        @db.Text()
   stack               String        @db.Text() 
   responsiblePersonId Int           @map("responsible_person_id")
@@ -245,7 +272,7 @@ model Error {
 
   eventType          TrackEventType @relation(name: "fk_error_e_id", fields: [eventTypeId], references: [id])
   indicator          TrackIndicator @relation(name: "fk_error_i_id", fields: [indicatorId], references: [id])
-  producer           Producer       @relation(name: "fk_error_p_id", fields: [producerId], references: [id])
+  producer           Producer       @relation(name: "fk_error_p_id", fields: [producerId], references: [userId])
   responsiblePerson  User           @relation(name: "fk_error_rp_id", fields: [responsiblePersonId], references: [id])
 
   @@index([eventTypeId])

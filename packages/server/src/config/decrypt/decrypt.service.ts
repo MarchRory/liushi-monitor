@@ -15,7 +15,7 @@ export class DecryptionService {
         this.SECRET_KEY = CryptoJS.enc.Utf8.parse(this.configService.get('SECRET_KEY') as string)
         this.SECRET_IV = CryptoJS.enc.Utf8.parse(this.configService.get('SECRET_IV') as string)
     }
-    async decryptLog(secretLog: string): Promise<IBaseTransformedData | null> {
+    async decryptLog(secretLog: string): Promise<IBaseTransformedData[] | null> {
         try {
             const bytes = CryptoJS.AES.decrypt(secretLog, this.SECRET_KEY, {
                 iv: this.SECRET_IV,

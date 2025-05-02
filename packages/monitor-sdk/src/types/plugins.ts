@@ -13,11 +13,11 @@ export interface IBasePlugin<T extends MonitorTypes, E extends BaseEventTypes<T>
     /**
      * 插件类型
      */
-    type: T
+    eventTypeName: T
     /**
      * 监听具体事件类型
      */
-    eventName: E
+    indicatorName: E
     /**
      * 插件是否被禁用, 默认false 
      */
@@ -27,7 +27,7 @@ export interface IBasePlugin<T extends MonitorTypes, E extends BaseEventTypes<T>
      * 监控器, 对事件的具体监听逻辑实现, 最后需要通知订阅中心响应
      * @returns void
      */
-    monitor: (client: BaseClient<T>, notify: (eventName: E, originalData: IPluginTransportDataBaseInfo<E>) => void) => void
+    monitor: (client: BaseClient<T>, notify: (indicatorName: E, originalData: IPluginTransportDataBaseInfo<E>) => void) => void
     /** 数据转化器, 格式化监听到的数据
      * @param originalData 收集到的原始数据
      * @returns 

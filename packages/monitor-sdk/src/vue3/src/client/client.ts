@@ -1,14 +1,14 @@
 import { IBaseTransformedData, ISDKInitialOptions, RequestBundlePriorityEnum } from "monitor-sdk/src/types";
 import { Vue3BreadCrumbClient } from "./Vue3BreadCrumbClient";
-import { App } from "vue";
 import { BaseClient } from "../../../core";
 import { isUndefined } from "monitor-sdk/src/utils/is";
 import { getUrlTimestamp } from "monitor-sdk/src/utils/common";
+import { App } from "vue";
 
 class Vue3AppMonitorClient extends BaseClient {
     private readonly Vue3BreadCrumb: Vue3BreadCrumbClient
     private readonly spaPagePerformanceRecord = { beforeSpaChange: 0 }
-    constructor(initialOptions: ISDKInitialOptions & { VueApp?: App }) {
+    constructor(initialOptions: ISDKInitialOptions & { VueApp: App }) {
         super(initialOptions)
         this.Vue3BreadCrumb = new Vue3BreadCrumbClient({
             baseTransport: this.baseTransport,
@@ -38,8 +38,8 @@ class Vue3AppMonitorClient extends BaseClient {
 
         const loadedTime = performance.now()
         const sendData: IBaseTransformedData<'performance', 'vue3_spa_page_load_time'> = {
-            type: 'performance',
-            eventName: 'vue3_spa_page_load_time',
+            eventTypeName: 'performance',
+            indicatorName: 'vue3_spa_page_load_time',
             deviceInfo: this.deviceInfo,
             userInfo: 'unknown',
             collectedData: {

@@ -25,4 +25,15 @@ export interface IDecryptConfig {
     SECRET_IV: string
 }
 
-export type EnvConfig = IDBConfig & IRedisConfig & IDecryptConfig
+export interface IWriteLogsBufferConfig {
+    TIME_INTERVAL_OF_WARITING_PERFORMANCE_LOGS: string
+    MAXSIZE_OF_PERFORMANCE_BUFFER: string
+
+    TIME_INTERVAL_OF_WARITING_ERROR_LOGS: string
+    MAXSIZE_OF_ERROR_BUFFER: string
+
+    TIME_INTERVAL_OF_WARITING_USERBEHAVIOR_LOGS: string
+    MAXSIZE_OF_USERBEHAVIOR_BUFFER: string
+}
+
+export type EnvConfig = IDBConfig & IRedisConfig & IDecryptConfig & IWriteLogsBufferConfig

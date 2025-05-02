@@ -3,83 +3,47 @@ import { DEFAULT_CLICK_COUNT_WHEN_TRANSPORT, DEFAULT_CLICK_ELEMENT_COUNT_WHEN_TR
 import { RequestBundlePriorityEnum } from "monitor-sdk/src/types";
 import { getCustomFunction, getUrlTimestamp } from "monitor-sdk/src/utils/common";
 import { isUndefined } from "monitor-sdk/src/utils/is";
-import { ClickElementTransportData, DefaultClickTransportData, IBaseClickElementInfo, IClickElementEventTarget, IDefaultClickInfo } from "./types/click";
+import {
+    ClickElementTransportData,
+    DefaultClickTransportData,
+    IBaseClickElementInfo,
+    IClickElementEventTarget,
+    IDefaultClickInfo
+} from "./types/click";
 
-const ClickPlugin: IBasePlugin<'userBehavior', 'click'> = {
-    type: 'userBehavior',
-    eventName: "click",
+const ClickPlugin: IBasePlugin<'userBehavior', 'compClick'> = {
+    eventTypeName: 'userBehavior',
+    indicatorName: 'compClick',
     monitor(client, notify) {
-        const getUserInfo = getCustomFunction('getUserInfo')
-        const userInfo = getUserInfo ? getUserInfo() : 'unknown'
-
         const {
-            isDefaultClickMonitorDisabled = false,
             customClickMonitorConfig,
             clickMonitorClassName = ""
         } = client.options.userInteractionMonitorConfig || {}
 
-        let defaultClickRecord: null | IDefaultClickInfo[] = isDefaultClickMonitorDisabled ? null : []
 
-        // 页面关闭前进行未上报数据缓存
-        const unloadHandler = (source: IDefaultClickInfo[] | IBaseClickElementInfo[] | null) => {
-            if (source && source.length) {
-                client.baseTransport.postMessageToWorkerThread({
-                    type: 'preLoadRequest',
-                    payload: {
-                        priority: RequestBundlePriorityEnum.USERBEHAVIOR,
-                        sendData: {
-                            type: 'userBehavior',
-                            eventName: 'click',
-                            userInfo,
-                            deviceInfo: client.deviceInfo,
-                            collectedData: {
-                                ...getUrlTimestamp(),
-                                data: clickElementRecord.slice()
-                            },
-                        }
-                    }
-                })
-            }
-        }
-        if (!isDefaultClickMonitorDisabled) {
-            // 点击任意地方, 获取坐标
-            const anywhereClickMonitor = (ev: MouseEvent) => {
-                // 没收集到足够的数据则暂时不上报
-                if (defaultClickRecord && defaultClickRecord?.length < DEFAULT_CLICK_COUNT_WHEN_TRANSPORT) {
-                    const { clientX, clientY } = ev
-                    defaultClickRecord.push({
-                        clientY,
-                        clientX
-                    })
-                }
-
-                // 收集量达标则上报
-                if (defaultClickRecord && defaultClickRecord?.length === DEFAULT_CLICK_COUNT_WHEN_TRANSPORT) {
-                    const originalData: DefaultClickTransportData = {
-                        ...getUrlTimestamp(),
-                        data: {
-                            clickRecord: defaultClickRecord.slice()
-                        }
-                    }
-                    notify('click', originalData)
-                    defaultClickRecord = []
-                }
-            }
-            client.eventBus.subscribe('onClick', anywhereClickMonitor)
-            window.addEventListener(
-                'beforeunload',
-                () => unloadHandler(defaultClickRecord),
-                { capture: true }
-            )
-        }
-
-        // 元素点击监听
         if (!clickMonitorClassName && (isUndefined(customClickMonitorConfig) || !customClickMonitorConfig.size)) return
 
         const customMonitorClassNames = Array.from((customClickMonitorConfig?.keys() || []))
         let clickElementRecord: IBaseClickElementInfo[] = []
         const filterSubClassNames = (classList: DOMTokenList) => {
             return customMonitorClassNames.filter((className) => classList.contains(className))
+        }
+
+        let notifyInterval: NodeJS.Timeout | null = null
+        let isReporting = false
+        const report = () => {
+            if (isReporting) return
+
+            isReporting = true
+            const originalData: ClickElementTransportData = {
+                ...getUrlTimestamp(),
+                data: {
+                    clickElementRecord: clickElementRecord.slice()
+                }
+            }
+            notify('compClick', originalData)
+            clickElementRecord = []
+            isReporting = false
         }
         const clickElementHander = (ev: MouseEvent) => {
             if (clickElementRecord.length < DEFAULT_CLICK_ELEMENT_COUNT_WHEN_TRANSPORT) {
@@ -110,21 +74,22 @@ const ClickPlugin: IBasePlugin<'userBehavior', 'click'> = {
                 clickElementRecord.push(clickElementInfo)
             }
 
+            // 收集满时自动触发上报
             if (clickElementRecord.length >= DEFAULT_CLICK_ELEMENT_COUNT_WHEN_TRANSPORT) {
-                const originalData: ClickElementTransportData = {
-                    ...getUrlTimestamp(),
-                    data: {
-                        clickElementRecord: clickElementRecord.slice()
-                    }
-                }
-                notify('click', originalData)
-                clickElementRecord = []
+                report()
             }
         }
+
         client.eventBus.subscribe('onClick', clickElementHander)
+
+        // 定时每30s自动上报
+        notifyInterval = setInterval(() => report(), 1000 * 30)
+
         window.addEventListener(
             'beforeunload',
-            () => unloadHandler(clickElementRecord),
+            async () => {
+                notifyInterval && clearInterval(notifyInterval)
+            },
             { capture: true }
         )
     },
@@ -132,8 +97,8 @@ const ClickPlugin: IBasePlugin<'userBehavior', 'click'> = {
         const getUserInfo = getCustomFunction('getUserInfo')
         const userInfo = getUserInfo ? getUserInfo() : 'unknown'
         return {
-            type: 'userBehavior',
-            eventName: 'click',
+            eventTypeName: 'userBehavior',
+            indicatorName: 'compClick',
             userInfo,
             deviceInfo: client.deviceInfo,
             collectedData: originalData,

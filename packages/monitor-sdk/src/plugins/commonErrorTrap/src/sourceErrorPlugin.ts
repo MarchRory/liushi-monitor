@@ -4,8 +4,8 @@ import { getCustomFunction, getUrlTimestamp } from "monitor-sdk/src/utils/common
 import { ISourceErrorTarget, SourceErrorTransportData } from "./types/error";
 
 const SourceErrorPlugin: IBasePlugin<'error', 'source_load_error'> = {
-    type: 'error',
-    eventName: 'source_load_error',
+    eventTypeName: 'error',
+    indicatorName: 'source_load_error',
     monitor(_, notify) {
         const sourceErrorHandler = (ev: WindowEventMap['error']) => {
             const { attributes, nodeName } = ev.target as ISourceErrorTarget
@@ -39,8 +39,8 @@ const SourceErrorPlugin: IBasePlugin<'error', 'source_load_error'> = {
         const getUserInfo = getCustomFunction('getUserInfo')
         const userInfo = getUserInfo ? getUserInfo() : 'unknown'
         return {
-            type: 'error',
-            eventName: 'source_load_error',
+            eventTypeName: 'error',
+            indicatorName: 'source_load_error',
             userInfo,
             deviceInfo: client.deviceInfo,
             collectedData: originalData,

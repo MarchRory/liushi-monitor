@@ -10,8 +10,8 @@ import { getUrlTimestamp } from "monitor-sdk/src/utils/common";
  * TODO: bug -> 改插件和xhr插件一起安装时，会导致transport重复载入请求数据
  */
 const FetchPlugin: IBasePlugin<'performance', 'http'> = {
-    type: 'performance',
-    eventName: 'http',
+    eventTypeName: 'performance',
+    indicatorName: 'http',
     monitor(_, notify) {
         if (!('fetch' in window)) {
             return
@@ -78,8 +78,8 @@ const FetchPlugin: IBasePlugin<'performance', 'http'> = {
     },
     dataTransformer(_, originalData) {
         return {
-            type: 'performance',
-            eventName: 'http',
+            eventTypeName: 'performance',
+            indicatorName: 'http',
             userInfo: "unknown",
             deviceInfo: 'unknown',
             collectedData: originalData,

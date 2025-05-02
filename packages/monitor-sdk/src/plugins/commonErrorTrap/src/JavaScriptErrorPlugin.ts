@@ -7,8 +7,8 @@ import { JsSyncErrorTransportData } from "./types/error";
  * 无法捕获异步错误
  */
 const JavaScriptErrorPlugin: IBasePlugin<'error', 'javaScript_sync_error'> = {
-    type: 'error',
-    eventName: 'javaScript_sync_error',
+    eventTypeName: 'error',
+    indicatorName: 'javaScript_sync_error',
     monitor(client, notify) {
         const jsSyncErrorHandler = (...args: Parameters<OnErrorEventHandlerNonNull>[]) => {
             const errorDetail: JsSyncErrorTransportData['data']['syncError'] = []
@@ -40,8 +40,8 @@ const JavaScriptErrorPlugin: IBasePlugin<'error', 'javaScript_sync_error'> = {
         const getUserInfo = getCustomFunction('getUserInfo')
         const userInfo = getUserInfo ? getUserInfo() : 'unknown'
         return {
-            type: 'error',
-            eventName: 'javaScript_sync_error',
+            eventTypeName: 'error',
+            indicatorName: 'javaScript_sync_error',
             userInfo,
             deviceInfo: client.deviceInfo,
             collectedData: originalData,

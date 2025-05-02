@@ -1,15 +1,15 @@
 import { IBasePlugin } from "monitor-sdk/src";
 import { RequestBundlePriorityEnum } from "monitor-sdk/src/types";
 import { aop } from "monitor-sdk/src/utils/aop";
-import { getUrlTimestamp } from "monitor-sdk/src/utils/common";
+import { getCustomFunction, getUrlTimestamp } from "monitor-sdk/src/utils/common";
 import { IHttpMemoryValue } from "./types/httpInfoMap";
 import { getCurrentTimeStamp } from "monitor-sdk/src/utils/time";
 import { isString, isURL } from "monitor-sdk/src/utils/is";
 
 
 const XHRPlugin: IBasePlugin<'performance', 'http'> = {
-    type: 'performance',
-    eventName: 'http',
+    eventTypeName: 'performance',
+    indicatorName: 'http',
     monitor(_, notify) {
         if (!('XMLHttpRequest' in window)) {
             return
@@ -58,9 +58,9 @@ const XHRPlugin: IBasePlugin<'performance', 'http'> = {
                                 responseType: responseType || 'json',
                                 interfaceUrl: responseURL,
                                 responseCode: resObj.code || null,
-                                spentTime: getCurrentTimeStamp() - startTime,
+                                value: getCurrentTimeStamp() - startTime,
                                 method,
-                                originRequestType
+                                // originRequestType
                             }
                         }
                         httpRequestInfoBucket.delete(responseURL)
@@ -74,12 +74,14 @@ const XHRPlugin: IBasePlugin<'performance', 'http'> = {
         }
         aop(XMLHttpRequest.prototype, 'send', xhrSendProxy)
     },
-    dataTransformer(_, originalData) {
+    dataTransformer(client, originalData) {
+        const getUserInfo = getCustomFunction('getUserInfo')
+        const userInfo = getUserInfo ? getUserInfo() : 'unknown'
         return {
-            type: 'performance',
-            eventName: 'http',
-            userInfo: "unknown",
-            deviceInfo: 'unknown',
+            eventTypeName: 'performance',
+            indicatorName: 'http',
+            userInfo,
+            deviceInfo: client.deviceInfo,
             collectedData: originalData,
         }
     },

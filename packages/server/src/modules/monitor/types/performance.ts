@@ -1,5 +1,12 @@
+import {
+    Performance as PerformanceModel,
+    HttpRequest as HttpRequestModel
+} from '.prisma/client'
+import { BaseLogIds } from './base'
+
 export type PerformanceEventTypes =
-    'first_screen_fp'
+    'first_screen_indicators'  // 无此指标, 仅为了适配前端发来的首屏打包数据
+    | 'first_screen_fp'
     | 'first_screen_fcp'
     | 'first_screen_lcp'
     | 'first_screen_ttfb'
@@ -11,6 +18,8 @@ export type PerformanceEventTypes =
 export type ICommomWebVitalsValue = {
     value: number
     rating: "good" | "needs-improvement" | "poor"
+    url: string
+    timestamp: number
 }
 
 export type IFcpData = ICommomWebVitalsValue & {
@@ -25,7 +34,7 @@ export type ILcpData = ICommomWebVitalsValue & {
     lcpResourceUrl?: string
     lcpResourceSize?: number
     elementRenderDelay?: number
-    element: string
+    element?: string
 }
 
 export type ITtfb = ICommomWebVitalsValue & {
@@ -51,7 +60,12 @@ export type IHttpReqIndicatorData = {
     responseType: string,
     interfaceUrl: string,
     responseCode: number,
-    spentTime: number,
+    value: number,
     method: string,
     originRequestType: "fetch" | "xhr"
 }
+
+
+export type TransformedPerformanceData =
+    Pick<PerformanceModel, 'value' | "rating" | 'detail'>
+    | Pick<HttpRequestModel, 'method' | "responseCode" | "responseType" | "value" | "interfaceUrl">

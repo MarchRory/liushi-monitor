@@ -3,8 +3,8 @@ import { IPluginTransportDataBaseInfo, RequestBundlePriorityEnum } from "monitor
 import { getCustomFunction, getUrlTimestamp } from "monitor-sdk/src/utils/common";
 
 const PvPlugin: IBasePlugin<'userBehavior', 'pv'> = {
-    type: 'userBehavior',
-    eventName: 'pv',
+    eventTypeName: 'userBehavior',
+    indicatorName: 'pv',
     monitor(client, notify) {
         client.eventBus.subscribe('onPushAndReplaceState', () => {
             const originalData: IPluginTransportDataBaseInfo<'pv'> = {
@@ -19,8 +19,8 @@ const PvPlugin: IBasePlugin<'userBehavior', 'pv'> = {
         const userInfo = getUserInfo ? getUserInfo() : 'unknown'
 
         return {
-            type: 'userBehavior',
-            eventName: 'pv',
+            eventTypeName: 'userBehavior',
+            indicatorName: 'pv',
             userInfo,
             deviceInfo: client.deviceInfo,
             collectedData: originalData,

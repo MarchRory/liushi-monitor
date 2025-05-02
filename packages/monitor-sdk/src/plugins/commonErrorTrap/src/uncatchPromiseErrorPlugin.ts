@@ -4,8 +4,8 @@ import { getCustomFunction, getUrlTimestamp } from "monitor-sdk/src/utils/common
 import { UnCatchPromiseErrorTransportData } from "./types/error";
 
 const UnCatchPromiseErrorPlugin: IBasePlugin<'error', 'uncatch_promise_error'> = {
-    type: 'error',
-    eventName: 'uncatch_promise_error',
+    eventTypeName: 'error',
+    indicatorName: 'uncatch_promise_error',
     monitor(_, notify) {
         window.addEventListener('unhandledrejection', (ev: PromiseRejectionEvent) => {
             const { reason } = ev
@@ -27,8 +27,8 @@ const UnCatchPromiseErrorPlugin: IBasePlugin<'error', 'uncatch_promise_error'> =
         const getUserInfo = getCustomFunction('getUserInfo')
         const userInfo = getUserInfo ? getUserInfo() : 'unknown'
         return {
-            type: 'error',
-            eventName: 'uncatch_promise_error',
+            eventTypeName: 'error',
+            indicatorName: 'uncatch_promise_error',
             userInfo,
             deviceInfo: client.deviceInfo,
             collectedData: originalData,

@@ -111,6 +111,10 @@ const refreshList = () => {
 const needReadAll = computed(() => {
   return EvaluationList.value.some((item) => !item.checked)
 })
+
+onMounted(() => {
+  $liushiMonitor.sendSpaLoadPerformance()
+})
 </script>
 
 <template>

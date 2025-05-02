@@ -3,7 +3,6 @@ import {
     IPreLoadParmas,
     ISDKRequestOption,
     MonitorTypes,
-    RequestBundlePriorityEnum,
     SendDataTextType
 } from "../types"
 import { IEncryptionConfig } from "../types/excryption"

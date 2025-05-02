@@ -21,8 +21,8 @@ import { CLSCapture } from './utils/capture';
  * @see https://web.dev/articles/vitals?hl=zh-cn
  */
 export const FirstScreenPerformanceInficatorsPlugin: IBasePlugin<'performance', 'first_screen_indicators' | 'inp'> = {
-    type: 'performance',
-    eventName: 'first_screen_indicators',
+    eventTypeName: 'performance',
+    indicatorName: 'first_screen_indicators',
     monitor(_, notify) {
         const firstScreenIndicatorsTotal = Object.keys(performanceEventMap.first_screen_indicators).length
         let hasRecordIndicatorsCnt = 0
@@ -40,7 +40,7 @@ export const FirstScreenPerformanceInficatorsPlugin: IBasePlugin<'performance', 
                     originalData['first_screen_fp'] = {
                         timestamp: getCurrentTimeStamp(),
                         url: getCurrentUrl(),
-                        indicatorData: {
+                        data: {
                             rating: '',
                             value: entry.startTime
                         }
@@ -58,16 +58,14 @@ export const FirstScreenPerformanceInficatorsPlugin: IBasePlugin<'performance', 
                 if (hasRecordIndicatorsCnt === firstScreenIndicatorsTotal) {
                     notify('first_screen_indicators', {
                         ...getUrlTimestamp(),
-                        data: {
-                            ...originalData
-                        }
+                        data: originalData
                     })
                     paintObserver?.disconnect()
                 }
             } else {
                 notify('inp', {
                     ...getUrlTimestamp(),
-                    data: { ...inpData }
+                    data: inpData
                 })
             }
         }
@@ -79,7 +77,6 @@ export const FirstScreenPerformanceInficatorsPlugin: IBasePlugin<'performance', 
         ) {
             setTimeout(() => {
                 const { attribution, value, rating, name } = metric
-                console.log(name, ': ', attribution, value, rating)
                 let isReportINP = false
 
                 const indicatorName = `first_screen_${name.toLowerCase()}` as keyof typeof performanceEventMap['first_screen_indicators']
@@ -88,7 +85,7 @@ export const FirstScreenPerformanceInficatorsPlugin: IBasePlugin<'performance', 
                     url: ('navigationEntry' in attribution) ? (attribution.navigationEntry?.name || getCurrentUrl()) : getCurrentUrl(),
                 }
                 let indicatorData: Record<string, any> = {
-                    value,
+                    value: +value.toFixed(),
                     rating,
                 }
                 switch (type) {
@@ -127,7 +124,7 @@ export const FirstScreenPerformanceInficatorsPlugin: IBasePlugin<'performance', 
                 }
 
                 if (type !== 'INP') {
-                    collectData['indicatorData'] = indicatorData
+                    collectData['data'] = indicatorData
                     originalData[indicatorName] = collectData
                     notifyHandler()
                 } else if (isReportINP) {
@@ -145,10 +142,9 @@ export const FirstScreenPerformanceInficatorsPlugin: IBasePlugin<'performance', 
     dataTransformer(client, originalData) {
         const getUserInfo = getCustomFunction('getUserInfo')
         const userInfo = getUserInfo ? getUserInfo() : 'unknown'
-
         return {
-            type: 'performance',
-            eventName: 'first_screen_indicators',
+            eventTypeName: 'performance',
+            indicatorName: 'first_screen_indicators',
             userInfo,
             deviceInfo: client.deviceInfo,
             collectedData: originalData,

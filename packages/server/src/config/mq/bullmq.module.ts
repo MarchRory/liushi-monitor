@@ -15,6 +15,8 @@ import { loadRedisConfig } from '../redis/config';
                     connection: redisConfig,
                     defaultJobOptions: {
                         attempts: 3,
+                        removeOnComplete: true,
+                        removeOnFail: { count: 500 }
                         // lockDuration: 60000  // 将锁的有效期设置为60秒
                     },
                 },);

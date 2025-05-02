@@ -1,9 +1,17 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Queue, Job, Worker } from 'bullmq';
-import { COUNT_OF_EXECS_TO_CONSUME_LOWER_PRIORITY_JOB, JOBS_BATCH_SIZE, MONITOR_QUEUE, MQ_JOB_TOKEN, RequestBundlePriorityEnum } from 'src/common/constant';
+import {
+    COUNT_OF_EXECS_TO_CONSUME_LOWER_PRIORITY_JOB,
+    JOBS_BATCH_SIZE,
+    MONITOR_QUEUE,
+    MQ_JOB_TOKEN,
+    REDIS_CLIENT,
+    RequestBundlePriorityEnum
+} from 'src/common/constant';
 import { MonitorService } from './monitor.service';
 import { DecryptionService } from 'src/config/decrypt/decrypt.service';
+import { Redis } from 'ioredis';
 
 
 @Injectable()
@@ -31,16 +39,27 @@ export class MonitorScheduler {
         RequestBundlePriorityEnum.USERBEHAVIOR
     ];
 
-    private readonly worker = new Worker(MONITOR_QUEUE)
+    private readonly worker: Worker
 
     constructor(
         @Inject(MONITOR_QUEUE) private readonly monitorQueue: Queue<string>,
+        @Inject(REDIS_CLIENT) private readonly redisClient: Redis,
         private readonly decryptService: DecryptionService,
         private readonly monitorService: MonitorService,
     ) {
-
+        // this.worker = new Worker(
+        //     MONITOR_MQ_WORKER,
+        //     async (job) => { },
+        //     {
+        //         connection: this.redisClient,
+        //     }
+        // )
     }
 
+    /**
+     * 定时记录监控数据
+     * @returns 
+     */
     @Cron(CronExpression.EVERY_5_SECONDS)
     async handleBatch() {
         this.execCount++;
@@ -101,9 +120,10 @@ export class MonitorScheduler {
                 if (!decryptedData) continue
 
                 await this.monitorService.saveLog(decryptedData);
-                await job.moveToCompleted('done', `${this.token}:${job.id}`);
+                // await job.moveToCompleted('done', `${this.token}:${job.id}`);
+                await job.remove()
             } catch (err) {
-                this.logger.error(`Failed to process job ${job.id}: ${err.message}`);
+                this.logger.error(`Failed to process job ${job.id}: ${err}`);
                 await job.moveToFailed(new Error(err), `${this.token}:${job.id}`);
             }
         }

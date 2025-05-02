@@ -1,5 +1,3 @@
-import { IPluginTransportDataBaseInfo } from "monitor-sdk/src/types"
-
 /**
  * Fmp得分记录
  */

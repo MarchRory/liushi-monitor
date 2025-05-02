@@ -11,5 +11,9 @@ declare module 'vue-router' {
          * @description 页面层级, 用于页面切换动画
          */
         index?: number
+        /**
+         * 是否页面组件
+         */
+        isPage: boolean
     }
 }

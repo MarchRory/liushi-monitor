@@ -20,8 +20,15 @@ export function filterVmCollectedInfo(err: unknown, instance: ComponentPublicIns
         props: { ...instance?.$props }
     }
 
+    let errInfo: Pick<Vue3ErrorTrapTransportData['data'], 'stack' | 'srcName'>
+    if (err instanceof Error) {
+        errInfo = { stack: err.stack || "", srcName: err.name }
+    } else {
+        errInfo = { srcName: errorComponentData.componentName, stack: "" }
+    }
+
     return {
-        err,
+        ...(errInfo || {}),
         info,
         errorComponentData
     }

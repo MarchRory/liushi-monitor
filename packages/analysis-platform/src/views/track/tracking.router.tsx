@@ -43,8 +43,8 @@ const userMgmtRoutes: RouteObject[] = [
         meta: {
           key: "/track/componentType",
           auth: IUserTypeEnum.ADMIN,
-          label: "监控组件大类",
-          title: "监控组件大类",
+          label: "业务组件大类",
+          title: "业务组件大类",
         },
       },
       {
@@ -53,8 +53,8 @@ const userMgmtRoutes: RouteObject[] = [
         meta: {
           key: "/track/component",
           auth: IUserTypeEnum.ADMIN,
-          label: "具体组件监控",
-          title: "具体组件监控",
+          label: "具体业务组件监控",
+          title: "具体业务组件监控",
         },
       },
     ],
