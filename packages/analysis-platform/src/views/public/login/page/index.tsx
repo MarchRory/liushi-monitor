@@ -6,6 +6,7 @@ import { ILoginForm } from "../../../../apis/user/types";
 import * as userApis from "../../../../apis/user/index";
 import useUserStore from "../../../../store/user";
 import { getHomePath } from "../../../../utils/navigate";
+import useEventAndIndicatorsStore from "../../../../store/eventTypeAndIndicators";
 
 const LoginPage: React.FC = () => {
   const { setUserInfo } = useUserStore((state) => ({

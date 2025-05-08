@@ -6,7 +6,7 @@ import { Form, Input, Switch, TableColumnType, Tag } from "antd";
 import { useCommonForm } from "../../components/form";
 import { CommonForm, FormItemConfig } from "../../components/form/commonForm";
 import { ICompType, ICompTypeListItem } from "../../apis/track/types";
-import { DefaultIndicatorNap } from "../../types/common";
+import { DefaultIndicatorMap } from "../../types/common";
 
 const columns: TableColumnType<ICompTypeListItem>[] = [
   {
@@ -30,7 +30,7 @@ const columns: TableColumnType<ICompTypeListItem>[] = [
     align: "center",
     render: (value: ICompTypeListItem["isDefault"]) => {
       const boolNumber = BooleanToNumber(value);
-      const config = DefaultIndicatorNap[boolNumber];
+      const config = DefaultIndicatorMap[boolNumber];
       return <Tag color={config.tagColor}>{config.text}</Tag>;
     },
   },
@@ -39,7 +39,7 @@ const columns: TableColumnType<ICompTypeListItem>[] = [
 const formItems: FormItemConfig<ICompType>[] = [
   {
     name: "componentTypeName",
-    label: "监控事件大类(英文)",
+    label: "监控组件大类(英文)",
     rules: [{ required: true }],
     component: () => <Input placeholder="请输入英文, 便于配置" />,
   },
@@ -53,7 +53,7 @@ const formItems: FormItemConfig<ICompType>[] = [
     name: "isDefault",
     label: "是否SDK默认",
     rules: [],
-    component: () => <Switch defaultChecked disabled />,
+    component: () => <Switch disabled />,
   },
 ];
 

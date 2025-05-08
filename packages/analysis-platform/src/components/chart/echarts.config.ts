@@ -1,4 +1,5 @@
 import * as echarts from 'echarts/core';
+import { DataZoomComponent } from 'echarts/components';
 import {
     BarChart,
     LineChart
@@ -69,7 +70,8 @@ echarts.use([
     LineChart,
     LabelLayout,
     UniversalTransition,
-    CanvasRenderer
+    CanvasRenderer,
+    DataZoomComponent
 ]);
 
 export const echartsCore = echarts

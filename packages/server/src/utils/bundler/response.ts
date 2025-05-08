@@ -8,7 +8,7 @@ export function listBundler(total: number, list: any[]) {
     }
 }
 
-export function responseBundler(code: ResponseCode, data?: Object | null, messageText?: string): IResponseModel {
+export function responseBundler(code: ResponseCode, data?: Object | string | null, messageText?: string): IResponseModel {
     // const transformedData = data ? transformCamelToKebab(data) : null
     return {
         code,

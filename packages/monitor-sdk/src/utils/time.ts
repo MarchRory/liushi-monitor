@@ -3,7 +3,7 @@
  * @returns 时间戳
  */
 export function getCurrentTimeStamp() {
-    return new Date().getTime()
+    return new Date().toISOString()
 }
 
 /**

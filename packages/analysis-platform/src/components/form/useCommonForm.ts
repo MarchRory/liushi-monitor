@@ -54,8 +54,8 @@ export function useCommonForm<T extends Object>({
         try {
             setModalLoading(true)
             if (formType === 'update' && typeof id === 'number' && getItemApi) {
-                const { code, data } = await getItemApi(id)
                 setId(id)
+                const { code, data } = await getItemApi(id)
                 setTimeout(() => {
                     code === IResponseCodeEnum.SUCCESS && formInstance.setFieldsValue(data)
                 })

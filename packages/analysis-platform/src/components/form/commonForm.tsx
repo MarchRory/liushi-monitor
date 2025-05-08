@@ -61,6 +61,7 @@ export function CommonForm<T extends Object>({
               key={index}
               name={item.name}
               label={item.label}
+              hidden={typeof item.hidden === "undefined" ? false : item.hidden}
               rules={item.rules || []}
             >
               {item.component()}

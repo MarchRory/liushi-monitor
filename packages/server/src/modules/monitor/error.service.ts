@@ -1,16 +1,19 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { Error as ErrorModel, Producer as ProducerModel } from '.prisma/client'
+import {
+    Error as ErrorModel,
+    Producer as ProducerModel,
+    Prisma
+} from '.prisma/client'
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import { BaseIndicatorTypes, TransformedErrorData } from './types';
 import { TransformedLogData } from './transformer';
 import { LogProcessor } from './processor/log.processor';
-import { UN_SIT_NUMBER_VALUE } from 'src/common/constant';
 import { ConfigService } from '@nestjs/config';
 import { IWriteLogsBufferConfig } from 'src/types/envConfig';
 
 type SavedLogsWithProducer = {
     producer: Omit<ProducerModel, 'id'>[]
-    logs: Omit<ErrorModel, 'id'>[]
+    logs: Omit<ErrorModel, 'id' | "responsiblePersonId">[]
 }
 
 @Injectable()
@@ -61,20 +64,33 @@ export class ErrorService implements OnModuleInit {
                 timestamp: item.timestamp as unknown as Date,
                 producerId: item.userInfo.userId,
                 isDeleted: false,
-                responsiblePersonId: UN_SIT_NUMBER_VALUE,
                 isFixed: false,
                 ...(item.collectedData as TransformedErrorData)
             })
         })
 
-        await prisma.$transaction(async (client) => {
-            await client.producer.createMany({
-                data: waitingToSaveData.producer,
-                skipDuplicates: true
-            })
+        prisma.$transaction(async (client) => {
+            let retryCnt = 0
+            while (retryCnt < 5) {
+                try {
+                    await client.producer.createMany({
+                        data: waitingToSaveData.producer,
+                        skipDuplicates: true
+                    })
+                    break
+                } catch (error) {
+                    if (error.code === 'P2034') {
+                        retryCnt++
+                        continue
+                    }
+                    throw error
+                }
+            }
             await client.error.createMany({
                 data: waitingToSaveData.logs
             })
+        }, {
+            isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
         })
     }
 }

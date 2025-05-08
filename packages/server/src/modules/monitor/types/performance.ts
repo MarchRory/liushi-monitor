@@ -2,7 +2,6 @@ import {
     Performance as PerformanceModel,
     HttpRequest as HttpRequestModel
 } from '.prisma/client'
-import { BaseLogIds } from './base'
 
 export type PerformanceEventTypes =
     'first_screen_indicators'  // 无此指标, 仅为了适配前端发来的首屏打包数据

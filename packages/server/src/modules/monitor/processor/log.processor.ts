@@ -77,7 +77,7 @@ export class LogProcessor<T, K extends string> implements OnModuleInit, OnModule
 
         // 添加日志
         this.logBuffer[indicator].push(log);
-        this.logger.debug(`${indicator} 日志添加成功`)
+        this.logger.debug(`${indicator} 日志暂存成功`)
 
         // 如果达到阈值，触发刷新
         if (this.logBuffer[indicator].length >= this.maxBufferSize) {

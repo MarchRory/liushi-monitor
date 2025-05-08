@@ -1,3 +1,3 @@
 export function getCurrentUrl() {
-    return location.href
+    return location.pathname === '/' ? location.hash.split('?')[0] : location.pathname
 }

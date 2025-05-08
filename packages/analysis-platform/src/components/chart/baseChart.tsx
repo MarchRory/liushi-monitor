@@ -167,7 +167,7 @@ const CommonChart: React.FC<ICommonChartProps> = ({
 
   return (
     <div
-      className={`react-echarts-container ${className}`}
+      className={`${className}`}
       style={{
         position: "relative",
         width: "100%",
@@ -189,7 +189,7 @@ const CommonChart: React.FC<ICommonChartProps> = ({
       )}
       <div
         ref={chartRef}
-        className="react-echarts"
+        className=""
         style={{ width: "100%", height: "100%" }}
       />
     </div>

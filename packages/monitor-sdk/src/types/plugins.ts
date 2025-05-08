@@ -51,7 +51,7 @@ type NotNeedDataEventType = 'pv' | 'uv'
 export type IPluginTransportDataBaseInfo<E extends BaseEventTypes = BaseEventTypes, T extends Record<string, any> = Record<string, any>>
     = {
         url: string
-        timestamp: number
+        timestamp: string
         data: (E extends NotNeedDataEventType
             ? null
             : (

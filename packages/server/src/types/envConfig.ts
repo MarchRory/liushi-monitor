@@ -36,4 +36,8 @@ export interface IWriteLogsBufferConfig {
     MAXSIZE_OF_USERBEHAVIOR_BUFFER: string
 }
 
-export type EnvConfig = IDBConfig & IRedisConfig & IDecryptConfig & IWriteLogsBufferConfig
+export interface IUploadEnvConfig {
+    SAVE_PATH: string
+}
+
+export type EnvConfig = IDBConfig & IRedisConfig & IDecryptConfig & IWriteLogsBufferConfig & IUploadEnvConfig

@@ -25,7 +25,7 @@ const XHRPlugin: IBasePlugin<'performance', 'http'> = {
                     requestMemoryInfo: {
                         method,
                         originRequestType: 'xhr',
-                        startTime: getCurrentTimeStamp()
+                        startTime: new Date(getCurrentTimeStamp()).getTime()
                     },
                 }
 
@@ -56,9 +56,9 @@ const XHRPlugin: IBasePlugin<'performance', 'http'> = {
                             ...getUrlTimestamp(),
                             data: {
                                 responseType: responseType || 'json',
-                                interfaceUrl: responseURL,
-                                responseCode: resObj.code || null,
-                                value: getCurrentTimeStamp() - startTime,
+                                interfaceUrl: new URL(responseURL).pathname,
+                                responseCode: resObj.code || resObj.status || null,
+                                value: new Date(getCurrentTimeStamp()).getTime() - startTime,
                                 method,
                                 // originRequestType
                             }

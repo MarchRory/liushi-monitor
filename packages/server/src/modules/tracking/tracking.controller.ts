@@ -16,11 +16,6 @@ export class TrackingController {
     private readonly trackingService: TrackingService,
   ) { }
 
-  @Post()
-  RecevieLog(@Body() dto) {
-
-  }
-
   /***************************** 监控事件大类CRUD ********************************/
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('event')

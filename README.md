@@ -22,3 +22,9 @@ pnpm run dev:serevr
 # 运行分析平台
 pnpm run dev:platform
 ```
+
+# 自定义用户行为收集的事件命名规范参考
+
+适用于监控组件中的自定义埋点
+
+参见: [产品分析的简单事件命名约定](https://www.wudpecker.io/blog/simple-event-naming-conventions-for-product-analytics?utm_source=chatgpt.com)

@@ -9,7 +9,7 @@ import {
 } from "antd";
 import React, { useCallback, useEffect, useState } from "react";
 import * as trackingApis from "../../apis/track";
-import { DefaultIndicatorNap } from "../../types/common";
+import { DefaultIndicatorMap } from "../../types/common";
 import { BooleanToNumber } from "../../utils/transformer";
 import { CommonForm, FormItemConfig } from "../../components/form/commonForm";
 import { CommonTable, useTable } from "../../components/table";
@@ -40,7 +40,7 @@ const columns: TableColumnType<ICompListItem>[] = [
     align: "center",
     render: (value: ICompListItem["isDefault"]) => {
       const boolNumber = BooleanToNumber(value);
-      const config = DefaultIndicatorNap[boolNumber];
+      const config = DefaultIndicatorMap[boolNumber];
       return <Tag color={config.tagColor}>{config.text}</Tag>;
     },
   },
@@ -73,7 +73,7 @@ const formItems: (
     name: "isDefault",
     label: "是否SDK默认",
     rules: [],
-    component: () => <Switch defaultChecked disabled />,
+    component: () => <Switch disabled />,
   },
 ];
 

@@ -7,7 +7,7 @@ export interface IBaseMainDataInfo extends IBaseDataInfo {
 }
 
 type IDefaultIndicatorConfig = Record<0 | 1, { text: string, tagColor: string }>
-export const DefaultIndicatorNap: IDefaultIndicatorConfig = {
+export const DefaultIndicatorMap: IDefaultIndicatorConfig = {
     [1]: {
         text: 'SDK默认',
         tagColor: "purple"

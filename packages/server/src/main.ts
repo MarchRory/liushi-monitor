@@ -12,9 +12,13 @@ async function bootstrap() {
       cert: fs.readFileSync('../cert/localhost+2.pem')
     },
     cors: {
-      origin: [/^https|http?:\/\/localhost:\d+$/], // 前端开发环境
+      origin: [
+        /^https?:\/\/(?:localhost|192\.168(?:\.\d{1,3}){2}):\d+$/, // 前端开发环境-PC
+        // /^http:\/\/(?:localhost|169\.254\.\d{1,3}\.\d{1,3}):\d{1,5}\/$/ // 前端开发环境-局域网wifi真机调试
+      ],
+      // origin: "*",
       credentials: true,
-      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
       allowedHeaders: 'Content-Type, Accept, Authorization',
     }
   });

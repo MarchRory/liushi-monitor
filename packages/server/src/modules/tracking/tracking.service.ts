@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { TrackEventType, TrackIndicator } from '.prisma/client'
+import {
+    TrackEventType,
+    TrackIndicator,
+    TrackComponentType,
+    TrackComponent
+} from '.prisma/client'
 import { FindListBaseDto } from 'src/common/dtos/find-list';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import { EventItemEntity } from './entities/event.entity';
@@ -9,7 +14,7 @@ import { CreateEventDto, UpdateEventDto } from './dto/event.dto';
 import { CreateIndicatorDto, FindIndicatorListDto, UpdateIndicatorDto, } from './dto/indicator.dto'
 import { IndicatorItemEntity } from './entities/indicator.entity';
 import { RedisService } from 'src/config/redis/redis.service';
-import { COMPTYPE_MAP_CACHE, EVENTTYPE_MAP_CACHE, INDICATOR_MAP_CACHE, SEARCH_ALL_VALUE } from 'src/common/constant';
+import { COMPTYPE_MAP_CACHE, COMP_MAP_CACHE, EVENTTYPE_MAP_CACHE, INDICATOR_MAP_CACHE, SEARCH_ALL_VALUE } from 'src/common/constant';
 import { CreateComponentTypeDto, UpdateComponentTypeDto } from './dto/component-type.dto'
 import { ComponentTypeEntity } from './entities/component-type.entity';
 import { CreateComponentDto, FindComponentListDto, UpdateComponentDto } from './dto/component.dto';
@@ -78,16 +83,38 @@ export class TrackingService {
                 },
                 skip: 0,
                 take: 20,
-                select: { componentTypeCn: true, id: true }
+                select: { componentTypeCn: true, id: true, componentTypeName: true }
             })
-            for (const { id, componentTypeCn } of compTypeList) {
-                componentTypeMap[id] = componentTypeCn
+            for (const { id, componentTypeCn, componentTypeName } of compTypeList) {
+                componentTypeMap[id] = { componentTypeCn, componentTypeName }
             }
             this.redisService.set(COMPTYPE_MAP_CACHE, JSON.stringify(componentTypeMap))
         } else {
             componentTypeMap = JSON.parse(componentTypeMap)
         }
-        return componentTypeMap as unknown as Record<number, string>
+        return componentTypeMap as unknown as Record<number, Pick<TrackComponentType, 'componentTypeCn' | "componentTypeName">>
+    }
+
+    async getComponentMapCache() {
+        let componentTypeMap: string | null | object = await this.redisService.get(COMP_MAP_CACHE)
+        if (!componentTypeMap) {
+            componentTypeMap = {}
+            const compTypeList = await this.prismaService.trackComponent.findMany({
+                where: {
+                    isDeleted: false
+                },
+                skip: 0,
+                take: 200,
+                select: { componentCn: true, id: true, componentName: true }
+            })
+            for (const { id, componentCn, componentName } of compTypeList) {
+                componentTypeMap[id] = { componentCn, componentName }
+            }
+            this.redisService.set(COMP_MAP_CACHE, JSON.stringify(componentTypeMap))
+        } else {
+            componentTypeMap = JSON.parse(componentTypeMap)
+        }
+        return componentTypeMap as unknown as Record<number, Pick<TrackComponent, 'componentCn' | "componentName">>
     }
 
     /******************************** 监控事件大类CRUD ***********************************/
@@ -417,12 +444,18 @@ export class TrackingService {
     }
 
     async createCommonType(dto: CreateComponentTypeDto) {
-        await this.prismaService.trackComponentType.create({
+        const { id } = await this.prismaService.trackComponentType.create({
             data: {
                 ...dto,
                 isDeleted: false
             }
         })
+        const compTypeMap = await this.getComponentTypeMapCache()
+        compTypeMap[id] = {
+            componentTypeName: dto.componentTypeName,
+            componentTypeCn: dto.componentTypeCn
+        }
+        await this.redisService.set(COMPTYPE_MAP_CACHE, JSON.stringify(compTypeMap))
         return responseBundler(ResponseCode.SUCCESS)
     }
 
@@ -434,11 +467,12 @@ export class TrackingService {
             data: dto
         })
 
-        const compTypeMapCache = await this.getComponentTypeMapCache()
-        if (compTypeMapCache[dto.id] !== dto.componentTypeCn) {
-            compTypeMapCache[dto.id] = dto.componentTypeCn
-            await this.redisService.set(COMPTYPE_MAP_CACHE, JSON.stringify(compTypeMapCache))
+        const compTypeMap = await this.getComponentTypeMapCache()
+        compTypeMap[dto.id] = {
+            componentTypeName: dto.componentTypeName,
+            componentTypeCn: dto.componentTypeCn
         }
+        await this.redisService.set(COMPTYPE_MAP_CACHE, JSON.stringify(compTypeMap))
 
         return responseBundler(ResponseCode.SUCCESS)
     }
@@ -534,12 +568,18 @@ export class TrackingService {
     }
 
     async createComponent(dto: CreateComponentDto) {
-        await this.prismaService.trackComponent.create({
+        const { id } = await this.prismaService.trackComponent.create({
             data: {
                 ...dto,
                 isDeleted: false
             }
         })
+        const compMap = await this.getComponentMapCache()
+        compMap[id] = {
+            componentName: dto.componentName,
+            componentCn: dto.componentCn
+        }
+        await this.redisService.set(COMP_MAP_CACHE, JSON.stringify(compMap))
         return responseBundler(ResponseCode.SUCCESS)
     }
 
@@ -550,6 +590,12 @@ export class TrackingService {
             },
             data: dto
         })
+        const compMap = await this.getComponentMapCache()
+        compMap[dto.id] = {
+            componentName: dto.componentName,
+            componentCn: dto.componentCn
+        }
+        await this.redisService.set(COMP_MAP_CACHE, JSON.stringify(compMap))
         return responseBundler(ResponseCode.SUCCESS)
     }
 
@@ -562,6 +608,10 @@ export class TrackingService {
         })
         if (!comp) return responseBundler(
             ResponseCode.DB_ERROR, null, "待删除的组件不存在")
+
+        const compMapCache = await this.getComponentMapCache();
+        delete compMapCache[id];
+        await this.redisService.set(COMP_MAP_CACHE, JSON.stringify(compMapCache));
         return this.updateComponent({ ...comp, isDeleted: true })
     }
     /***************************** 监控具体业务组件CRUD ********************************/

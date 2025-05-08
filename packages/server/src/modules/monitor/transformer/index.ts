@@ -3,6 +3,7 @@ import { BaseEventTypes, BaseIndicatorTypes, IBaseTransformedData, ICollectedUse
 import performanceLogTransformer from './performance'
 import errorLogTransformer from './error'
 import userbehaviorTransformer from './userbehavior'
+import { } from '../../../utils/common/time'
 import { UN_SIT_NUMBER_VALUE } from 'src/common/constant'
 
 interface ITransformedLog {
@@ -23,7 +24,8 @@ export function logTransformer(originLogs: IBaseTransformedData[]): TransformedL
     for (const originLog of originLogs) {
         const { eventTypeName, indicatorName, deviceInfo, userInfo } = originLog
         const { data = {}, url, timestamp } = originLog.collectedData
-        if (userInfo && typeof userInfo === 'string') {
+        // @ts-ignore
+        if (userInfo && (typeof userInfo === 'string' || !userInfo.userId)) {
             originLog['userInfo'] = {
                 userId: UN_SIT_NUMBER_VALUE,
                 sex: UN_SIT_NUMBER_VALUE,
@@ -72,15 +74,26 @@ export function logTransformer(originLogs: IBaseTransformedData[]): TransformedL
                 })
             }
         } else if (eventTypeName === 'userBehavior') {
-            const res = userbehaviorTransformer(indicatorName as UserBehaviorEventTypes, data)
-            res.forEach((collectedData) => {
+            if (['pv', 'uv'].includes(indicatorName)) {
                 transformedData.push({
                     ...(originLog as unknown as TransformedLogData),
-                    url,
-                    timestamp: new Date(timestamp),
-                    collectedData
+                    collectedData: {
+                        url,
+                        timestamp: new Date(timestamp).toISOString(),
+                    }
                 })
-            })
+            } else {
+                const res = userbehaviorTransformer(indicatorName as UserBehaviorEventTypes, data)
+                res.forEach((collectedData) => {
+                    transformedData.push({
+                        ...(originLog as unknown as TransformedLogData),
+                        url,
+                        timestamp: new Date(timestamp),
+                        collectedData
+                    })
+                })
+            }
+
         }
     }
 

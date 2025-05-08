@@ -6,7 +6,8 @@ import { TransformedLogData } from './transformer';
 import {
     Performance as PerformanceModel,
     Producer as ProducerModel,
-    HttpRequest as HttpRequestModel
+    HttpRequest as HttpRequestModel,
+    Prisma
 } from '.prisma/client';
 import { PrismaTransactionClient } from 'src/types/prisma';
 import { ConfigService } from '@nestjs/config';
@@ -74,11 +75,24 @@ export class PerformanceService implements OnModuleInit {
                 ...(item.collectedData as Pick<PerformanceModel, 'rating' | "detail" | "value">)
             })
         })
-        await prisma.$transaction(async (client) => {
-            await client.producer.createMany({
-                data: waitingToSaveData.producer,
-                skipDuplicates: true
-            })
+        prisma.$transaction(async (client) => {
+            let retryCnt = 0
+            while (retryCnt < 5) {
+                try {
+                    await client.producer.createMany({
+                        data: waitingToSaveData.producer,
+                        skipDuplicates: true
+                    })
+                    break
+                } catch (error) {
+                    if (error.code === 'P2034') {
+                        retryCnt++
+                        continue
+                    }
+                    throw error
+                }
+            }
+
             switch (indicator) {
                 case 'http':
                     await this.saveHttpLog(waitingToSaveData.logs, client)
@@ -96,6 +110,8 @@ export class PerformanceService implements OnModuleInit {
                     break;
             }
             producerSet.clear()
+        }, {
+            isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
         })
     }
     private async saveHttpLog(savedDatas: SavedLogsWithProducer['logs'], client: PrismaTransactionClient) {

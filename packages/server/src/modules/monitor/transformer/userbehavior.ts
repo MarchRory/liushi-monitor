@@ -11,15 +11,16 @@ import {
 
 function clickLogTransformer(
     origin: IBaseClickElementInfo[]
-): Pick<InteractionModel, 'contactPoint' | "nodeName" | "featureInfo" | "componentTypeId">[] {
+): Pick<InteractionModel, 'pageX' | "pageY" | "nodeName" | "featureInfo" | "componentTypeId">[] {
     return origin.map((item) => ({
-        contactPoint: JSON.stringify({ clientX: item.clientX, clicntY: item.clientY }),
+        pageX: item.pageX,
+        pageY: item.pageY,
         nodeName: item.nodeName || '',
-        componentTypeId: item?.componentTypeId || '',
+        componentTypeId: item?.componentTypeId ? item?.componentTypeId : null,
         featureInfo: JSON.stringify({
             innerText: item.innerText || "",
             targetClassList: item.targetClassList || ''
-        })
+        }),
     }))
 }
 
@@ -27,8 +28,8 @@ function pageExposureLogTransformer(
     origin: IBaseBreadCrumbItem[]
 ) {
     return origin.map((item) => ({
-        page_exposure: item.page_exposure,
-        stack: item.stack,
+        value: item.page_exposure,
+        stack: item.stack.join('->'),
         url: item.url
     }))
 }
@@ -43,9 +44,7 @@ export default function (
 ): TransformedBehaviorData[] {
     if (originCollectedData === null) return []
 
-    if (['pv', 'uv'].includes(indicatorName)) {
-        return []
-    } else if (indicatorName === 'click') {
+    if (['compClick', 'defaultClick'].includes(indicatorName)) {
         return clickLogTransformer(originCollectedData as IBaseClickElementInfo[])
     } else if (indicatorName === 'page_exposure') {
         return pageExposureLogTransformer(originCollectedData as IBaseBreadCrumbItem[])

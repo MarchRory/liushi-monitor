@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { BullmqModule } from 'src/config/mq/bullmq.module';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule } from '@nestjs/config'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TrackingModule } from './modules/tracking/tracking.module';
@@ -15,6 +16,10 @@ import { JwtStrategy } from './shared/strategies/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { MonitorModule } from './modules/monitor/monitor.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AnalysisModule } from './modules/analysis/analysis.module';
+import { join } from 'node:path';
+import { UploadModule } from './modules/upload/upload.module';
+import { HeatMapModule } from './modules/heat-map/heat-map.module';
 
 @Module({
   imports: [
@@ -27,12 +32,27 @@ import { ScheduleModule } from '@nestjs/schedule';
     JwtModule.register(
       JWT_CONFIG
     ),
+    ServeStaticModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const savePath = (configService.get<string>('SAVE_PATH')?.split('/') || [])
+        const rootPath = join(__dirname, '..', ...savePath)
+        return [{
+          rootPath,
+          serveRoot: '/pics',
+        }];
+      },
+    }),
     RedisModule,
     ScheduleModule.forRoot(),
     MonitorModule,
     TrackingModule,
     AuthModule,
-    UserModule
+    UserModule,
+    AnalysisModule,
+    UploadModule,
+    HeatMapModule
   ],
   controllers: [
     AppController

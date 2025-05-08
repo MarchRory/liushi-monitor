@@ -6,7 +6,7 @@ import {
     IBaseTransformedData
 } from '../types'
 import { RequestBundlePriorityEnum } from '../types/transport'
-import { debounce, getUrlTimestamp } from '../utils/common'
+import { debounce, getCustomFunction, getUrlTimestamp } from '../utils/common'
 import { Stack } from '../utils/dataStructure'
 import { isNull, isUndefined } from '../utils/is'
 import { getCurrentTimeStamp } from '../utils/time'
@@ -19,8 +19,13 @@ export abstract class BaseBreadCrumb {
     private breadStack: Stack<IBaseBreadCrumbItem>
     private ignoredUrls: Set<string>
     private tabbarUrls: Set<string>
-    private readonly baseTransport: BaseTransport // 数据传输中心实例的引用
+    readonly baseTransport: BaseTransport // 数据传输中心实例的引用
     private readonly temporaryBreadItemLimit = DEFAULT_TEMPORARY_BREADITEM_LIMIT
+    /**
+     * 自动上报定时器
+     */
+    private reportInterval: NodeJS.Timeout
+    private isReporting = false
     private readonly sendDataTemporaryPool: IBaseBreadCrumbItem[] = []
     readonly debouncedPushRecord
     readonly debouncedPopRecord
@@ -40,6 +45,7 @@ export abstract class BaseBreadCrumb {
         this.initBrowserUnloadListener()
         this.debouncedPushRecord = debounce((...args: Parameters<typeof this.pushRecord>) => this.pushRecord(...args))
         this.debouncedPopRecord = debounce((...args: Parameters<typeof this.popRecord>) => this.popRecord(...args))
+        this.reportInterval = setInterval(() => this.reportRecord(), 1000 * 10) // 每45秒自动触发一次上报
     }
     /**
      * 各端实现, 用于配置不同端上的页面路径信息收集逻辑
@@ -56,10 +62,9 @@ export abstract class BaseBreadCrumb {
         const { from } = routeInfo
 
         const lastestRecord = this.readLastestItem()
-        const enter_time = getCurrentTimeStamp()
+        const enter_time = performance.now()
 
         // 兼容tabbar界面
-        // const stack = !lastestRecord ? [from] : [...lastestRecord.stack, from]
         const prePathRecord = lastestRecord ? lastestRecord.stack[lastestRecord.stack.length - 1] : null // 路径栈中, 当前栈顶页面路径
         let stack: string[] = []
         if (isNull(prePathRecord) || this.bothTabbarPaths([prePathRecord, from])) {
@@ -69,14 +74,13 @@ export abstract class BaseBreadCrumb {
         }
 
         const data: IBaseBreadCrumbItem = {
-            url: from,
+            url: '#' + from,
             enter_time,
             leave_time: -1, // 未退出页面标记
             page_exposure: 0, // 初始化
             stack
         }
-
-        this.pushImmediately(data)
+        this.breadStack.push(data)
     }
     /**
      * 退出当前页面时, 数据处理和上报流程
@@ -90,10 +94,10 @@ export abstract class BaseBreadCrumb {
         // 合并当前页面的向后访问路径记录到上一页面的访问栈中
         const newLastestRecord = this.readLastestItem()
 
-        lastestRecord.leave_time = getCurrentTimeStamp()
+        lastestRecord.leave_time = performance.now()
         const { to } = routeInfo
         Promise.resolve().then(() => {
-            lastestRecord.stack.push(to)
+            lastestRecord.stack.push('#' + to)
             if (newLastestRecord && newLastestRecord.stack.length) {
                 newLastestRecord.stack.push(...lastestRecord.stack.slice(1))
             }
@@ -102,36 +106,39 @@ export abstract class BaseBreadCrumb {
                 this.sendDataTemporaryPool.push(lastestRecord)
             }
             if (this.sendDataTemporaryPool.length < this.temporaryBreadItemLimit) return
-
             // 新数据记录后达到容量, 启动上报
-            let sendData: IBaseTransformedData<'userBehavior', 'page_exposure'> = {
-                eventTypeName: 'userBehavior',
-                indicatorName: 'page_exposure',
-                userInfo: "unknown",
-                deviceInfo: "unknown",
-                collectedData: {
-                    ...getUrlTimestamp(),
-                    data: this.sendDataTemporaryPool.slice()
-                }
-            }
-            this.baseTransport.preLoadRequest({
-                sendData,
-                priority: RequestBundlePriorityEnum.USERBEHAVIOR,
-            })
+            this.reportRecord()
         })
+    }
+    /**
+     * 路径栈上报
+     */
+    private reportRecord() {
+        if (this.isReporting || this.sendDataTemporaryPool.length === 0) return
+
+        this.isReporting = true
+        const getUserInfo = getCustomFunction('getUserInfo')
+        const userInfo = getUserInfo ? getUserInfo() : 'unknown'
+        let sendData: IBaseTransformedData<'userBehavior', 'page_exposure'> = {
+            eventTypeName: 'userBehavior',
+            indicatorName: 'page_exposure',
+            userInfo,
+            deviceInfo: "unknown",
+            collectedData: {
+                ...getUrlTimestamp(),
+                data: this.sendDataTemporaryPool.slice()
+            }
+        }
+        this.sendDataTemporaryPool.length = 0
+        this.baseTransport.preLoadRequest({
+            sendData,
+            priority: RequestBundlePriorityEnum.USERBEHAVIOR,
+        })
+        this.isReporting = false
+
     }
     clearRecord() {
         this.breadStack.clear()
-    }
-    /**
-     * 推送流程
-     * @param data 处理之后的breadCrumbItem
-     */
-    private pushImmediately(data: IBaseBreadCrumbItem) {
-        /**
-         *  TODO: maybe 一些其他逻辑
-         */
-        this.breadStack.push(data)
     }
     /**
      * 页面卸载监听器, 补全并消费未上报的内容
@@ -157,7 +164,7 @@ export abstract class BaseBreadCrumb {
     private hasIgnoredPath(paths: string[]) {
         return paths.some(path => this.ignoredUrls.has(path))
     }
-    private bothTabbarPaths(paths: string[]) {
+    bothTabbarPaths(paths: string[]) {
         return paths.every(path => this.tabbarUrls.has(path))
     }
     /**

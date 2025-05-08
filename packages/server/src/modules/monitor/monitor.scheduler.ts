@@ -124,7 +124,8 @@ export class MonitorScheduler {
                 await job.remove()
             } catch (err) {
                 this.logger.error(`Failed to process job ${job.id}: ${err}`);
-                await job.moveToFailed(new Error(err), `${this.token}:${job.id}`);
+                await job.remove()
+                // await job.moveToFailed(new Error(err), `${this.token}:${job.id}`);
             }
         }
     }

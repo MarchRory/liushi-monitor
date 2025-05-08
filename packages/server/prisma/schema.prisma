@@ -43,7 +43,6 @@ model Producer {
 
   performances        Performance[] @relation("fk_performance_p_id")
   views               Views[]       @relation("fk_views_p_id")
-  pathStacks          PathStack[]   @relation("fk_ps_p_id")
   interactions        Interaction[] @relation("fk_interaction_p_id")
   exposures           Exposure[]    @relation("fk_exposure_p_id")
   errors              Error[]       @relation("fk_error_p_id")
@@ -120,23 +119,21 @@ model TrackComponent {
 }
 
 model PathStack {
-  id            Int           @id @default(autoincrement())
-  url           String        @db.Text()
-  timestamp     DateTime      @db.Timestamp()
-  producerId    Int           @map("producer_id")
-  eventTypeId   Int           @map("event_type_id")
-  indicatorId   Int           @map("indicator_id")
-  stack         String        @db.Text()
-  exposures     Exposure[]    @relation("fk_exposure_ps_id")
-  isDeleted     Boolean       @default(false)
+  id            Int            @id @default(autoincrement())
+  eventTypeId   Int            @map("event_type_id")
+  indicatorId   Int            @map("indicator_id")
+  stack         String         @db.Text()
+  stackHash     String         @map("stack_hash") @db.VarChar(64)
+  exposures     Exposure[]     @relation("fk_exposure_ps_id")
+  isDeleted     Boolean        @default(false)
 
-  eventType     TrackEventType @relation(name: "fk_ps_e_id", fields: [eventTypeId], references: [id])
-  indicator     TrackIndicator @relation(name: "fk_ps_i_id", fields: [indicatorId], references: [id])
-  producer      Producer       @relation(name: "fk_ps_p_id", fields: [producerId], references: [userId])
+  eventType     TrackEventType  @relation(name: "fk_ps_e_id", fields: [eventTypeId], references: [id])
+  indicator     TrackIndicator  @relation(name: "fk_ps_i_id", fields: [indicatorId], references: [id])
 
+
+  @@unique([stackHash])
   @@index([eventTypeId])
   @@index([indicatorId])
-  @@index([producerId])
 
   @@map("path_stack")
 }
@@ -150,12 +147,12 @@ model Performance {
   detail        String        @db.Text()
   url           String        @db.Text()
   timestamp     DateTime      @db.Timestamp()
-  producerId    Int           @map("producer_id")
+  producerId    Int?          @map("producer_id")
   isDeleted     Boolean       @default(false)
 
   eventType     TrackEventType @relation(name: "fk_performance_e_id", fields: [eventTypeId], references: [id])
   indicator     TrackIndicator @relation(name: "fk_performance_i_id", fields: [indicatorId], references: [id])
-  producer      Producer       @relation(name: "fk_performance_p_id", fields: [producerId], references: [userId])
+  producer      Producer?      @relation(name: "fk_performance_p_id", fields: [producerId], references: [userId])
 
   @@index([eventTypeId])
   @@index([indicatorId])
@@ -171,7 +168,7 @@ model HttpRequest {
   url           String        @db.Text()
   timestamp     DateTime      @db.Timestamp()
   value         Int           @db.Int()
-  producerId    Int           @map("producer_id")
+  producerId    Int?          @map("producer_id")
   responseType  String        @db.Text() @map("response_type")
   interfaceUrl  String        @db.Text() @map("interface_url")
   responseCode  Int           @db.Int()  @map("response_code")
@@ -180,14 +177,14 @@ model HttpRequest {
 
   eventType     TrackEventType @relation(name: "fk_httprequest_e_id", fields: [eventTypeId], references: [id])
   indicator     TrackIndicator @relation(name: "fk_httprequest_i_id", fields: [indicatorId], references: [id])
-  producer      Producer       @relation(name: "fk_httprequest_p_id", fields: [producerId], references: [userId])
+  producer      Producer?      @relation(name: "fk_httprequest_p_id", fields: [producerId], references: [userId])
 
   @@map("http_request")
 }
 
 model Views {
   id            Int           @id @default(autoincrement())
-  producerId    Int           @map("producer_id")
+  producerId    Int?          @map("producer_id")
   url           String        @db.Text()
   timestamp     DateTime      @db.Timestamp()
   eventTypeId   Int           @map("event_type_id")
@@ -196,7 +193,7 @@ model Views {
 
   eventType     TrackEventType @relation(name: "fk_views_e_id", fields: [eventTypeId], references: [id])
   indicator     TrackIndicator @relation(name: "fk_views_i_id", fields: [indicatorId], references: [id])
-  producer      Producer       @relation(name: "fk_views_p_id", fields: [producerId], references: [userId])
+  producer      Producer?      @relation(name: "fk_views_p_id", fields: [producerId], references: [userId])
 
   @@index([producerId])
   @@index([indicatorId])
@@ -205,22 +202,23 @@ model Views {
 }
 
 model Interaction {
-  id                Int           @id @default(autoincrement())
-  url               String        @db.Text()
-  timestamp         DateTime      @db.Timestamp()
-  producerId        Int           @map("producer_id")
-  eventTypeId       Int           @map("event_type_id")
-  indicatorId       Int           @map("indicator_id")
-  contactPoint      String        @db.Text()
-  nodeName          String        @map("node_name") @db.Text()
-  componentTypeId   Int           @map("component_type_id")
-  featureInfo       String        @map("feature_info") @db.Text()
-  isDeleted         Boolean       @default(false)
+  id                Int            @id @default(autoincrement())
+  url               String         @db.Text()
+  timestamp         DateTime       @db.Timestamp()
+  producerId        Int?           @map("producer_id")
+  eventTypeId       Int            @map("event_type_id")
+  indicatorId       Int            @map("indicator_id")
+  pageX             Int            @map("page_x")
+  pageY             Int            @map("page_y")
+  nodeName          String         @map("node_name") @db.Text()
+  componentTypeId   Int?           @map("component_type_id")
+  featureInfo       String         @map("feature_info") @db.Text()
+  isDeleted         Boolean        @default(false)
 
-  componentType     TrackComponent @relation(name: "fk_interaction_c_id", fields: [componentTypeId], references: [id])
-  eventType         TrackEventType @relation(name: "fk_interaction_e_id", fields: [eventTypeId], references: [id])
-  indicator         TrackIndicator @relation(name: "fk_interaction_i_id", fields: [indicatorId], references: [id])
-  producer          Producer       @relation(name: "fk_interaction_p_id", fields: [producerId], references: [userId])
+  componentType     TrackComponent? @relation(name: "fk_interaction_c_id", fields: [componentTypeId], references: [id])
+  eventType         TrackEventType  @relation(name: "fk_interaction_e_id", fields: [eventTypeId], references: [id])
+  indicator         TrackIndicator  @relation(name: "fk_interaction_i_id", fields: [indicatorId], references: [id])
+  producer          Producer?       @relation(name: "fk_interaction_p_id", fields: [producerId], references: [userId])
 
   @@index([eventTypeId])
   @@index([indicatorId])
@@ -234,17 +232,17 @@ model Exposure {
   id            Int           @id @default(autoincrement())
   url           String        @db.Text()
   timestamp     DateTime      @db.Timestamp()
-  producerId    Int           @map("producer_id")
+  producerId    Int?          @map("producer_id")
   eventTypeId   Int           @map("event_type_id")
   indicatorId   Int           @map("indicator_id")
   value         Int           @db.Int()
-  pathStackId   Int           @map("path_stack_id")
+  pathStackId   Int?          @map("path_stack_id")
   isDeleted     Boolean       @default(false)
 
   eventType     TrackEventType @relation(name: "fk_exposure_e_id", fields: [eventTypeId], references: [id])
   indicator     TrackIndicator @relation(name: "fk_exposure_i_id", fields: [indicatorId], references: [id])
-  producer      Producer       @relation(name: "fk_exposure_p_id", fields: [producerId], references: [userId])
-  pathStack     PathStack      @relation(name: "fk_exposure_ps_id", fields: [pathStackId], references: [id])
+  producer      Producer?      @relation(name: "fk_exposure_p_id", fields: [producerId], references: [userId])
+  pathStack     PathStack?      @relation(name: "fk_exposure_ps_id", fields: [pathStackId], references: [id])
 
   @@index([eventTypeId])
   @@index([indicatorId])
@@ -258,7 +256,7 @@ model Error {
   id                  Int           @id @default(autoincrement())
   url                 String        @db.Text()
   timestamp           DateTime      @db.Timestamp()
-  producerId          Int           @map("producer_id")
+  producerId          Int?          @map("producer_id")
   eventTypeId         Int           @map("event_type_id")
   indicatorId         Int           @map("indicator_id")
   description         String        @db.Text() 
@@ -266,14 +264,14 @@ model Error {
   srcName             String        @map("src_name") @db.Text()
   props               String        @db.Text()
   stack               String        @db.Text() 
-  responsiblePersonId Int           @map("responsible_person_id")
+  responsiblePersonId Int?          @map("responsible_person_id")
   isFixed             Boolean       @map("is_fixed") @default(false)
   isDeleted           Boolean       @default(false)
 
   eventType          TrackEventType @relation(name: "fk_error_e_id", fields: [eventTypeId], references: [id])
   indicator          TrackIndicator @relation(name: "fk_error_i_id", fields: [indicatorId], references: [id])
-  producer           Producer       @relation(name: "fk_error_p_id", fields: [producerId], references: [userId])
-  responsiblePerson  User           @relation(name: "fk_error_rp_id", fields: [responsiblePersonId], references: [id])
+  producer           Producer?      @relation(name: "fk_error_p_id", fields: [producerId], references: [userId])
+  responsiblePerson  User?          @relation(name: "fk_error_rp_id", fields: [responsiblePersonId], references: [id])
 
   @@index([eventTypeId])
   @@index([indicatorId])
@@ -282,3 +280,15 @@ model Error {
 
   @@map("error")
 }  
+
+model HeatMapBasePic {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.Text()
+  description String?  @db.Text
+  imageUrl    String   @db.Text()
+  width       Int      @default(0)
+  height      Int      @default(0)
+  status      Int      @default(1) // 状态：1-启用，0-禁用
+
+  @@map("heat_map_base_pics")
+}

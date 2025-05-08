@@ -10,7 +10,7 @@ import {
 import React, { useCallback, useEffect, useState } from "react";
 import * as trackingApis from "../../apis/track";
 import { IEventListItem, IEventType, IIndicator } from "../../apis/track/types";
-import { DefaultIndicatorNap } from "../../types/common";
+import { DefaultIndicatorMap } from "../../types/common";
 import { BooleanToNumber } from "../../utils/transformer";
 import { CommonForm, FormItemConfig } from "../../components/form/commonForm";
 import { CommonTable, useTable } from "../../components/table";
@@ -40,7 +40,7 @@ const columns: TableColumnType<IIndicator>[] = [
     align: "center",
     render: (value: IEventType["isDefault"]) => {
       const boolNumber = BooleanToNumber(value);
-      const config = DefaultIndicatorNap[boolNumber];
+      const config = DefaultIndicatorMap[boolNumber];
       return <Tag color={config.tagColor}>{config.text}</Tag>;
     },
   },

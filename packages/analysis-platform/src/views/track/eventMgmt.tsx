@@ -5,7 +5,7 @@ import { CommonTable, useTable } from "../../components/table";
 import { IEventListItem, IEventType } from "../../apis/track/types";
 import { Form, Input, Switch, TableColumnType, Tag } from "antd";
 import { useCommonForm } from "../../components/form";
-import { DefaultIndicatorNap } from "../../types/common";
+import { DefaultIndicatorMap } from "../../types/common";
 import { CommonForm, FormItemConfig } from "../../components/form/commonForm";
 
 const columns: TableColumnType<IEventListItem>[] = [
@@ -30,7 +30,7 @@ const columns: TableColumnType<IEventListItem>[] = [
     align: "center",
     render: (value: IEventType["isDefault"]) => {
       const boolNumber = BooleanToNumber(value);
-      const config = DefaultIndicatorNap[boolNumber];
+      const config = DefaultIndicatorMap[boolNumber];
       return <Tag color={config.tagColor}>{config.text}</Tag>;
     },
   },

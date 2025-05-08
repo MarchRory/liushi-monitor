@@ -24,7 +24,7 @@ const FetchPlugin: IBasePlugin<'performance', 'http'> = {
                 const requestMemory: IHttpMemoryValue = {
                     requestMemoryInfo: {
                         originRequestType: 'fetch',
-                        startTime: getCurrentTimeStamp(),
+                        startTime: performance.now(),
                         method: 'GET'
                     }
                 }
@@ -60,7 +60,7 @@ const FetchPlugin: IBasePlugin<'performance', 'http'> = {
                                     responseType: 'json',
                                     interfaceUrl: url,
                                     responseCode: 200,
-                                    spentTime: getCurrentTimeStamp() - startTime,
+                                    spentTime: performance.now() - startTime,
                                     method,
                                     originRequestType
                                 }

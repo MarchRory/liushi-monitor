@@ -1,8 +1,8 @@
 import React from "react";
-import { BaseChart } from "../../components/chart";
+import { Outlet } from "react-router-dom";
 
 const PerformanceDashBoard: React.FC = () => {
-  return <></>;
+  return <Outlet />;
 };
 
 export default PerformanceDashBoard;

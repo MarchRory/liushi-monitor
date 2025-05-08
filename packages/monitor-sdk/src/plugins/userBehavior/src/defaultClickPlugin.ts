@@ -22,14 +22,12 @@ const ClickPlugin: IBasePlugin<'userBehavior', 'defaultClick'> = {
         let notifyInterval: NodeJS.Timeout | null = null
 
         const report = () => {
-            if (isReporting) return
+            if (isReporting || defaultClickRecord.length === 0) return
 
             isReporting = true
             const originalData: DefaultClickTransportData = {
                 ...getUrlTimestamp(),
-                data: {
-                    clickRecord: defaultClickRecord.slice()
-                }
+                data: defaultClickRecord.slice()
             }
             notify('defaultClick', originalData)
             defaultClickRecord = []
@@ -39,10 +37,9 @@ const ClickPlugin: IBasePlugin<'userBehavior', 'defaultClick'> = {
         const anywhereClickMonitor = (ev: MouseEvent) => {
             // 没收集到足够的数据则暂时不上报
             if (defaultClickRecord?.length < DEFAULT_CLICK_COUNT_WHEN_TRANSPORT) {
-                const { clientX, clientY } = ev
+                const { pageX, pageY } = ev
                 defaultClickRecord.push({
-                    clientY,
-                    clientX
+                    pageX, pageY
                 })
             }
 

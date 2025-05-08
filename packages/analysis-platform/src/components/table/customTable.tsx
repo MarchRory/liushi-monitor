@@ -8,7 +8,7 @@ import {
   Flex,
 } from "antd";
 import { useTable } from "./useTable";
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { IResponseModel } from "../../types/request";
 import { ButtonProps } from "antd/lib";
 

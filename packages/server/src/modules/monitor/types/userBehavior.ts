@@ -9,7 +9,8 @@ export type UserBehaviorEventTypes =
     | 'uv'
     | 'page_exposure'
     | 'module_exposure'
-    | "click"
+    | "defaultClick"
+    | "compClick"
 
 export type IDefaultClickInfo = {
     clientX: number
@@ -56,10 +57,10 @@ export type IBaseBreadCrumbItem = {
 }
 
 export type BehaviorCollectedType<T extends UserBehaviorEventTypes = UserBehaviorEventTypes> =
-    T extends 'click' ? IDefaultClickInfo | IBaseClickElementInfo : never
+    T extends 'defaultClick' | "compClick" ? IDefaultClickInfo | IBaseClickElementInfo : never
 
 export type TransformedBehaviorData =
     Pick<PathSttackModel, 'stack'>
     // | Pick<ExposureModel, 'value'>
     | Pick<IBaseBreadCrumbItem, 'page_exposure' | "stack" | "url">
-    | Pick<InteractionModel, 'contactPoint' | "nodeName" | "featureInfo" | "componentTypeId">
+    | Pick<InteractionModel, 'pageX' | 'pageY' | "nodeName" | "featureInfo" | "componentTypeId">

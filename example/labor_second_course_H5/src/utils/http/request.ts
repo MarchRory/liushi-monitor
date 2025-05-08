@@ -62,7 +62,7 @@ class HttpRequest {
             },
             (error: AxiosError) => {
                 const { request } = error
-                showFailToast(request.statusText || '网络异常')
+                showFailToast('网络异常')
                 return Promise.reject(error);
             },
         )

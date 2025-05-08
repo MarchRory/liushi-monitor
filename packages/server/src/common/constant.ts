@@ -41,6 +41,7 @@ export const enum IUserTypeEnum {
 export const EVENTTYPE_MAP_CACHE = 'EVENTTYPE_MAP_CACHE'
 export const INDICATOR_MAP_CACHE = 'INDICATOR_MAP_CACHE'
 export const COMPTYPE_MAP_CACHE = "COMPTYPE_MAP_CACHE"
+export const COMP_MAP_CACHE = 'COMP_MAP_CACHE'
 /**
  * 查找全部的搜索值
  */

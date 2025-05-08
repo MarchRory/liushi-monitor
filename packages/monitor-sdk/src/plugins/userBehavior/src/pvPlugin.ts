@@ -17,7 +17,6 @@ const PvPlugin: IBasePlugin<'userBehavior', 'pv'> = {
     dataTransformer(client, originalData) {
         const getUserInfo = getCustomFunction('getUserInfo')
         const userInfo = getUserInfo ? getUserInfo() : 'unknown'
-
         return {
             eventTypeName: 'userBehavior',
             indicatorName: 'pv',

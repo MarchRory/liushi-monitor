@@ -32,14 +32,12 @@ const ClickPlugin: IBasePlugin<'userBehavior', 'compClick'> = {
         let notifyInterval: NodeJS.Timeout | null = null
         let isReporting = false
         const report = () => {
-            if (isReporting) return
+            if (isReporting || clickElementRecord.length === 0) return
 
             isReporting = true
             const originalData: ClickElementTransportData = {
                 ...getUrlTimestamp(),
-                data: {
-                    clickElementRecord: clickElementRecord.slice()
-                }
+                data: clickElementRecord.slice()
             }
             notify('compClick', originalData)
             clickElementRecord = []
@@ -47,7 +45,7 @@ const ClickPlugin: IBasePlugin<'userBehavior', 'compClick'> = {
         }
         const clickElementHander = (ev: MouseEvent) => {
             if (clickElementRecord.length < DEFAULT_CLICK_ELEMENT_COUNT_WHEN_TRANSPORT) {
-                const { clientX, clientY, target } = ev
+                const { pageX, pageY, target } = ev
                 const { classList, innerText = "", nodeName = "unknown" } = target as IClickElementEventTarget
 
                 // 非埋点元素不进行数据收集
@@ -64,8 +62,8 @@ const ClickPlugin: IBasePlugin<'userBehavior', 'compClick'> = {
                     }
                 }
                 const clickElementInfo: IBaseClickElementInfo = {
-                    clientX,
-                    clientY,
+                    pageX,
+                    pageY,
                     innerText: innerText,
                     targetClassList: Array.from(classList || []) as unknown as string[],
                     nodeName: nodeName.toLowerCase(),
