@@ -27,4 +27,31 @@ export class UserbehaviorAnalysisController {
     async getMeaningfulUrls() {
         return this.userbehaviorAnalysisService.calculateMeaningfulUrls()
     }
+
+    @UseInterceptors(ClassSerializerInterceptor)
+    @Get('device-preference')
+    @UseGuards(JwtAuthGuard)
+    @RequireRole(IUserTypeEnum.ADMIN, IUserTypeEnum.OPERATOR)
+    @SerializeOptions({})
+    async getDevicePreferenceAnalysis(@Query() query: BaseBehaviorOverviewSearch) {
+        return this.userbehaviorAnalysisService.getDevicePreferenceAnalysis(query);
+    }
+
+    @UseInterceptors(ClassSerializerInterceptor)
+    @Get('funnel')
+    @UseGuards(JwtAuthGuard)
+    @RequireRole(IUserTypeEnum.ADMIN, IUserTypeEnum.OPERATOR)
+    @SerializeOptions({})
+    async getFunnelAnalysis(@Query() query: BaseBehaviorOverviewSearch) {
+        return this.userbehaviorAnalysisService.getFunnelAnalysis(query);
+    }
+
+    @UseInterceptors(ClassSerializerInterceptor)
+    @Get('exposure-depth')
+    @UseGuards(JwtAuthGuard)
+    @RequireRole(IUserTypeEnum.ADMIN, IUserTypeEnum.OPERATOR)
+    @SerializeOptions({})
+    async getExposureDepthAnalysis(@Query() query: BaseBehaviorOverviewSearch) {
+        return await this.userbehaviorAnalysisService.getExposureDepthAnalysis(query);
+    }
 }

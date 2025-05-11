@@ -30,6 +30,7 @@ export class BaseClient<T extends MonitorTypes = MonitorTypes> implements IBaseC
     readonly pagePerformanceMonitorRecord: Set<string> = new Set()
     private pluginsCount: number = 4
     constructor(initialOptions: ISDKInitialOptions & { VueApp?: App }) {
+        this.deviceInfo = this.getDeviceInfo()
         this.validateOptions(initialOptions)
         this.options = initialOptions
         this.VueApp = initialOptions.VueApp
@@ -39,7 +40,6 @@ export class BaseClient<T extends MonitorTypes = MonitorTypes> implements IBaseC
             reportConfig: initialOptions.reportConfig,
             globalEventBus: this.eventBus,
         })
-        this.deviceInfo = this.getDeviceInfo()
 
         aop(window.history, 'pushState', (nativeFn: History['pushState']) => this.globalPushAndReplaceAOP(nativeFn, this.eventBus))
         aop(window.history, 'replaceState', (nativeFn: History['replaceState']) => this.globalPushAndReplaceAOP(nativeFn, this.eventBus))

@@ -3,13 +3,14 @@ import {
     IBaseBreadCrumbItem,
     IBaseBreadCrumbOptions,
     IBaseRouteInfo,
-    IBaseTransformedData
+    IBaseTransformedData,
+    IDeviceInfo
 } from '../types'
 import { RequestBundlePriorityEnum } from '../types/transport'
 import { debounce, getCustomFunction, getUrlTimestamp } from '../utils/common'
 import { Stack } from '../utils/dataStructure'
+import { detectDevice } from '../utils/device'
 import { isNull, isUndefined } from '../utils/is'
-import { getCurrentTimeStamp } from '../utils/time'
 import { BaseTransport } from './baseTransport'
 
 /**
@@ -19,6 +20,7 @@ export abstract class BaseBreadCrumb {
     private breadStack: Stack<IBaseBreadCrumbItem>
     private ignoredUrls: Set<string>
     private tabbarUrls: Set<string>
+    readonly deviceInfo: IDeviceInfo
     readonly baseTransport: BaseTransport // 数据传输中心实例的引用
     private readonly temporaryBreadItemLimit = DEFAULT_TEMPORARY_BREADITEM_LIMIT
     /**
@@ -40,6 +42,7 @@ export abstract class BaseBreadCrumb {
             ignore_urls = DEFAULT_BREADCRUMB_CONFIG.ignore_urls,
 
         } = (options || {})
+        this.deviceInfo = this.getDeviceInfo()
         this.ignoredUrls = new Set(ignore_urls)
         this.tabbarUrls = new Set(tabbar_urls)
         this.initBrowserUnloadListener()
@@ -74,7 +77,7 @@ export abstract class BaseBreadCrumb {
         }
 
         const data: IBaseBreadCrumbItem = {
-            url: '#' + from,
+            url: from,
             enter_time,
             leave_time: -1, // 未退出页面标记
             page_exposure: 0, // 初始化
@@ -97,7 +100,7 @@ export abstract class BaseBreadCrumb {
         lastestRecord.leave_time = performance.now()
         const { to } = routeInfo
         Promise.resolve().then(() => {
-            lastestRecord.stack.push('#' + to)
+            lastestRecord.stack.push(to)
             if (newLastestRecord && newLastestRecord.stack.length) {
                 newLastestRecord.stack.push(...lastestRecord.stack.slice(1))
             }
@@ -123,7 +126,7 @@ export abstract class BaseBreadCrumb {
             eventTypeName: 'userBehavior',
             indicatorName: 'page_exposure',
             userInfo,
-            deviceInfo: "unknown",
+            deviceInfo: this.deviceInfo,
             collectedData: {
                 ...getUrlTimestamp(),
                 data: this.sendDataTemporaryPool.slice()
@@ -167,6 +170,17 @@ export abstract class BaseBreadCrumb {
     bothTabbarPaths(paths: string[]) {
         return paths.every(path => this.tabbarUrls.has(path))
     }
+    private getDeviceInfo(): IDeviceInfo {
+        const userAgent = navigator.userAgent || navigator.vendor
+        const { deviceOs, deviceType } = detectDevice(userAgent)
+        return {
+            deviceOs,
+            deviceType,
+            deviceBowserVersion: navigator.appVersion,
+            deviceBowserName: navigator.appName,
+            deviceBowserLanguage: navigator.language
+        }
+    }
     /**
      * 兜底策略, 剩余未上报的部分全部上传至本地缓存, 下一次启动app时再进行发送
      */
@@ -181,7 +195,7 @@ export abstract class BaseBreadCrumb {
                         eventTypeName: 'userBehavior',
                         indicatorName: 'page_exposure',
                         userInfo: 'unknown',
-                        deviceInfo: "unknown",
+                        deviceInfo: this.deviceInfo,
                         collectedData: {
                             ...getUrlTimestamp(),
                             data: data.slice()

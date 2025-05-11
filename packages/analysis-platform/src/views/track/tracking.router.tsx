@@ -37,26 +37,26 @@ const userMgmtRoutes: RouteObject[] = [
           title: "具体监控指标",
         },
       },
-      {
-        path: "componentType",
-        element: <ComponentTypeMgmt />,
-        meta: {
-          key: "/track/componentType",
-          auth: IUserTypeEnum.ADMIN,
-          label: "业务组件大类",
-          title: "业务组件大类",
-        },
-      },
-      {
-        path: "component",
-        element: <ComponentMgmt />,
-        meta: {
-          key: "/track/component",
-          auth: IUserTypeEnum.ADMIN,
-          label: "具体业务组件监控",
-          title: "具体业务组件监控",
-        },
-      },
+      // {
+      //   path: "componentType",
+      //   element: <ComponentTypeMgmt />,
+      //   meta: {
+      //     key: "/track/componentType",
+      //     auth: IUserTypeEnum.ADMIN,
+      //     label: "业务组件大类",
+      //     title: "业务组件大类",
+      //   },
+      // },
+      // {
+      //   path: "component",
+      //   element: <ComponentMgmt />,
+      //   meta: {
+      //     key: "/track/component",
+      //     auth: IUserTypeEnum.ADMIN,
+      //     label: "具体业务组件监控",
+      //     title: "具体业务组件监控",
+      //   },
+      // },
     ],
   },
 ];

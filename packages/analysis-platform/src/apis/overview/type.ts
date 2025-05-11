@@ -100,3 +100,99 @@ export interface IErrorListItem {
     isFixed: boolean;
     count: number;
 }
+
+
+/**
+ * 基础行为分析搜索参数
+ */
+export interface BaseBehaviorOverviewSearch {
+    startTime: string;
+    endTime: string;
+    url: string;
+    refresh?: boolean;
+}
+
+/**
+ * 设备偏好分析数据类型
+ */
+export interface DevicePreferenceData {
+    deviceTypeDistribution: Array<{
+        deviceType: string;
+        _count: number;
+    }>;
+    browserDistribution: Array<{
+        deviceBowserName: string;
+        _count: number;
+    }>;
+    osDistribution: Array<{
+        deviceOs: string;
+        _count: number;
+    }>;
+    deviceExposureTime: Array<{
+        deviceType: string;
+        count: number;
+        avgExposureTime: number;
+    }>;
+}
+
+/**
+ * 漏斗分析数据类型
+ */
+export interface FunnelAnalysisData {
+    funnelSteps: Array<{
+        step: string;
+        count: number;
+    }>;
+    pathTransitions: Array<{
+        from: string;
+        to: string;
+        count: number;
+    }>;
+}
+
+/**
+ * 曝光深度分析数据类型
+ */
+export interface ExposureDepthData {
+    exposureDistribution: Array<{
+        time_range: string;
+        count: number;
+    }>;
+    pathAvgExposure: Array<{
+        path: string;
+        avgExposureTime: number;
+        count: number;
+    }>;
+}
+
+/**
+ * 用户行为总览数据类型
+ */
+export interface UserBehaviorOverviewData {
+    overview: {
+        views: {
+            pv: number;
+            uv: number;
+            previousPv: number;
+            previousUv: number;
+        };
+        interaction: {
+            total: number;
+            previousTotal: number;
+            byType: Array<{
+                eventTypeId: number;
+                _count: number;
+            }>;
+        };
+        exposure: {
+            avgValue: number;
+            previousAvgValue: number;
+        };
+    };
+    trends: Array<{
+        timestamp: string;
+        views: number;
+        interactions: number;
+        exposureAvg: number;
+    }>;
+}

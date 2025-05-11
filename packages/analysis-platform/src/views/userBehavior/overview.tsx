@@ -8,6 +8,7 @@ import {
   Select,
   Typography,
   Button,
+  Tabs,
 } from "antd";
 import dayjs from "dayjs";
 import {
@@ -16,10 +17,16 @@ import {
   ExpandOutlined,
   UserOutlined,
   ReloadOutlined,
+  MobileOutlined,
+  FunnelPlotOutlined,
+  FieldTimeOutlined,
 } from "@ant-design/icons";
 import requestInstance from "../../utils/request";
 import StatisticCard from "./components/StatisticCard";
 import TrendChart from "./components/TrendChart";
+import DevicePreferenceChart from "./components/DevicePreferenceChart";
+import FunnelAnalysisChart from "./components/FunnelAnalysisChart";
+import ExposureDepthChart from "./components/ExposureDepthChart";
 import { GetMeaningfulUserBehaviorUrlsOptions } from "../../apis/heatMap";
 import { IResponseCodeEnum } from "../../types/request";
 
@@ -32,6 +39,9 @@ const UserBehaviorOverview: React.FC = () => {
   const [urlsOptions, setUrlsOptiosn] = useState<string[]>([]);
   const [checkedUrl, setCheckedUrl] = useState<string>("");
   const [overviewData, setOverviewData] = useState<any>(null);
+  const [deviceData, setDeviceData] = useState<any>(null);
+  const [funnelData, setFunnelData] = useState<any>(null);
+  const [exposureDepthData, setExposureDepthData] = useState<any>(null);
   const [timeRange, setTimeRange] = useState([
     dayjs().subtract(1, "day"),
     dayjs(),
@@ -47,7 +57,7 @@ const UserBehaviorOverview: React.FC = () => {
     });
   }, []);
 
-  const fetchOverviewData = async () => {
+  const fetchOverviewData = async (refresh = false) => {
     setLoading(true);
     try {
       const { data } = await requestInstance.get(
@@ -56,7 +66,7 @@ const UserBehaviorOverview: React.FC = () => {
           startTime: timeRange[0].format(),
           endTime: timeRange[1].format(),
           url: checkedUrl,
-          refresh: false,
+          refresh,
         },
       );
       setOverviewData(data);
@@ -67,9 +77,76 @@ const UserBehaviorOverview: React.FC = () => {
     }
   };
 
+  const fetchDeviceData = async (refresh = false) => {
+    setLoading(true);
+    try {
+      const { data } = await requestInstance.get(
+        "analysis/userbehavior/device-preference",
+        {
+          startTime: timeRange[0].format(),
+          endTime: timeRange[1].format(),
+          url: checkedUrl,
+          refresh,
+        },
+      );
+      setDeviceData(data);
+    } catch (error) {
+      console.error("获取设备数据失败:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchFunnelData = async (refresh = false) => {
+    setLoading(true);
+    try {
+      const { data } = await requestInstance.get(
+        "analysis/userbehavior/funnel",
+        {
+          startTime: timeRange[0].format(),
+          endTime: timeRange[1].format(),
+          url: checkedUrl,
+          refresh,
+        },
+      );
+      setFunnelData(data);
+    } catch (error) {
+      console.error("获取漏斗数据失败:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchExposureDepthData = async (refresh = false) => {
+    setLoading(true);
+    try {
+      const { data } = await requestInstance.get(
+        "analysis/userbehavior/exposure-depth",
+        {
+          startTime: timeRange[0].format(),
+          endTime: timeRange[1].format(),
+          url: checkedUrl,
+          refresh,
+        },
+      );
+      setExposureDepthData(data);
+    } catch (error) {
+      console.error("获取曝光深度数据失败:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAllData = (refresh = false) => {
+    fetchOverviewData(refresh);
+    fetchDeviceData(refresh);
+    fetchFunnelData(refresh);
+    fetchExposureDepthData(refresh);
+  };
+
   useEffect(() => {
     if (checkedUrl) {
-      fetchOverviewData();
+      fetchAllData();
     }
   }, [timeRange, checkedUrl]);
 
@@ -107,7 +184,7 @@ const UserBehaviorOverview: React.FC = () => {
             <Button
               type="primary"
               icon={<ReloadOutlined />}
-              onClick={fetchOverviewData}
+              onClick={() => fetchAllData(true)}
               loading={loading}
             >
               刷新数据
@@ -157,11 +234,87 @@ const UserBehaviorOverview: React.FC = () => {
         </Col>
       </Row>
 
-      <Row gutter={[16, 16]} className="mt-6">
-        <Col span={24}>
-          <TrendChart data={overviewData?.trends || []} loading={loading} />
-        </Col>
-      </Row>
+      <Tabs
+        className="mt-6"
+        items={[
+          {
+            key: "trends",
+            label: (
+              <span>
+                <FieldTimeOutlined />
+                趋势分析
+              </span>
+            ),
+            children: (
+              <Row gutter={[16, 16]}>
+                <Col span={24}>
+                  <TrendChart
+                    data={overviewData?.trends || []}
+                    loading={loading}
+                  />
+                </Col>
+              </Row>
+            ),
+          },
+          {
+            key: "device",
+            label: (
+              <span>
+                <MobileOutlined />
+                设备偏好分析
+              </span>
+            ),
+            children: (
+              <Row gutter={[16, 16]}>
+                <Col span={24}>
+                  <DevicePreferenceChart
+                    data={deviceData || {}}
+                    loading={loading}
+                  />
+                </Col>
+              </Row>
+            ),
+          },
+          {
+            key: "funnel",
+            label: (
+              <span>
+                <FunnelPlotOutlined />
+                转化分析
+              </span>
+            ),
+            children: (
+              <Row gutter={[16, 16]}>
+                <Col span={24}>
+                  <FunnelAnalysisChart
+                    data={funnelData || {}}
+                    loading={loading}
+                  />
+                </Col>
+              </Row>
+            ),
+          },
+          {
+            key: "exposure",
+            label: (
+              <span>
+                <ExpandOutlined />
+                曝光深度分析
+              </span>
+            ),
+            children: (
+              <Row gutter={[16, 16]}>
+                <Col span={24}>
+                  <ExposureDepthChart
+                    data={exposureDepthData || {}}
+                    loading={loading}
+                  />
+                </Col>
+              </Row>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 };

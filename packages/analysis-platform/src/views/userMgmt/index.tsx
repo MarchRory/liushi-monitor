@@ -149,6 +149,7 @@ const UserMgmtPage: React.FC = () => {
             variant: "filled",
             text: "编辑",
             size: "middle",
+            disabled: column.account === "root",
             onClick: () => openModal("update", column.id),
           },
         ]}

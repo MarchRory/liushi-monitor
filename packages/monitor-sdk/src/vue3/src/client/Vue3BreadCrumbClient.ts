@@ -43,7 +43,7 @@ export class Vue3BreadCrumbClient extends BaseBreadCrumb {
                 this.isTabbarExposureRecoding = true
             }
             current && this.debouncedPushRecord({
-                from: current.split('?')[0],
+                from: '#' + targetUrl,
                 to: ""
             })
 
@@ -61,8 +61,8 @@ export class Vue3BreadCrumbClient extends BaseBreadCrumb {
                     this.tabbarExposureRecord.url = tabbarUrl
                 }
                 forward && current && this.debouncedPopRecord({
-                    from: forward.split('?')[0],
-                    to: targetUrl
+                    from: '#' + forward.split('?')[0],
+                    to: '#' + targetUrl
                 })
             }
         })
@@ -92,7 +92,7 @@ export class Vue3BreadCrumbClient extends BaseBreadCrumb {
             sendData: {
                 eventTypeName: 'userBehavior',
                 indicatorName: 'page_exposure',
-                deviceInfo: "unknown",
+                deviceInfo: this.deviceInfo,
                 userInfo,
                 collectedData: {
                     url: tabbarUrl,

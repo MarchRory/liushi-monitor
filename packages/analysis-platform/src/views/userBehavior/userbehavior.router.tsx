@@ -3,7 +3,7 @@ import { IUserTypeEnum } from "../../apis/user/types";
 import UserBehaviorDashboard from "./index";
 import UserBehaviorOverview from "./overview";
 
-const performanceRoutes: RouteObject[] = [
+const userBehaviorRoutes: RouteObject[] = [
   {
     path: "userbehavior",
     element: <UserBehaviorDashboard />,
@@ -28,4 +28,4 @@ const performanceRoutes: RouteObject[] = [
   },
 ];
 
-export default performanceRoutes;
+export default userBehaviorRoutes;
