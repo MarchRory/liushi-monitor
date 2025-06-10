@@ -108,11 +108,7 @@ const DevicePreferenceChart: React.FC<DevicePreferenceChartProps> = ({
             label: "浏览器分布",
             children: <Pie {...browserConfig} />,
           },
-          {
-            key: "os",
-            label: "操作系统分布",
-            children: <Pie {...osConfig} />,
-          },
+          { key: "os", label: "操作系统分布", children: <Pie {...osConfig} /> },
           {
             key: "exposureTime",
             label: "设备曝光时间",

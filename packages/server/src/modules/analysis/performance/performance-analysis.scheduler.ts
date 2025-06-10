@@ -22,18 +22,25 @@ export class PerformanceAnalysisScheduler implements OnModuleInit {
         })
     }
 
-    @Cron(CronExpression.EVERY_30_SECONDS)
+    @Cron(CronExpression.EVERY_30_MINUTES)
     updateChartDataCache() {
-        this.logger.debug('执行定时任务: 每半分钟更新本日性能指标缓存数据')
+        this.logger.debug('执行定时任务: 每半小时更新本日性能指标缓存数据')
         const dto: Omit<BaseChartDataSearchDto, 'indicatorId'> = {
             refresh: true,
             url: '*',
             ...dateUtils.getTodayTimeRange()
         }
-        this.performanceAnalysisService.calculateFirstScreenIndicatorsChartData({ ...dto, indicatorId: this.performanceIndicatorsMap['first_screen_fp'] }, PerformanceIndicatorEnum.FP, false)
-        this.performanceAnalysisService.calculateFirstScreenIndicatorsChartData({ ...dto, indicatorId: this.performanceIndicatorsMap['first_screen_fcp'] }, PerformanceIndicatorEnum.FCP, false)
-        this.performanceAnalysisService.calculateFirstScreenIndicatorsChartData({ ...dto, indicatorId: this.performanceIndicatorsMap['first_screen_lcp'] }, PerformanceIndicatorEnum.LCP, false)
-        this.performanceAnalysisService.calculateFirstScreenIndicatorsChartData({ ...dto, indicatorId: this.performanceIndicatorsMap['first_screen_ttfb'] }, PerformanceIndicatorEnum.TTFB, false)
-        this.performanceAnalysisService.calculateFirstScreenIndicatorsChartData({ ...dto, indicatorId: this.performanceIndicatorsMap['vue3_spa_page_load_time'] }, PerformanceIndicatorEnum.SPA_LOAD_TIME, false)
+        this.performanceAnalysisService.calculateFirstScreenIndicatorsChartData({
+            ...dto, indicatorId: this.performanceIndicatorsMap['first_screen_fp']
+        }, PerformanceIndicatorEnum.FP, false)
+        this.performanceAnalysisService.calculateFirstScreenIndicatorsChartData({
+            ...dto, indicatorId: this.performanceIndicatorsMap['first_screen_fcp']
+        }, PerformanceIndicatorEnum.FCP, false)
+        this.performanceAnalysisService.calculateFirstScreenIndicatorsChartData({
+            ...dto, indicatorId: this.performanceIndicatorsMap['first_screen_lcp']
+        }, PerformanceIndicatorEnum.LCP, false)
+        this.performanceAnalysisService.calculateFirstScreenIndicatorsChartData({
+            ...dto, indicatorId: this.performanceIndicatorsMap['first_screen_ttfb']
+        }, PerformanceIndicatorEnum.TTFB, false)
     }
 }

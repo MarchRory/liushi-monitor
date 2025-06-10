@@ -21,19 +21,18 @@ export class BaseClient<T extends MonitorTypes = MonitorTypes> implements IBaseC
     readonly sdk_version = SDK_VERSION
     readonly options: ISDKInitialOptions
     readonly eventBus: Subscribe<GlobalSubscribeTypes<T>>
+    public vueApp?: App
     /**
      * 数据调度与上报工具
      */
     readonly baseTransport: BaseTransport
     readonly deviceInfo: IDeviceInfo
-    readonly VueApp?: App
     readonly pagePerformanceMonitorRecord: Set<string> = new Set()
     private pluginsCount: number = 4
     constructor(initialOptions: ISDKInitialOptions & { VueApp?: App }) {
         this.deviceInfo = this.getDeviceInfo()
         this.validateOptions(initialOptions)
         this.options = initialOptions
-        this.VueApp = initialOptions.VueApp
         this.loadCustomBucket(initialOptions)
         this.eventBus = new Subscribe<GlobalSubscribeTypes<T>>()
         this.baseTransport = new BaseTransport({
@@ -49,7 +48,7 @@ export class BaseClient<T extends MonitorTypes = MonitorTypes> implements IBaseC
         aop(window, 'onerror', (nativeFn: Window['onerror']) => this.globalJsSyncErrorAOP(nativeFn, this.eventBus))
     }
     /**
-     * 注册插件
+     * 注册插件+
      * @param plugins 插件列表
      * @returns 
      */
@@ -57,7 +56,7 @@ export class BaseClient<T extends MonitorTypes = MonitorTypes> implements IBaseC
         if (this.options.disbled) return
 
         plugins.forEach((plugin) => {
-            if (plugin.isPluginEnabled) return
+            if (plugin.isPluginDisabled) return
             // 开启插件的监控
             this.pluginsCount++
             plugin.monitor.call(this, this, this.eventBus.notify.bind(this.eventBus))
@@ -86,34 +85,28 @@ export class BaseClient<T extends MonitorTypes = MonitorTypes> implements IBaseC
                 transformedData = await hooks.onDataTransformed?.call(this, currentPlugin.indicatorName, transformedData)
             }
 
-            // 数据上报
-            if (hooks.onBeforeDataReport) {
-                await hooks.onBeforeDataReport()
-            }
             currentPlugin.dataConsumer?.call(this, this.baseTransport, transformedData)
         }
     }
     private loadCustomBucket(options: ISDKInitialOptions) {
-        if (options.dataEncryptionMethod) {
-            customFunctionBucket.set('dataEncryptionMethod', options.dataEncryptionMethod)
-        }
         customFunctionBucket.set('getUserInfo', options.getUserInfo)
     }
     private validateOptions(options: ISDKInitialOptions) {
-        let needOptName = ''
-        if (isUndefined(options.localStorageKey) || !options.localStorageKey) {
-            needOptName = 'localStorageKey'
-        } else if (isUndefined(options.reportConfig.reportInterfaceUrl) || !options.reportConfig.reportInterfaceUrl) {
-            needOptName = 'reportConfig.reportInterfaceUrl'
-        } else if (isUndefined(options.getUserInfo) || !options.getUserInfo) {
-            needOptName = 'getUserInfo'
-        } else if (isUndefined(options.dataEncryptionMethod) || !options.dataEncryptionMethod) {
-            needOptName = 'dataEncryptionMethod'
-        }
+        // let needOptName = ''
+        // if (isUndefined(options.localStorageKey) || !options.localStorageKey) {
+        //     needOptName = 'localStorageKey'
+        // } else if (isUndefined(options.reportConfig.reportInterfaceUrl) || !options.reportConfig.reportInterfaceUrl) {
+        //     needOptName = 'reportConfig.reportInterfaceUrl'
+        // } else if (isUndefined(options.getUserInfo) || !options.getUserInfo) {
+        //     needOptName = 'getUserInfo'
+        // }
+        //  else if (isUndefined(options.dataEncryptionMethod) || !options.dataEncryptionMethod) {
+        //     needOptName = 'dataEncryptionMethod'
+        // }
 
-        if (needOptName) {
-            throw new Error(`初始配置项 ${needOptName} 缺失 或 使用了非法值`)
-        }
+        // if (needOptName) {
+        //     throw new Error(`初始配置项 ${needOptName} 缺失 或 使用了非法值`)
+        // }
     }
     private getDeviceInfo(): IDeviceInfo {
         const userAgent = navigator.userAgent || navigator.vendor

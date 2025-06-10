@@ -212,7 +212,7 @@ const UserBehaviorOverview: React.FC = () => {
             previousValue={overviewData?.overview?.views?.previousUv}
           />
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        {/* <Col xs={24} sm={12} lg={6}>
           <StatisticCard
             title="交互次数"
             value={overviewData?.overview?.interaction?.total || 0}
@@ -220,7 +220,7 @@ const UserBehaviorOverview: React.FC = () => {
             prefix={<InteractionOutlined className="text-purple-500" />}
             previousValue={overviewData?.overview?.interaction?.previousTotal}
           />
-        </Col>
+        </Col> */}
         <Col xs={24} sm={12} lg={6}>
           <StatisticCard
             title="平均曝光时长(秒)"

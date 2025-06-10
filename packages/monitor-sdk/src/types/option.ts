@@ -21,7 +21,7 @@ export interface ISDKRequestOption {
     /**
      * indexDB连接名
      */
-    dbName: string
+    dbName?: string
     /**
      * 调试模式, 开始后收集到的数据将以伪请求的方式进行打印, 代替真实上报
      * 但不适用于请求测速插件
@@ -121,7 +121,7 @@ export interface ISDKInitialOptions extends IFmpCalculatorOptions, ISPACustomCon
     /**
      * 秘钥
      */
-    sdkKey: string
+    sdkKey?: string
     reportConfig: ISDKRequestOption
     /**
      * 当页面卸载，部分没来得及上报的数据会被缓存到本地缓存中，等待下次启动app后重新上报
@@ -132,13 +132,7 @@ export interface ISDKInitialOptions extends IFmpCalculatorOptions, ISPACustomCon
      * @returns {object} userInfo
      */
     getUserInfo: () => object
-    /**
-     * 自定义数据加密方法
-     * @param transformedJsonData 格式化后的数据, 已经进行过JSON序列化
-     * @returns {string} 加密后的数据
-     */
-    dataEncryptionMethod: (transformedJsonData: string) => EncryptedDataType
-    localStorageKey: string
+    localStorageKey?: string
     /**
      * 上报防抖时间
      */

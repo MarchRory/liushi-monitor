@@ -14,7 +14,7 @@
     "db:migerate": "cd packages/server && pnpm run db:migerate",
     "prisma:studio": "cd packages/server && npx prisma studio",
     "changeset": "changeset",
-    "packages-version": "changeset version",
+    "packages-version4": "changeset version",
     "publish": "changeset publish --registry=https://registry.npmjs.com/",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
     "prepare": "husky"

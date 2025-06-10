@@ -56,11 +56,6 @@ const TrendChart: React.FC<TrendChartProps> = ({ data, loading }) => {
             children: <Line {...getChartConfig("views", "人次")} />,
           },
           {
-            key: "interactions",
-            label: "交互趋势",
-            children: <Line {...getChartConfig("interactions", "次数")} />,
-          },
-          {
             key: "exposureAvg",
             label: "曝光趋势",
             children: (

@@ -140,10 +140,8 @@ const HttpDashboard: React.FC = () => {
         </div>
       ) : overviewData ? (
         <>
-          {/* 统计卡片 */}
           <StatisticsCards data={overviewData} />
-
-          {/* 图表区域 */}
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <RequestMethodChart data={overviewData.methodDistribution} />
             <StatusCodeChart data={overviewData.statusCodeDistribution} />

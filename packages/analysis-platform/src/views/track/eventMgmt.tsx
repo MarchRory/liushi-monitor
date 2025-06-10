@@ -104,7 +104,7 @@ const EventMgmt: React.FC = () => {
       <CommonForm<IEventType>
         id={id}
         form={form}
-        title="系统用户"
+        title="监控事件大类"
         formType={formType}
         formItems={formItems}
         modalLoading={modalLoading}

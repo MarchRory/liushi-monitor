@@ -79,15 +79,6 @@ const ExposureDepthChart: React.FC<ExposureDepthChartProps> = ({
               <Empty description="暂无曝光时间分布数据" />
             ),
           },
-          {
-            key: "pathExposure",
-            label: "路径曝光时间",
-            children: hasPathData ? (
-              <Bar {...pathExposureConfig} />
-            ) : (
-              <Empty description="暂无路径曝光时间数据" />
-            ),
-          },
         ]}
       />
     </Card>

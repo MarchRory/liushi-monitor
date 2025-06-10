@@ -166,7 +166,6 @@ function handleRequestFailed(params: IProcessingRequestRecord<'ciphertext'>) {
         // 需要重试则加入尾部等待下一次发送
         reportDataMap.get(params.priority)?.push(params)
     }
-    // TODO: 暂定 超过重试次数时直接舍弃, 更可靠的逻辑需要补充
 }
 
 /**
@@ -193,7 +192,6 @@ async function sendWithRetry(
         handleRequestSuccess(params)
     } catch {
         handleRequestFailed(params)
-        // 失败处理逻辑
     }
 }
 /**

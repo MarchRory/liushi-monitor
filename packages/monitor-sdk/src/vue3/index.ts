@@ -2,7 +2,7 @@ import { ISDKInitialOptions } from "../types";
 import SDKBasePlugins from "../plugins";
 import Vue3AppMonitorClient from "./src/client/client";
 import Vue3ErrorMonitorPlugin from "./src/plugin/errorTrapMonitorPlugin";
-import { ComponentPublicInstance, type App } from 'vue'
+import { type App } from 'vue'
 import { IEncryptionConfig } from "../types/excryption";
 
 declare global {

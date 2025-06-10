@@ -11,17 +11,17 @@ import { BaseEventTypes, IBaseBreadCrumbItem, IBaseTransformedData, IOriginalDat
  */
 export interface IBasePlugin<T extends MonitorTypes, E extends BaseEventTypes<T>> {
     /**
-     * 插件类型
+     * 监控事件大类类型
      */
     eventTypeName: T
     /**
-     * 监听具体事件类型
+     * 具体监控指标类型
      */
     indicatorName: E
     /**
      * 插件是否被禁用, 默认false 
      */
-    isPluginEnabled?: boolean
+    isPluginDisabled?: boolean
 
     /**
      * 监控器, 对事件的具体监听逻辑实现, 最后需要通知订阅中心响应

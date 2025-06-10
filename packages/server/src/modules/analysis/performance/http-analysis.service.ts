@@ -140,7 +140,7 @@ export class HttpAnalysisService {
             where: {
                 ...baseWhere,
                 value: {
-                    gt: 500 // 假设500ms是慢请求的阈值
+                    gt: 500
                 }
             }
         });
@@ -148,8 +148,7 @@ export class HttpAnalysisService {
 
         // 11. 今日请求量（如果时间范围包含今天）
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
+        today.setHours(0, 0, 0, 0)
         let todayRequests = 0;
         if (new Date(startTime) <= today && new Date(endTime) >= today) {
             const tomorrow = new Date(today);

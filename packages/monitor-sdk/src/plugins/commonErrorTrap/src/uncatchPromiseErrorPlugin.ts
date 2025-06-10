@@ -13,8 +13,8 @@ const UnCatchPromiseErrorPlugin: IBasePlugin<'error', 'uncatch_promise_error'> =
                 ...getUrlTimestamp(),
                 data: {
                     reason: {
-                        message: JSON.stringify(reason.message),
-                        stack: JSON.stringify(reason.stack),
+                        message: JSON.stringify(reason.message || reason),
+                        stack: JSON.stringify(reason.stack) || null,
                         name: reason.name || null,
                         code: reason.code || null
                     }

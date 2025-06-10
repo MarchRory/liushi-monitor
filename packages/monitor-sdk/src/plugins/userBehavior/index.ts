@@ -6,7 +6,7 @@ import UvPlugin from "./src/uvPlugin";
 const BaseUserBehaviorPlugins = [
     PvPlugin,
     UvPlugin,
-    DefaultClickPlugin,
-    CompClickPlugin
+    // DefaultClickPlugin,
+    // CompClickPlugin
 ]
 export default BaseUserBehaviorPlugins

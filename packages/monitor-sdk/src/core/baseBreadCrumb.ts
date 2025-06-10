@@ -68,7 +68,8 @@ export abstract class BaseBreadCrumb {
         const enter_time = performance.now()
 
         // 兼容tabbar界面
-        const prePathRecord = lastestRecord ? lastestRecord.stack[lastestRecord.stack.length - 1] : null // 路径栈中, 当前栈顶页面路径
+        // 路径栈中, 当前栈顶页面路径
+        const prePathRecord = lastestRecord ? lastestRecord.stack[lastestRecord.stack.length - 1] : null
         let stack: string[] = []
         if (isNull(prePathRecord) || this.bothTabbarPaths([prePathRecord, from])) {
             stack = [from]

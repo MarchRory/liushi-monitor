@@ -39,14 +39,6 @@ export class ErrorAnalysisService {
         if (errorTypeId !== '*') {
             baseWhere['indicatorId'] = +errorTypeId
         }
-
-        // 查询总错误数
-        const totalErrors = await this.prismaService.error.count({
-            where: {
-                ...baseWhere,
-            }
-        });
-
         // 查询已修复错误数
         const fixedErrors = await this.prismaService.error.count({
             where: {
@@ -55,7 +47,17 @@ export class ErrorAnalysisService {
             }
         });
 
-        // 活跃错误（未修复的错误）
+
+
+        // 查询总错误数
+        const totalErrors = await this.prismaService.error.count({
+            where: {
+                ...baseWhere,
+            }
+        });
+
+
+
         const activeErrors = totalErrors - fixedErrors;
 
         // 按时间分组的错误数

@@ -10,6 +10,7 @@ class Vue3AppMonitorClient extends BaseClient {
     private readonly spaPagePerformanceRecord = { beforeSpaChange: 0 }
     constructor(initialOptions: ISDKInitialOptions & { VueApp: App }) {
         super(initialOptions)
+        this.vueApp = initialOptions.VueApp
         this.Vue3BreadCrumb = new Vue3BreadCrumbClient({
             baseTransport: this.baseTransport,
             eventBus: this.eventBus,

@@ -16,14 +16,11 @@ import { liushiMonitor, ISDKInitialOptions } from '@liushi-monitor/monitor-sdk'
 import { useUserStore } from "./store/modules/user";
 
 const liushiMonitorOptions: ISDKInitialOptions = {
-  sdkKey: 'liushi_test_sdk_001',
-  localStorageKey: 'liushi_test_storage_001',
   customBreadCrumb: {
     ignore_urls: ['/login'],
     tabbar_urls: ['/home', '/plan', '/user']
   },
   reportConfig: {
-    dbName: 'monitor_data',
     debugMode: false,
     reportbaseURL: "https://localhost:443",
     reportInterfaceUrl: "/monitor",
@@ -41,30 +38,7 @@ const liushiMonitorOptions: ISDKInitialOptions = {
       sex: userStore.sex,
     }
   },
-  dataEncryptionMethod(transformedJsonData) {
-    return '自定义加密方法运行成功: ' + transformedJsonData
-  },
-  hooks: {
-    // async onDataCollected(_, originalData) {
-    //   return {
-    //     hookInfo: 'hook: onDataCollected 执行成功',
-    //     originalData,
-    //   }
-    // },
-    // async onDataTransformed(_, transformedData) {
-    //   return {
-    //     hookInfo: 'hook: onDataTransformed 执行成功',
-    //     ...transformedData
-    //   }
-    // },
-    // async onBeforeDataReport(encryptedData) {
-    //   return 'hook: onBeforeDataReport 执行成功' + encryptedData
-    // },
-    // onBeforeAjaxSend(config) {
-    //   config.headers['custom-hook-test'] = 'hook: onBeforeAjaxSend 执行成功'
-    //   return config
-    // },
-  }
+  hooks: {}
 }
 
 setTimeout(() => {

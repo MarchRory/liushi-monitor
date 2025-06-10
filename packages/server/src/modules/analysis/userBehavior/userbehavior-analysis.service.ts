@@ -319,7 +319,6 @@ export class UserhehaviorAnalysisService {
             }
         }
 
-        // 获取设备类型分布
         const deviceTypeDistribution = await this.prismaService.producer.groupBy({
             by: ['deviceType'],
             where: {
@@ -335,9 +334,7 @@ export class UserhehaviorAnalysisService {
                 }
             },
             _count: true
-        });
-
-        // 获取浏览器分布
+        })
         const browserDistribution = await this.prismaService.producer.groupBy({
             by: ['deviceBowserName'],
             where: {
@@ -354,8 +351,6 @@ export class UserhehaviorAnalysisService {
             },
             _count: true
         });
-
-        // 获取操作系统分布
         const osDistribution = await this.prismaService.producer.groupBy({
             by: ['deviceOs'],
             where: {
@@ -372,8 +367,6 @@ export class UserhehaviorAnalysisService {
             },
             _count: true
         });
-
-        // 获取不同设备类型的平均曝光时间
         const deviceExposureTime = await Promise.all(
             deviceTypeDistribution.map(async (device) => {
                 const avgExposure = await this.prismaService.exposure.aggregate({
@@ -400,7 +393,6 @@ export class UserhehaviorAnalysisService {
                 };
             })
         );
-
         const result = {
             deviceTypeDistribution,
             browserDistribution,
@@ -477,7 +469,7 @@ export class UserhehaviorAnalysisService {
                 }
             }
 
-            // 进一步处理路径，只保留向前的路径（去除回退）
+            // 只保留向前的路径（去除回退）
             const forwardPaths: string[] = [];
             const visitedPages = new Set();
 

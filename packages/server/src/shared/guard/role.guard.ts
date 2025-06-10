@@ -23,17 +23,17 @@ export class JwtAuthGuard extends AuthGuard('jwt') implements CanActivate {
     }
 
     async canActivate(context: ExecutionContext) {
-        // 1. 执行 JWT 验证（父类方法）
+        // JWT 验证
         const request = context.switchToHttp().getRequest<Request>();
         await super.canActivate(context);
 
-        // 2. 无角色要求的路由直接通过
+        // 无角色要求的路由直接通过
         const requiredRoles = this.reflector.getAllAndOverride<IUserTypeEnum[]>(
             REQUIRE_ROLES_KEY,
             [context.getHandler(), context.getClass()],
         );
         if (!requiredRoles) return true;
-        // 3. 校验用户角色是否匹配
+        // 校验用户角色是否匹配
         const token = request.cookies[TOKEN_KEY]
         const userInfo = await this.jwtService.verify(token, { secret: TOKEN_KEY }) as ITokenPayload;
         const userType = userInfo.user_type;
